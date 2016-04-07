@@ -1,0 +1,19 @@
+{
+  "name": "Vector",
+  "version": "1.0.0",
+  "description": "A simple vector class for computer graphics development",
+  "main": "main.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "mocha -u tdd --reporter nyan tests"
+  },
+  "author": "Eduardo Garcia Rajo",
+  "license": "MIT",
+  "dependencies":{},
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "sinon": "^1.17.3"
+  }
+}
