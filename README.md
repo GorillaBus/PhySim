@@ -1,3 +1,3 @@
 # Vector
 
-A Vector class for computer graphic development
+A Vector class for computer graphics development
