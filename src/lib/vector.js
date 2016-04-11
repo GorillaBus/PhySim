@@ -27,8 +27,8 @@ var Vector = {
 
     setAngle: function(angle) {
         var length = this.getLength();
-        this._x = Math.cos(angle);
-        this._y = Math.sin(angle);
+        this._x = Math.cos(angle) * length;
+        this._y = Math.sin(angle) * length;
     },
 
     getAngle: function() {
