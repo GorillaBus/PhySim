@@ -1,5 +1,5 @@
 var Vector = {
-    _x: 1,
+    _x: 0,
     _y: 0,
 
     create: function(x, y) {
