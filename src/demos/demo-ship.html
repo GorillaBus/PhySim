@@ -14,6 +14,10 @@
         var ctx = canvas.getContext("2d");
         var width = canvas.width = window.innerWidth-4;
         var height = canvas.height = window.innerHeight-4;
+        var angle = 0;
+        var turningLeft = false;
+        var turningRight = false;
+        var thrusting = false;
 
         var shipSettings = {
             x: width / 2,
@@ -27,12 +31,39 @@
         function update() {
             ctx.clearRect(0,0, width, height);            
 
+            if (turningLeft) {
+                angle -= 0.05;
+            }
+            if (turningRight) {
+                angle += 0.05;
+            }
+            if (thrusting) {
+                thrust.setAngle(angle);
+                thrust.setLength(0.1);
+            } else {
+                thrust.setLength(0);
+            }
+
             ship.accelerate(thrust);
             ship.update();
 
+            ctx.save();
+            ctx.translate(ship.position.getX(), ship.position.getY());
+            ctx.rotate(angle);
+            // Draw ship
             ctx.beginPath();
-            ctx.arc(ship.position.getX(), ship.position.getY(), 10, 0, Math.PI * 2, false);
+            ctx.moveTo(10, 0);
+            ctx.lineTo(-10, -7);
+            ctx.lineTo(-10, 7);
+            ctx.lineTo(10, 0);
             ctx.fill();
+            // Draw thrust
+            if (thrusting) {
+                ctx.moveTo(-10, 0);
+                ctx.lineTo(-18, 0);
+            }
+            ctx.stroke();
+            ctx.restore();
 
             if (ship.position.getX() > width) {
                 ship.position.setX(0);
@@ -54,16 +85,13 @@
         document.body.addEventListener("keydown", function(e) {
             switch (e.keyCode) {
                 case 38:                        // Up
-                    thrust.setY(-0.1);
-                    break;
-                case 40:                        // Down
-                    thrust.setY(0.1);
+                    thrusting = true;
                     break;
                 case 37:                        // Left
-                    thrust.setX(-0.1);
+                    turningLeft = true;
                     break;
                 case 39:                        // Right
-                    thrust.setX(0.1);
+                    turningRight = true;
                     break;  
                 case 27:                        // Esc
                     if (requestId) {
@@ -81,16 +109,13 @@
         document.body.addEventListener("keyup", function(e) {
             switch (e.keyCode) {
                 case 38:                        // Up
-                    thrust.setY(0);
-                    break;
-                case 40:                        // Down
-                    thrust.setY(0);
+                    thrusting = false;
                     break;
                 case 37:                        // Left
-                    thrust.setX(0);
+                    turningLeft = false;
                     break;
                 case 39:                        // Right
-                    thrust.setX(0);
+                    turningRight = false;
                     break; 
                 default:
                     break;
