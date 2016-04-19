@@ -15,12 +15,9 @@ var Particle = {
 
         var particle = Object.create(this);
 
-        particle.position = Vector.create(particleSettings.x, particleSettings.y);
-        particle.velocity = Vector.create(0, 0);
-        particle.gravity = Vector.create(0, particleSettings.gravity);
-
-        particle.velocity.setLength(particleSettings.speed);
-        particle.velocity.setAngle(particleSettings.direction);
+        particle.position = Vector.create({ x: particleSettings.x, y: particleSettings.y });
+        particle.velocity = Vector.create({ x: 0, y: 0 });
+        particle.gravity = Vector.create({ x: 0, y: particleSettings.gravity, length: particleSettings.speed, angle: particleSettings.direction });
 
         return particle;
     },
