@@ -14,29 +14,44 @@
         var ctx = canvas.getContext("2d");
         var width = canvas.width = window.innerWidth-4;
         var height = canvas.height = window.innerHeight-4;
+
+        // Ship movement & actions
         var angle = 0;
         var turningLeft = false;
         var turningRight = false;
         var thrusting = false;
+        var firing = false;
 
+        // Ship drawing
         var shipSettings = {
             x: width / 2,
             y: height / 2
         }
         var ship = Particle.create(shipSettings);
-        var thrust = Vector.create(0,0);
+        var thrust = Vector.create({ x: 0, y: 0 });
+        var bullets = [];
+        var numBullets = 0;
 
+
+        //
+        // Start game loop
+        //
         update();
 
+
+        // Frame drawing function
         function update() {
             ctx.clearRect(0,0, width, height);            
 
+            // Ship movement
             if (turningLeft) {
                 angle -= 0.05;
             }
+
             if (turningRight) {
                 angle += 0.05;
             }
+
             if (thrusting) {
                 thrust.setAngle(angle);
                 thrust.setLength(0.1);
@@ -44,27 +59,92 @@
                 thrust.setLength(0);
             }
 
+            // Firing adds more bullets
+            if (firing) {
+                var bulletSettings = {
+                    x: ship.position.getX(),
+                    y: ship.position.getY(),
+                    speed: 1,
+                    direction: angle
+                };
+
+                var impulseSettings = {
+                    x: ship.position.getX(),
+                    y: ship.position.getY(),
+                    length: 0.1,
+                    angle: angle
+                };
+
+                var newBullet = {
+                    bullet: Particle.create(bulletSettings),
+                    impulse: Vector.create(impulseSettings)
+                };
+
+                // Add new bullet to the queue
+                bullets.push(newBullet);
+                numBullets = bullets.length;
+            }
+
+
+
+            // Update ship position
             ship.accelerate(thrust);
             ship.update();
 
+
+
+            // Draw ship
             ctx.save();
             ctx.translate(ship.position.getX(), ship.position.getY());
             ctx.rotate(angle);
-            // Draw ship
             ctx.beginPath();
             ctx.moveTo(10, 0);
             ctx.lineTo(-10, -7);
             ctx.lineTo(-10, 7);
             ctx.lineTo(10, 0);
+            ctx.closePath();
+            ctx.fillStyle = "#000000";
             ctx.fill();
+
             // Draw thrust
             if (thrusting) {
+                ctx.beginPath();
                 ctx.moveTo(-10, 0);
                 ctx.lineTo(-18, 0);
+                ctx.closePath();
+                ctx.stroke();
             }
-            ctx.stroke();
             ctx.restore();
 
+            // Draw bullets
+            if (numBullets > 0) {
+                for (var i=0;i<numBullets;i++) {
+                    var bullet = bullets[i].bullet;
+
+                    // Destroy bullet when it goes out of the screen
+                    if (bullet.position.getX() > width || bullet.position.getY() > height || bullet.position.getX() < 0 || bullet.position.getY() < 0) {
+                        delete bullet; 
+                        bullets.splice(i, 1);
+                        numBullets--;
+                        continue;
+                    }  
+
+                    // Update bullet
+                    bullet.accelerate(bullet.impulse); 
+                    bullet.update();
+
+                    // Draw bullet
+                    ctx.beginPath();
+                    ctx.arc(bullet.position.getX(), bullet.position.getY(), 4, 0, Math.PI * 2, false);
+                    ctx.fillStyle = "#FF0000";
+                    ctx.fill();
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+            }
+            
+
+            // Handle ship positioning when out of sight
             if (ship.position.getX() > width) {
                 ship.position.setX(0);
             }
@@ -83,6 +163,7 @@
 
         // Animation control: KeyDown
         document.body.addEventListener("keydown", function(e) {
+            //console.log("Key pressed: ", e.keyCode);
             switch (e.keyCode) {
                 case 38:                        // Up
                     thrusting = true;
@@ -92,7 +173,7 @@
                     break;
                 case 39:                        // Right
                     turningRight = true;
-                    break;  
+                    break;
                 case 27:                        // Esc
                     if (requestId) {
                         window.cancelAnimationFrame(requestId);
@@ -116,7 +197,13 @@
                     break;
                 case 39:                        // Right
                     turningRight = false;
-                    break; 
+                    break;
+                case 32:                        // Space
+                    firing = true;
+                    setTimeout(function() {
+                        firing = false;
+                    }, 20);
+                    break;
                 default:
                     break;
             }
