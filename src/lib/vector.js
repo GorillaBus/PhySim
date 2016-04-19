@@ -2,10 +2,23 @@ var Vector = {
     _x: 0,
     _y: 0,
 
-    create: function(x, y) {
+    create: function(vectorSettings) {
+        vectorSettings = arguments[0] || {};
+        vectorSettings = {
+            x: vectorSettings.x || 0,
+            y: vectorSettings.y || 0,
+            length: vectorSettings.length || 0,
+            angle: vectorSettings.angle || 0
+        };        
         var vector = Object.create(Vector);
-        vector.setX(x);
-        vector.setY(y);
+        vector.setX(vectorSettings.x);
+        vector.setY(vectorSettings.y);
+        if (vectorSettings.length !== 0) {
+            vector.setLength(vectorSettings.length);            
+        }
+        if (vectorSettings.angle !== 0) {
+            vector.setAngle(vectorSettings.angle);            
+        }        
         return vector;
     },
 
