@@ -120,6 +120,7 @@
             if (numBullets > 0) {
                 for (var i=0;i<numBullets;i++) {
                     var bullet = bullets[i].bullet;
+                    var impulse = bullets[i].impulse;
 
                     // Destroy bullet when it goes out of the screen
                     if (bullet.position.getX() > width || bullet.position.getY() > height || bullet.position.getX() < 0 || bullet.position.getY() < 0) {
@@ -130,7 +131,7 @@
                     }  
 
                     // Update bullet
-                    bullet.accelerate(bullet.impulse); 
+                    bullet.accelerate(impulse); 
                     bullet.update();
 
                     // Draw bullet
