@@ -1,5 +1,5 @@
-var sinon = require('sinon'),
-    assert = require('chai').assert;
+var sinon = require('sinon');
+var assert = require('chai').assert;
 
 var Vector = require('../src/lib/vector');
 
@@ -38,21 +38,24 @@ suite('Vector', function() {
                 assert.property(obj, expectedMethods[i]);
             }
         };
-
-
     });
 
 
     suite('JavaScript test:', function() {
 
         test('SUT must be a JavaScript Object', function() {
-            console.log(Vector); return;
             assert.isObject(sut);
         });
 
+        test('\'Vector.create\' must call \'console.warn\' if it receives invalid arguments', function() {
+            var spy = sinon.spy(console, 'warn');
+            sut.create('nothing_valid');
+            assert(spy.calledOnce);
+        });
+
         test('must return vector objects with all expected methods', function() {
-            vectorA = Vector.create(10, 10);
-            vectorB = Vector.create(3, 4);
+            vectorA = Vector.create({ x:10, y:10 });
+            vectorB = Vector.create({ x:3, y:4 });
             hasExpectedMethods(vectorA);
             hasExpectedMethods(vectorB);
         });
