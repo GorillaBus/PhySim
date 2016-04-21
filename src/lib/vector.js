@@ -3,22 +3,28 @@ var Vector = {
     _y: 0,
 
     create: function(vectorSettings) {
+        if (typeof vectorSettings !== 'object' || !vectorSettings.hasOwnProperty('x') || !vectorSettings.hasOwnProperty('y')) {
+            console.warn("Warning: vector.create called with no or invalid parameters, using defaults!");
+        }
+
         vectorSettings = arguments[0] || {};
         vectorSettings = {
             x: vectorSettings.x || 0,
             y: vectorSettings.y || 0,
             length: vectorSettings.length || 0,
             angle: vectorSettings.angle || 0
-        };        
+        };
+
         var vector = Object.create(Vector);
         vector.setX(vectorSettings.x);
         vector.setY(vectorSettings.y);
         if (vectorSettings.length !== 0) {
-            vector.setLength(vectorSettings.length);            
+            vector.setLength(vectorSettings.length);
         }
         if (vectorSettings.angle !== 0) {
-            vector.setAngle(vectorSettings.angle);            
-        }        
+            vector.setAngle(vectorSettings.angle);
+        }
+
         return vector;
     },
 
@@ -59,19 +65,19 @@ var Vector = {
     },
 
     add: function(vector) {
-        return Vector.create(this._x + vector.getX(), this._y + vector.getY());
+        return Vector.create({ x: this._x + vector.getX(), y: this._y + vector.getY() });
     },
 
     substract: function(vector) {
-        return Vector.create(this._x - vector.getX(), this._y - vector.getY()); 
+        return Vector.create({ x: this._x - vector.getX(), y: this._y - vector.getY() }); 
     },
 
     multiply: function(value) {
-        return Vector.create(this._x * value, this._y * value); 
+        return Vector.create({ x: this._x * value, y: this._y * value }); 
     },
 
     divide: function(value) {
-        return Vector.create(this._x / value, this._y / value); 
+        return Vector.create({ x: this._x / value, y: this._y / value }); 
     },
 
     addTo: function(vector) {
