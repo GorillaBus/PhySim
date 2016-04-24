@@ -7,7 +7,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "mocha -u tdd --reporter nyan tests"
+    "test": "mocha -u tdd tests"
   },
   "author": "Eduardo Garcia Rajo",
   "license": "MIT",
