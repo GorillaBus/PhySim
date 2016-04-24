@@ -5,11 +5,10 @@ var Vector = require('../src/lib/Vector');
 
 suite('Vector', function() {
 
-    var sut, 
-    hasProps, 
-    vectorA, 
-    vectorB, 
-    vectorC;
+    var sut,
+    vector, 
+    hasProps,
+    warnSpy;
 
     setup(function() {
         sut = Vector;
@@ -38,95 +37,101 @@ suite('Vector', function() {
                 assert.property(obj, expectedMethods[i]);
             }
         };
+
+        vector = Object.create(Vector);
+        sut = vector.create({ x: 10, y: 10 });
     });
 
 
-    suite('JavaScript test:', function() {
+    suite('Vector create:', function() {
 
-        test('SUT must be a JavaScript Object', function() {
-            assert.isObject(sut);
-        });
-
-        test('\'Vector.create\' must call \'console.warn\' if it receives invalid arguments', function() {
+        test('must call \'console.warn\' if it receives invalid arguments', function() {
             var spy = sinon.spy(console, 'warn');
             sut.create('nothing_valid');
-            assert(spy.calledOnce);
+            assert.isTrue(spy.calledOnce);
         });
 
-        test('must return vector objects with all expected methods', function() {
-            vectorA = Vector.create({ x:10, y:10 });
-            vectorB = Vector.create({ x:3, y:4 });
-            hasExpectedMethods(vectorA);
-            hasExpectedMethods(vectorB);
+        test('must return a vector with all expected function', function() {
+            hasExpectedMethods(sut);
         });
+
+    });
+
+    suite('Set / Get:', function() {    
 
         test('must set and get the same X,Y values', function() {
-            vectorA.setX(123);
-            vectorA.setY(321);
-            assert.equal(vectorA.getX(), 123);
-            assert.equal(vectorA.getY(), 321);            
+            sut.setX(123);
+            sut.setY(321);
+            assert.equal(sut.getX(), 123);
+            assert.equal(sut.getY(), 321);            
         })
 
         test('must set and get same angle value', function() {
-            vectorA.setAngle(0.9);
-            assert.equal(vectorA.getAngle(), 0.9);
+            sut.setAngle(0.9);
+            assert.equal(sut.getAngle(), 0.9);
         });
 
         test('must set and get same length value', function() {
-            vectorA.setLength(34.5712);
-            assert.equal(vectorA.getLength(), 34.5712);
+            sut.setLength(34.5712);
+            assert.equal(sut.getLength(), 34.5712);
         });
 
-        test('must SUM vectors A and B and get a new vector C with added values', function() {
-            vectorC = vectorA.add(vectorB);
-            assert.isObject(vectorC);
-            hasExpectedMethods(vectorC);
-            assert.equal(vectorC.getX(), vectorA.getX() + vectorB.getX());
-            assert.equal(vectorC.getY(), vectorA.getY() + vectorB.getY());
+    });
+
+    suite('Aritmetic', function() { 
+
+        test('must SUM two vectors and get a new one with added values', function() {
+            var vectorA = vector.create({ x: 3, y: -5 });
+            var vectorB = sut.add(vectorA);
+            assert.isObject(vectorB);
+            hasExpectedMethods(vectorB);
+            assert.equal(vectorB.getX(), vectorA.getX() + sut.getX());
+            assert.equal(vectorB.getY(), vectorA.getY() + sut.getY());
         });        
 
         test('must SUBSTRACT vectors B from A and get a new vector C with substracted values', function() {
-            vectorC = vectorA.substract(vectorB);
-            assert.isObject(vectorC);
-            hasExpectedMethods(vectorC);
-            assert.equal(vectorC.getX(), vectorA.getX() - vectorB.getX());
-            assert.equal(vectorC.getY(), vectorA.getY() - vectorB.getY());
+            var vectorA = vector.create({ x: 3, y: -5 });
+            var vectorB = sut.substract(vectorA);
+            assert.isObject(vectorB);
+            hasExpectedMethods(vectorB);
+            assert.equal(vectorB.getX(), sut.getX() - vectorA.getX());
+            assert.equal(vectorB.getY(), sut.getY() - vectorA.getY());
         });
 
-        test('must MULTIPLY vector A with 9 and get a new vector C with multiplied values', function() {
-            vectorC = vectorA.multiply(9);
-            assert.isObject(vectorC);
-            hasExpectedMethods(vectorC);
-            assert.equal(vectorC.getX(), vectorA.getX() * 9);
-            assert.equal(vectorC.getY(), vectorA.getY() * 9);
+        test('must MULTIPLY vector with 9 and get a new vector with multiplied values', function() {
+            vectorB = sut.multiply(9);
+            assert.isObject(vectorB);
+            hasExpectedMethods(vectorB);
+            assert.equal(vectorB.getX(), sut.getX() * 9);
+            assert.equal(vectorB.getY(), sut.getY() * 9);
         });
 
         test('must DIVIDE vector A with 9 and get a new vector C with divided values', function() {
-            vectorC = vectorA.divide(9);
-            assert.isObject(vectorC);
-            hasExpectedMethods(vectorC);
-            assert.equal(vectorC.getX(), vectorA.getX() / 9);
-            assert.equal(vectorC.getY(), vectorA.getY() / 9);
+            vectorB = sut.divide(9);
+            assert.isObject(vectorB);
+            hasExpectedMethods(vectorB);
+            assert.equal(vectorB.getX(), sut.getX() / 9);
+            assert.equal(vectorB.getY(), sut.getY() / 9);
         });
 
-        test('must MULTIPLY vector A\'s values and get correct values', function() {
-            var origX = vectorA.getX();
-            var origY = vectorA.getY();
+        test('must MULTIPLY vector values and get exact new values', function() {
+            var origX = sut.getX();
+            var origY = sut.getY();
             var factor = 9.2;
 
-            vectorA.divideBy(factor);
-            assert.equal(vectorA.getX(), origX / factor);
-            assert.equal(vectorA.getY(), origY / factor);
+            sut.divideBy(factor);
+            assert.equal(sut.getX(), origX / factor);
+            assert.equal(sut.getY(), origY / factor);
         });
 
         test('must DIVIDE vector A\'s values and get correct values', function() {
-            var origX = vectorA.getX();
-            var origY = vectorA.getY();
+            var origX = sut.getX();
+            var origY = sut.getY();
             var factor = 2.31;
 
-            vectorA.multiplyBy(factor);
-            assert.equal(vectorA.getX(), origX * factor);
-            assert.equal(vectorA.getY(), origY * factor);
+            sut.multiplyBy(factor);
+            assert.equal(sut.getX(), origX * factor);
+            assert.equal(sut.getY(), origY * factor);
         });
 
     });
