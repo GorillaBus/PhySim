@@ -1,7 +1,7 @@
 var sinon = require('sinon');
 var assert = require('chai').assert;
 
-var Vector = require('../src/lib/vector');
+var Vector = require('../src/lib/Vector');
 
 suite('Vector', function() {
 
