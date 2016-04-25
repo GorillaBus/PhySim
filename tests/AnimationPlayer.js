@@ -16,7 +16,7 @@ suite('Animation Player', function() {
 
         windowFake = {
             requestAnimationFrame: function(cb) {
-                cb.apply();
+                // Note that we don't execute cb to avoid recursion
                 return this.generateFakeId();
             },
             cancelAnimationFrame: function(requestId) {
@@ -60,13 +60,9 @@ suite('Animation Player', function() {
     suite('Play', function() { 
 
         test('must call window.requestAnimationFrame and save requestId', function() {
-            sut.play();
-            assert.isTrue(reqAnimFrameSpy.called);
-            assert.isNumber(sut.requestId);
-        });
-
-        test('must call window.requestAnimationFrame and save requestId', function() {
-            sut.play();
+            var cb = function() {};
+            sut.setUpdateFn(cb);
+            sut.updateFn();
             assert.isTrue(reqAnimFrameSpy.called);
             assert.isNumber(sut.requestId);
         });
