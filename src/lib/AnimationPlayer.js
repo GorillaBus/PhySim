@@ -9,7 +9,7 @@ var AnimationPlayer = {
     },
     play: function() {
         this.playing = true;
-        this.requestId = this.window.requestAnimationFrame(this.updateFn);
+        this.updateFn();
     },
     stop: function() {
         if (!this.playing) {
@@ -20,7 +20,10 @@ var AnimationPlayer = {
         this.requestId = null;
     },
     setUpdateFn: function(updateFn) {
-        this.updateFn = updateFn;
+        this.updateFn = (function() {
+            this.requestId = this.window.requestAnimationFrame(this.updateFn);
+            updateFn.apply(this);
+        }.bind(this));        
     },
     updateFn: function() {
         console.warn("Player update function has not been set.");
