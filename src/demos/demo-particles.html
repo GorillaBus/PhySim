@@ -4,19 +4,23 @@
     <title>Vector Class Demo</title>
     <link rel="stylesheet" type="text/css" href="demos.css" />
     <script>
-    var requestId;
+
+    var player;
+
     // Browser compatibility hack
     var module = function() {
         this.exports = function() { };
     };
+
     window.onload = function() {
         var canvas = document.getElementById("canvas");
         var ctx = canvas.getContext("2d");
         var width = canvas.width = window.innerWidth-4;
         var height = canvas.height = window.innerHeight-4;
+
+        // Particles setup
         var particles = [];
         var numParticles = 100;
-
         for (var i=0;i<numParticles;i++) {
             var particleSettings = {
                 x: width/2,
@@ -28,8 +32,13 @@
             particles.push(Particle.create(particleSettings));
         }
 
-        update();
+        // Demo player
+        player = AnimationPlayer.create();        
+        player.setUpdateFn(update);
+        player.play();
 
+
+        // Frame drawing function
         function update() {
             ctx.clearRect(0,0, width, height);
 
@@ -41,9 +50,7 @@
                 ctx.arc(p.position.getX(), p.position.getY(), 4, 0, Math.PI * 2, false);
                 ctx.fill();
                 ctx.closePath();
-            }
-
-            requestId = requestAnimationFrame(update);            
+            }          
         }
     };
 
@@ -61,7 +68,8 @@
     };
     </script>
     <script src="../lib/Vector.js" type="text/javascript"></script>
-    <script src="../lib/Particle.js" type="text/javascript"></script> 
+    <script src="../lib/Particle.js" type="text/javascript"></script>
+    <script src="../lib/AnimationPlayer.js" type="text/javascript"></script>
     </head>
 <body>
 <canvas id="canvas"></canvas>
