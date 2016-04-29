@@ -37,7 +37,7 @@ suite('Animation Player', function() {
 
     suite('General', function() {
 
-        test('must be a JavaScript Object with \'creat\' function', function() {
+        test('must be a JavaScript Object with \'create\' function', function() {
             assert.isObject(sut);
             assert.property(sut, 'create');
         });
