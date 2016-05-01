@@ -50,7 +50,7 @@ var Particle = {
         var angle = this.angleTo(particle);
         gravity.setLength(effect);
         gravity.setAngle(angle);
-        this.velocity.addTo(gravity);
+        this.accelerate(gravity);
     }
 };
 
