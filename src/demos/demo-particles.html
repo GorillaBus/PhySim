@@ -57,13 +57,15 @@
     // Animation control
     document.onkeyup = function(e) {
         switch (e.keyCode) {
-            case 27: // Esc
-                if (requestId) {
-                    window.cancelAnimationFrame(requestId);
-                    requestId = undefined;
+            case 27:                        // Esc
+                if (player.playing) {
+                    player.stop();
                     console.log("> Scene stopped");
+                } else {
+                    player.play();
+                    console.log("> Playing scene");
                 }
-                break;      
+                break;    
         }
     };
     </script>
