@@ -1,11 +1,10 @@
-// TODO: Verify if it is OK to pass direction and speed to gravity vector on create, seems it must go to velocity vector.
 var Vector = Vector || require('./Vector');
 var Particle = {
     position: null,
     velocity: null,
     gravity: null,
 
-    create: function(particleSettings, VectorObject) {
+    create: function(particleSettings) {
         particleSettings = arguments[0] || {};
         particleSettings = {
             x: particleSettings.x || 100,
