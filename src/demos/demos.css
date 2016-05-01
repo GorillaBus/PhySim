@@ -4,3 +4,8 @@ HTML, BODY {
     margin:0;
     padding:0;
 }
+
+/* Gravity demo */
+#gravityDemo {
+    background:#010101;
+}
