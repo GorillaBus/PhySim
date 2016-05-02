@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vector Class Demo</title>
+    <link rel="stylesheet" type="text/css" href="demos.css" />
+    <script>
+
+    var player;
+    
+    // Browser compatibility hack
+    var module = function() {
+        this.exports = function() { };
+    };
+
+    window.onload = function() {
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext("2d");
+        var width = canvas.width = window.innerWidth-4;
+        var height = canvas.height = window.innerHeight-4;
+        
+        var _sunCfg = {
+            x: width / 2,
+            y: height / 2,
+            mass: 40000
+        };
+        var _earthCfg = {
+            x: width / 2 - 400,
+            y: height / 2,
+            speed: 10,
+            direction: -Math.PI / 2
+        };
+        var sun = Particle.create(_sunCfg);
+        var earth = Particle.create(_earthCfg);
+
+
+        // Demo player
+        player = AnimationPlayer.create();        
+        player.setUpdateFn(update);
+        player.play();
+
+
+        // Frame drawing function
+        function update(updateFn) {
+            ctx.clearRect(0,0, width, height);            
+
+            earth.gravitateTo(sun);
+            earth.update();
+
+            ctx.beginPath();
+            ctx.fillStyle = "#ffff00";
+            ctx.arc(sun.position.getX(), sun.position.getY(), 100, 0, Math.PI * 2, false);
+            ctx.fill();
+            ctx.closePath();
+
+            ctx.beginPath();
+            ctx.fillStyle = "#0000ff";
+            ctx.arc(earth.position.getX(), earth.position.getY(), 15, 0, Math.PI * 2, false);
+            ctx.fill();
+            ctx.closePath();
+        }
+
+
+
+        // Animation control: KeyDown
+        document.body.addEventListener("keydown", function(e) {
+            //console.log("Key pressed: ", e.keyCode);
+            switch (e.keyCode) {
+                case 38:                        // Up
+                    thrusting = true;
+                    break;
+                case 37:                        // Left
+                    turningLeft = true;
+                    break;
+                case 39:                        // Right
+                    turningRight = true;
+                    break;
+                case 27:                        // Esc
+                    if (player.playing) {
+                        player.stop();
+                        console.log("> Scene stopped");
+                    } else {
+                        player.play();
+                        console.log("> Playing scene");
+                    }
+                    break;
+                default:
+                    break;
+            }
+        });
+
+        // Animation control: KeyUp
+        document.body.addEventListener("keyup", function(e) {
+            switch (e.keyCode) {
+                case 38:                        // Up
+                    thrusting = false;
+                    break;
+                case 37:                        // Left
+                    turningLeft = false;
+                    break;
+                case 39:                        // Right
+                    turningRight = false;
+                    break;
+                case 32:                        // Space
+                    firing = true;
+                    setTimeout(function() {
+                        firing = false;
+                    }, 20);
+                    break;
+                default:
+                    break;
+            }
+        });
+    };
+    </script>
+
+    <script src="../lib/Vector.js" type="text/javascript"></script>
+    <script src="../lib/Particle.js" type="text/javascript"></script>
+    <script src="../lib/AnimationPlayer.js" type="text/javascript"></script>
+    </head>
+<body>
+<canvas id="canvas"></canvas>
+</body>
+</html>
