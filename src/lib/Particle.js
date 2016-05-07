@@ -3,6 +3,8 @@ var Particle = {
     position: null,
     velocity: null,
     mass: null,
+    radius: null,
+    friction: null,
 
     create: function(particleSettings) {
         particleSettings = arguments[0] || {};
@@ -11,17 +13,21 @@ var Particle = {
             y: particleSettings.y || 0,
             speed: particleSettings.speed || 0,
             direction: particleSettings.direction || 0,
-            mass: particleSettings.mass || 1
+            mass: particleSettings.mass || 1,
+            radius: particleSettings.radius || 10,
+            friction: particleSettings.friction || 1
         };
 
-        var particle = Object.create(this);
+        console.log(particleSettings)
 
+        var particle = Object.create(this);
         particle.position = Vector.create({ x: particleSettings.x, y: particleSettings.y });
         particle.velocity = Vector.create({ x: 0, y: 0 });
         particle.velocity.setLength(particleSettings.speed);
         particle.velocity.setAngle(particleSettings.direction);
         particle.mass = particleSettings.mass;
-
+        particle.radius = particleSettings.radius;
+        particle.friction = particleSettings.friction;
         return particle;
     },
 
@@ -30,6 +36,7 @@ var Particle = {
     },
 
     update: function() {
+        this.velocity.multiplyBy(this.friction);
         this.position.addTo(this.velocity);
     },
 
