@@ -18,8 +18,6 @@ var Particle = {
             friction: particleSettings.friction || 1
         };
 
-        console.log(particleSettings)
-
         var particle = Object.create(this);
         particle.position = Vector.create({ x: particleSettings.x, y: particleSettings.y });
         particle.velocity = Vector.create({ x: 0, y: 0 });
