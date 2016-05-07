@@ -28,7 +28,8 @@
         // Ship drawing
         var shipSettings = {
             x: width / 2,
-            y: height / 2
+            y: height / 2,
+            friction: 0.99
         }
         var ship = Particle.create(shipSettings);
         var thrust = Vector.create({ x: 0, y: 0 });
@@ -73,7 +74,7 @@
                 var impulseSettings = {
                     x: ship.position.getX(),
                     y: ship.position.getY(),
-                    length: 0.1,
+                    length: 1,
                     angle: angle
                 };
 
