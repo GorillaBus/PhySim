@@ -1,3 +1,5 @@
+'use strict'
+
 var Vector = Vector || require('./Vector');
 var Particle = {
     position: null,
@@ -5,6 +7,7 @@ var Particle = {
     mass: null,
     radius: null,
     friction: null,
+    gravity: null,
 
     create: function(particleSettings) {
         particleSettings = arguments[0] || {};
@@ -15,12 +18,14 @@ var Particle = {
             direction: particleSettings.direction || 0,
             mass: particleSettings.mass || 1,
             radius: particleSettings.radius || 10,
-            friction: particleSettings.friction || 1
+            friction: particleSettings.friction || 1,
+            gravity:  particleSettings.gravity || 0
         };
 
         var particle = Object.create(this);
         particle.position = Vector.create({ x: particleSettings.x, y: particleSettings.y });
         particle.velocity = Vector.create({ x: 0, y: 0 });
+        particle.gravity = Vector.create({ x: 0, y: particleSettings.gravity }),
         particle.velocity.setLength(particleSettings.speed);
         particle.velocity.setAngle(particleSettings.direction);
         particle.mass = particleSettings.mass;
@@ -34,6 +39,7 @@ var Particle = {
     },
 
     update: function() {
+        this.velocity.addTo(this.gravity);
         this.velocity.multiplyBy(this.friction);
         this.position.addTo(this.velocity);
     },
