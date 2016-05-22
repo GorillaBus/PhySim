@@ -86,7 +86,7 @@ window.onload = function() {
                 figure1.x = e.clientX;
                 figure1.y = e.clientY;
 
-                if (Utils.circleCollition(figure0, figure1)) {
+                if (Utils.circleCollision(figure0, figure1)) {
                     ctx.fillStyle = "#f66";
                 } else {
                     ctx.fillStyle = "#999";
@@ -109,7 +109,7 @@ window.onload = function() {
 
                 figure0 = circle0;
 
-                if (Utils.circlePointCollition(e.clientX, e.clientY, figure0)) {
+                if (Utils.circlePointCollision(e.clientX, e.clientY, figure0)) {
                     ctx.fillStyle = "#f66";
                 } else {
                     ctx.fillStyle = "#999";
@@ -132,7 +132,7 @@ window.onload = function() {
                 figure1.x = e.clientX;
                 figure1.y = e.clientY;
 
-                if (Utils.rectangleCollition(figure0, figure1)) {
+                if (Utils.rectangleCollision(figure0, figure1)) {
                     ctx.fillStyle = "#f66";
                 } else {
                     ctx.fillStyle = "#999";
@@ -151,7 +151,7 @@ window.onload = function() {
             default:
                 figure0 = rectangle0;
 
-                if (Utils.rectanglePointCollition(e.clientX, e.clientY, figure0)) {
+                if (Utils.rectanglePointCollision(e.clientX, e.clientY, figure0)) {
                     ctx.fillStyle = "#f66";
                 } else {
                     ctx.fillStyle = "#999";
