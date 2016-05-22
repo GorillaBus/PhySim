@@ -80,20 +80,20 @@ suite('Utilities', function() {
         });
     });
 
-    suite("Circle collition", function() {
+    suite("Circle collision", function() {
 
         test('must return true||false if c0 to c1 distance is shorter than their radius together', function() {
-            var collition = Utils.circleCollition(c0, c1);
-            assert.isFalse(collition);
+            var collision = Utils.circleCollision(c0, c1);
+            assert.isFalse(collision);
 
-            var collitionC1 = {
+            var collisionC1 = {
                 x: 100,
                 y: 40,
                 radius: c1.radius
             };
 
-            var collition2 = Utils.circleCollition(c0, collitionC1);
-            assert.isTrue(collition2);
+            var collision2 = Utils.circleCollision(c0, collisionC1);
+            assert.isTrue(collision2);
         });
 
         test("must return true||false if p0 to c1 distance is shorter than c1 radius", function() {
@@ -102,17 +102,17 @@ suite('Utilities', function() {
                 y: 79
             };
 
-            var collition = Utils.circlePointCollition(p0.x, p0.y, c1);
-            assert.isTrue(collition);
+            var collision = Utils.circlePointCollision(p0.x, p0.y, c1);
+            assert.isTrue(collision);
 
             p0.x = 1;
             p0.y = 1;
-            var collition2 = Utils.circlePointCollition(p0.x, p0.y, c1);
-            assert.isFalse(collition2);
+            var collision2 = Utils.circlePointCollision(p0.x, p0.y, c1);
+            assert.isFalse(collision2);
         });
     });
 
-    suite("Rectangle collition", function() {
+    suite("Rectangle collision", function() {
 
         test("must return true||false if p0 is overlaps rectangle or not", function() {
             var rect = {
@@ -121,7 +121,7 @@ suite('Utilities', function() {
                 width: 100,
                 height: 100
             };
-            var collitionPoint = {
+            var collisionPoint = {
                 x: 150,
                 y: 150
             };
@@ -129,8 +129,8 @@ suite('Utilities', function() {
                 x: 99.99,
                 y: 99.99
             };
-            var hit = Utils.rectanglePointCollition(collitionPoint.x, collitionPoint.y, rect);
-            var miss = Utils.rectanglePointCollition(point.x, point.y, rect);
+            var hit = Utils.rectanglePointCollision(collisionPoint.x, collisionPoint.y, rect);
+            var miss = Utils.rectanglePointCollision(point.x, point.y, rect);
 
             assert.isTrue(hit);
             assert.isFalse(miss);
@@ -155,8 +155,8 @@ suite('Utilities', function() {
                 width: 10,
                 height: 30
             };
-            var overlap = Utils.rectangleCollition(rectA, rectB);
-            var noOverlap = Utils.rectangleCollition(rectA, rectC);
+            var overlap = Utils.rectangleCollision(rectA, rectB);
+            var noOverlap = Utils.rectangleCollision(rectA, rectC);
             
             assert.isTrue(overlap);
             assert.isFalse(noOverlap);
