@@ -1,3 +1,5 @@
+'use strict'
+
 var Vector = {
     _x: 0,
     _y: 0,

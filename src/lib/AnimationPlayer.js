@@ -1,3 +1,5 @@
+'use strict'
+
 var AnimationPlayer = {
     window: null,
     requestId: null,
