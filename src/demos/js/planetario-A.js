@@ -10,18 +10,15 @@ window.onload = function() {
     var ctx = canvas.getContext("2d");
     var width = canvas.width = window.innerWidth-4;
     var height = canvas.height = window.innerHeight-4;
-
     var startY = height / 2;
     var baseX = width / 2;
-    
     var _sunCfg = {
         x: baseX,
         y: startY,
         mass: 3000,
-        direction: -Math.PI * 360,
         speed: 0
-    };
-
+    };    
+    var sun = Particle.create(_sunCfg);
     var planetsSetup = [{
         x: baseX - 100,
         y: startY,
@@ -30,11 +27,25 @@ window.onload = function() {
         color: '#0007FF',
         mass: 4.5
     },{
+        x: baseX + 104,
+        y: startY,
+        speed: 5.5,
+        direction: -Math.PI / 2,
+        color: '#F3F972',
+        mass: 4.5
+    },{
         x: baseX - 170,
         y: startY,
         speed: 4.1,
         direction: -Math.PI / 2,
         color: '#FF3500',
+        mass: 11
+    },{
+        x: baseX + 163,
+        y: startY,
+        speed: 4.1,
+        direction: -Math.PI / 2,
+        color: '#E1EA43',
         mass: 11
     },{
         x: baseX - 230,
@@ -51,18 +62,35 @@ window.onload = function() {
         color: '#F0C65A',
         mass: 27
     },{
+        x: baseX + 292,
+        y: startY,
+        speed: 3.4,
+        direction: -Math.PI / 2,
+        color: '#9E51C9',
+        mass: 27
+    },{
         x: baseX - 360,
         y: startY,
         speed: 2.9,
         direction: -Math.PI / 2,
         color: '#3582AF',
         mass: 43
+    },{
+        x: baseX + 349,
+        y: startY,
+        speed: 2.9,
+        direction: -Math.PI / 2,
+        color: '#C951A9',
+        mass: 43
     }];
-
-    var sun = Particle.create(_sunCfg);
     var planets = createPlanets(planetsSetup);
 
-
+    // Movement of the Sun
+    var sunMovement = Vector.create({ x: 0, y: 0 });
+    var sunMovementing = false;
+    var turningLeft = false;
+    var turningRight = false;
+    var angle = 0;
 
     // Demo player
     player = AnimationPlayer.create();        
@@ -70,7 +98,8 @@ window.onload = function() {
     player.play();
 
 
-    // Frame drawing function
+    /** Frame drawing function **/
+
     function update(updateFn) {
         ctx.clearRect(0,0, width, height);
 
@@ -101,6 +130,8 @@ window.onload = function() {
         }
     }
 
+    /** Helpers **/
+
     function createPlanets(config) {
         var total = config.length;
         var planets = [];
@@ -110,19 +141,19 @@ window.onload = function() {
         return planets;
     }
 
+    /** Events **/
+
+    document.body.addEventListener('mousemove', function (e) {
+        sunMovement.setX(e.clientX - (width/2));
+        sunMovement.setY(e.clientY - (height/2));
+        sun.velocity.setLength(0.3);
+        sun.velocity.setAngle(sunMovement.getAngle());
+    });
+
     // Animation control: KeyDown
     document.body.addEventListener("keydown", function(e) {
         //console.log("Key pressed: ", e.keyCode);
         switch (e.keyCode) {
-            case 38:                        // Up
-                thrusting = true;
-                break;
-            case 37:                        // Left
-                turningLeft = true;
-                break;
-            case 39:                        // Right
-                turningRight = true;
-                break;
             case 27:                        // Esc
                 if (player.playing) {
                     player.stop();
@@ -131,29 +162,6 @@ window.onload = function() {
                     player.play();
                     console.log("> Playing scene");
                 }
-                break;
-            default:
-                break;
-        }
-    });
-
-    // Animation control: KeyUp
-    document.body.addEventListener("keyup", function(e) {
-        switch (e.keyCode) {
-            case 38:                        // Up
-                thrusting = false;
-                break;
-            case 37:                        // Left
-                turningLeft = false;
-                break;
-            case 39:                        // Right
-                turningRight = false;
-                break;
-            case 32:                        // Space
-                firing = true;
-                setTimeout(function() {
-                    firing = false;
-                }, 20);
                 break;
             default:
                 break;
