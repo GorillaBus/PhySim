@@ -91,6 +91,16 @@ window.onload = function() {
     var turningLeft = false;
     var turningRight = false;
     var angle = 0;
+    var scale = {
+        x: 1,
+        y: 1,
+        increment: 0.1
+    }
+    var pos = {
+        x: 0,
+        y: 0,
+        increment: 1
+    }
 
     // Demo player
     player = AnimationPlayer.create();        
@@ -152,7 +162,7 @@ window.onload = function() {
 
     // Animation control: KeyDown
     document.body.addEventListener("keydown", function(e) {
-        //console.log("Key pressed: ", e.keyCode);
+        console.log("Key pressed: ", e.keyCode);
         switch (e.keyCode) {
             case 27:                        // Esc
                 if (player.playing) {
@@ -163,8 +173,49 @@ window.onload = function() {
                     console.log("> Playing scene");
                 }
                 break;
+            /*case 37: // left
+                pos.x -= pos.increment;
+                break;
+            case 38: // up
+                pos.y -= pos.increment;
+                break;
+            case 39: // right
+                pos.x += pos.increment;
+                break;
+            case 40: // down
+                pos.y += pos.increment;
+                break;*/
             default:
                 break;
         }
+        updateStyle();
     });
+
+    if (document.body.addEventListener) {
+        // IE9, Chrome, Safari, Opera
+        document.body.addEventListener("mousewheel", MouseWheelHandler, false);
+        // Firefox
+        document.body.addEventListener("DOMMouseScroll", MouseWheelHandler, false);
+    }
+    // IE 6/7/8
+    else document.body.attachEvent("onmousewheel", MouseWheelHandler);
+
+    function MouseWheelHandler(e) {
+        var e = window.event || e;
+        var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+        if(delta > 0){
+            scale.x += scale.increment;
+            scale.y += scale.increment;
+        } else {
+            scale.x -= scale.increment;
+            scale.y -= scale.increment;
+        }
+        updateStyle();
+    };
+
+    function updateStyle(){
+        canvas.style.transform = 'translate(' + pos.x + 'px, ' + pos.y + 'px) scale(' + scale.x + ',' + scale.y + ')'
+    }
+
+    updateStyle();
 };

@@ -60,7 +60,7 @@ var Planet = {
     },
 
     gravitateTo: function(planet) {
-        var gravity = Vector.create();
+        var gravity = Vector.create({x: 0, y: 0});
         var distance = this.distanceTo(planet);
         var effect = planet.mass / (distance * distance);
         var angle = this.angleTo(planet);
