@@ -30,7 +30,7 @@ window.onload = function() {
         x: baseX + 104,
         y: startY,
         speed: 5.5,
-        direction: -Math.PI / 2,
+        direction: Math.PI / 2,
         color: '#F3F972',
         mass: 4.5
     },{
@@ -44,7 +44,7 @@ window.onload = function() {
         x: baseX + 163,
         y: startY,
         speed: 4.1,
-        direction: -Math.PI / 2,
+        direction: Math.PI / 2,
         color: '#E1EA43',
         mass: 11
     },{
@@ -65,7 +65,7 @@ window.onload = function() {
         x: baseX + 292,
         y: startY,
         speed: 3.4,
-        direction: -Math.PI / 2,
+        direction: Math.PI / 2,
         color: '#9E51C9',
         mass: 27
     },{
@@ -79,7 +79,7 @@ window.onload = function() {
         x: baseX + 349,
         y: startY,
         speed: 2.9,
-        direction: -Math.PI / 2,
+        direction: Math.PI / 2,
         color: '#C951A9',
         mass: 43
     }];
