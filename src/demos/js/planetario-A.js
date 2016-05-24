@@ -207,8 +207,8 @@ window.onload = function() {
             scale.x += scale.increment;
             scale.y += scale.increment;
         } else {
-            scale.x -= scale.increment;
-            scale.y -= scale.increment;
+            scale.x = (scale.x > 0) ? scale.x - scale.increment : 0;
+            scale.y = (scale.y > 0) ? scale.y - scale.increment : 0;
         }
         updateStyle();
     };
