@@ -162,7 +162,7 @@ window.onload = function() {
 
     // Animation control: KeyDown
     document.body.addEventListener("keydown", function(e) {
-        console.log("Key pressed: ", e.keyCode);
+        //console.log("Key pressed: ", e.keyCode);
         switch (e.keyCode) {
             case 27:                        // Esc
                 if (player.playing) {
