@@ -6,10 +6,10 @@ window.onload = function() {
     var width = canvas.width = window.innerWidth-4;
     var height = canvas.height = window.innerHeight-4;
 
-    var springPoint = Vector.create({
+    var springPoint = {
         x: width / 2,
         y: height / 2
-    });
+    };
 
     var weight = Particle.create({
         x: Math.random() * width,
@@ -31,25 +31,32 @@ window.onload = function() {
     function update(updateFn) {
         ctx.clearRect(0,0, width, height);    
 
-        var distance = springPoint.substract(weight.position);
-        var force = distance.multiply(k);
+        var dx = springPoint.x - weight.x;
+        var dy = springPoint.y - weight.y;
+        var distance = Math.sqrt(dx * dx + dy * dy);
+        var force = distance * k;
+        // Instead of getting cos / sin of angle, divide sides by hypotenuse
+        var ax = (dx / distance) * force;
+        var ay = (dy / distance) * force;
 
-        weight.velocity.addTo(force);
+        weight.vx += ax;
+        weight.vy += ay;
+
         weight.update();
 
         ctx.beginPath();
-        ctx.arc(weight.position.getX(), weight.position.getY(), weight.radius, 0, Math.PI * 2, false);
+        ctx.arc(weight.x, weight.y, weight.radius, 0, Math.PI * 2, false);
         ctx.fill();
         ctx.closePath();
 
         ctx.beginPath();
-        ctx.arc(springPoint.getX(), springPoint.getY(), 10, 0, Math.PI * 2, false);
+        ctx.arc(springPoint.x, springPoint.y, 10, 0, Math.PI * 2, false);
         ctx.fill();
         ctx.closePath();
 
         ctx.beginPath();
-        ctx.moveTo(weight.position.getX(), weight.position.getY());
-        ctx.lineTo(springPoint.getX(), springPoint.getY());
+        ctx.moveTo(weight.x, weight.y);
+        ctx.lineTo(springPoint.x, springPoint.y);
         ctx.stroke();
         ctx.closePath();
     }
@@ -57,8 +64,8 @@ window.onload = function() {
 
     // Animation control: MouseMove
     document.body.addEventListener("mousemove", function(e) {
-        springPoint.setX(e.clientX);
-        springPoint.setY(e.clientY);
+        springPoint.x = e.clientX;
+        springPoint.y = e.clientY;
     });
 
     // Animation control: KeyDown
