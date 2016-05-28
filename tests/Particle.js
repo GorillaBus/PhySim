@@ -29,8 +29,8 @@ suite('Particle', function() {
             assert.isObject(particle);
 
             assert.property(particle, 'mass');
-            assert.equal(particle.position.getX(), 0);
-            assert.equal(particle.position.getY(), 0);
+            assert.equal(particle.x, 0);
+            assert.equal(particle.y, 0);
         });
 
         test('must create a Particle with given settings', function() {
@@ -40,13 +40,11 @@ suite('Particle', function() {
                 speed: 34.13,
                 direction: 3.14,
                 gravity: 0.1
-            }
+            };
             var particle = sut.create(particleSettings);
             assert.isObject(particle);
-            assert.equal(particle.position.getX(), particleSettings.x);
-            assert.equal(particle.position.getY(), particleSettings.y);
-            assert.equal(round(particle.velocity.getLength()), particleSettings.speed);
-            assert.equal(round(particle.velocity.getAngle()), particleSettings.direction);    
+            assert.equal(particle.x, particleSettings.x);
+            assert.equal(particle.y, particleSettings.y);
         }); 
 
         test('new particle must have default functions', function() {
@@ -67,30 +65,27 @@ suite('Particle', function() {
 
         test('new particle must have default vectors and properties', function() {
             var particle = sut.create();
-            assert.property(particle, 'position');
-            assert.isObject(particle.position);
-            assert.isNumber(particle.position.getY());
-            assert.isNumber(particle.position.getX());
-            assert.property(particle, 'velocity');
-            assert.isObject(particle.velocity);            
-            assert.isNumber(particle.velocity.getY());
-            assert.isNumber(particle.velocity.getX());
-
+            assert.isNumber(particle.y);
+            assert.isNumber(particle.x);
+            assert.isNumber(particle.vx);
+            assert.isNumber(particle.vy);
             assert.property(particle, 'mass');
             assert.equal(particle.mass, 1);
+            assert.property(particle, 'radius');
+            assert.equal(particle.radius, 1);
+            assert.property(particle, 'friction');
+            assert.equal(particle.friction, 1);
+            assert.property(particle, 'gravity');
+            assert.equal(particle.gravity, 0);
         });
 
         test('must add to velocity vector on accelerate', function() {
             var particle = sut.create();
-            var vector = Vector.create({
-                x: 1,
-                y: 1
-            });
-            assert.equal(particle.velocity.getX(), 0);
-            particle.accelerate(vector);
-            assert.equal(particle.velocity.getX(), 1);
-            particle.accelerate(vector);
-            assert.equal(particle.velocity.getX(), 2);           
+            assert.equal(particle.vx, 0);
+            particle.accelerate(1, 0);
+            assert.equal(particle.vx, 1);
+            particle.accelerate(0, 2);
+            assert.equal(particle.vy, 2);           
         });
 
         test('must add position vector on update and call accelerate', function() {
@@ -102,11 +97,11 @@ suite('Particle', function() {
             };
             var particle = sut.create(particleSettings);
             particle.update();
-            assert.equal(round(particle.position.getX()), 198);
+            assert.equal(round(particle.x), 198);
             particle.update();
-            assert.equal(round(particle.position.getX()), 196);
+            assert.equal(round(particle.x), 196);
             particle.update();
-            assert.equal(round(particle.position.getX()), 194);
+            assert.equal(round(particle.x), 194);
         });
       
     });
@@ -182,12 +177,13 @@ suite('Particle', function() {
             // Initial position
             grav.setLength(gravityAB);
             grav.setAngle(angleAB);
-            oldPosition = { x: particleB.position.getX(), y: particleB.position.getY() };
+            oldPosition = { x: particleB.x, y: particleB.y };
 
             // Ending position
-            particleB.velocity.addTo(grav);
+            particleB.vx += grav.getX();
+            particleB.vy += grav.getY();
             particleB.update();            
-            newPosition = { x: particleB.position.getX(), y: particleB.position.getY() };
+            newPosition = { x: particleB.x, y: particleB.y };
 
 
             // Assertion
@@ -195,8 +191,8 @@ suite('Particle', function() {
             var sun = sut.create(_pa);            
             earth.gravitateTo(sun);
             earth.update();
-            assert.equal(Math.round(earth.position.getX()), Math.round(newPosition.x));
-            assert.equal(Math.round(earth.position.getY()), Math.round(newPosition.y));
+            assert.equal(Math.round(earth.x), Math.round(newPosition.x));
+            assert.equal(Math.round(earth.y), Math.round(newPosition.y));
         });
 
     });
