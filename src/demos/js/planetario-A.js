@@ -88,8 +88,6 @@ window.onload = function() {
     // Movement of the Sun
     var sunMovement = Vector.create({ x: 0, y: 0 });
     var sunMovementing = false;
-    var turningLeft = false;
-    var turningRight = false;
     var angle = 0;
     var scale = {
         x: 1,
@@ -120,7 +118,7 @@ window.onload = function() {
 
             ctx.beginPath();
             ctx.fillStyle = planets[i].color;
-            ctx.arc(planets[i].position.getX(), planets[i].position.getY(), planets[i].radius, 0, Math.PI * 2, false);
+            ctx.arc(planets[i].x, planets[i].y, planets[i].radius, 0, Math.PI * 2, false);
             ctx.shadowBlur = 12;
             ctx.shadowColor = 'rgba(255,255,255,0.5)';
             ctx.fill();
@@ -131,7 +129,7 @@ window.onload = function() {
 
                 ctx.beginPath();
                 ctx.fillStyle = "#FFE500";
-                ctx.arc(sun.position.getX(), sun.position.getY(), 32, 0, Math.PI * 2, false);
+                ctx.arc(sun.x, sun.y, 32, 0, Math.PI * 2, false);
                 ctx.shadowBlur = 54;
                 ctx.shadowColor = '#E8FF00';
                 ctx.fill();
@@ -146,7 +144,10 @@ window.onload = function() {
         var total = config.length;
         var planets = [];
         for (var i=0; i<total; i++) {
-            planets.push(Planet.create(config[i]));
+            var p = Particle.create(config[i]);
+            p.color = config[i].color;
+            p.radius = p.mass * 0.2;
+            planets.push(p);
         }
         return planets;
     }
@@ -156,8 +157,10 @@ window.onload = function() {
     document.body.addEventListener('mousemove', function (e) {
         sunMovement.setX(e.clientX - (width/2));
         sunMovement.setY(e.clientY - (height/2));
-        sun.velocity.setLength(0.3);
-        sun.velocity.setAngle(sunMovement.getAngle());
+        sun.direction = sunMovement.getAngle();
+        if (sun.speed < 0.3) {
+            sun.speed(0.3);
+        }
     });
 
     // Animation control: KeyDown
