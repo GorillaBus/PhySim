@@ -5,21 +5,25 @@ window.onload = function() {
     var ctx = canvas.getContext("2d");
     var width = canvas.width = window.innerWidth-4;
     var height = canvas.height = window.innerHeight-4;
-
     var springPoint = {
         x: width / 2,
         y: height / 2
     };
-
+    var springPoint2 = {
+        x: Utils.randomRange(0, width),
+        y: Utils.randomRange(0, height)
+    };
     var weight = Particle.create({
         x: Math.random() * width,
         y: Math.random() * height,
         radius: 20,
         friction: 0.9
     });
-
     var k = 0.1;
+    var springLength = 100;
 
+    weight.addSpring(springPoint, k, springLength);
+    weight.addSpring(springPoint2, k, springLength);
 
     // Demo player
     player = AnimationPlayer.create();        
@@ -30,17 +34,6 @@ window.onload = function() {
     // Frame drawing function
     function update(updateFn) {
         ctx.clearRect(0,0, width, height);    
-
-        var dx = springPoint.x - weight.x;
-        var dy = springPoint.y - weight.y;
-        var distance = Math.sqrt(dx * dx + dy * dy);
-        var force = distance * k;
-        // Instead of getting cos / sin of angle, divide sides by hypotenuse
-        var ax = (dx / distance) * force;
-        var ay = (dy / distance) * force;
-
-        weight.vx += ax;
-        weight.vy += ay;
 
         weight.update();
 
@@ -55,8 +48,19 @@ window.onload = function() {
         ctx.closePath();
 
         ctx.beginPath();
+        ctx.arc(springPoint2.x, springPoint2.y, 10, 0, Math.PI * 2, false);
+        ctx.fill();
+        ctx.closePath();
+
+        ctx.beginPath();
         ctx.moveTo(weight.x, weight.y);
         ctx.lineTo(springPoint.x, springPoint.y);
+        ctx.stroke();
+        ctx.closePath();
+
+        ctx.beginPath();
+        ctx.moveTo(weight.x, weight.y);
+        ctx.lineTo(springPoint2.x, springPoint2.y);
         ctx.stroke();
         ctx.closePath();
     }
