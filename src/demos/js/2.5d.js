@@ -18,6 +18,8 @@ window.onload = function() {
         };
     }
 
+
+
     // Demo player
     player = AnimationPlayer.create();        
     player.setUpdateFn(update);
@@ -31,15 +33,20 @@ window.onload = function() {
     /** Frame drawing function **/
 
     function update(updateFn) {
-        ctx.clearRect(-width/2, -height/2, width, height);
+        
+        shapes.sort(function(shapeA, shapeB) {
+            return shapeB.z - shapeA.z;
+        });          
+
+        ctx.clearRect(-width/2, -height/2, width, height);     
 
         for (var i=0;i<numShapes;i++) {            
             var perspective = fl / (fl + shapes[i].z);
 
             ctx.save();
 
-            ctx.translate(shapes[i].x * perspective, shapes[i].y * perspective);
             ctx.scale(perspective, perspective);
+            ctx.translate(shapes[i].x, shapes[i].y);
             ctx.beginPath();
             ctx.arc(shapes[i].x, shapes[i].y, 5, Math.PI * 2, false);
             ctx.fillStyle = "#FFFFFF"; 
@@ -53,6 +60,7 @@ window.onload = function() {
             }
         }
     }
+
     
     /** Events **/
 
