@@ -1,35 +1,34 @@
-'use strict'
+export default class AnimationPlayer {
 
-var AnimationPlayer = {
-    window: null,
-    requestId: null,
-    playing: false,
-    create: function(windowElement) {
-        var Player = Object.create(this);
-        Player.window = windowElement || window;
-        return Player;
-    },
-    play: function() {
+    constructor(windowElement) {
+        this.window = windowElement || window;
+        this.requestId = null;
+        this.playing = false;
+    }
+
+    play() {
         this.playing = true;
         this.updateFn();
-    },
-    stop: function() {
+    }
+
+    stop() {
         if (!this.playing) {
             return false;
         }
         this.window.cancelAnimationFrame(this.requestId);
         this.playing = false;
         this.requestId = null;
-    },
-    setUpdateFn: function(updateFn) {
-        this.updateFn = (function() {
-            this.requestId = this.window.requestAnimationFrame(this.updateFn);
-            updateFn.apply(this);
-        }.bind(this));        
-    },
-    updateFn: function() {
+    }
+
+    setUpdateFn(updateFn) {
+        this.updateFn = (
+            () => {
+                this.requestId = this.window.requestAnimationFrame(this.updateFn);
+                updateFn.apply(this);
+            });
+    }
+
+    updateFn() {
         console.warn("Player update function has not been set.");
     }
-};
-
-module.exports = AnimationPlayer;
+}
