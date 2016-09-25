@@ -1,0 +1,88 @@
+import Particle from '../../src/lib/Particle';
+import AnimationPlayer from '../../src/lib/AnimationPlayer';
+import Utils from '../../src/lib/Utils';
+
+let player;
+let utils = new Utils();
+
+window.onload = function() {
+    let canvas = document.getElementById("canvas");
+    let ctx = canvas.getContext("2d");
+    let width = canvas.width = window.innerWidth-4;
+    let height = canvas.height = window.innerHeight-4;
+
+    let fl = 5500;
+    let shapes = [];
+    let numShapes = 5000;
+
+    for (let i=0;i<numShapes;i++) {
+        shapes[i] = {
+            x: utils.randomRange(-1000, 1000),
+            y: utils.randomRange(-1000, 1000),
+            z: utils.randomRange(0, 100000)
+        };
+    }
+
+
+    // Demo player
+    player = new AnimationPlayer();
+    player.setUpdateFn(update);
+    player.play();
+
+
+    // New 0,0 position (vanish point)
+    ctx.translate(width/2, height/2);
+
+
+    /** Frame drawing function **/
+
+    function update(updateFn) {
+
+        shapes.sort(function(shapeA, shapeB) {
+            return shapeB.z - shapeA.z;
+        });
+
+        ctx.clearRect(-width/2, -height/2, width, height);
+
+        for (let i=0;i<numShapes;i++) {
+            let perspective = fl / (fl + shapes[i].z);
+
+            ctx.save();
+
+            ctx.scale(perspective, perspective);
+            ctx.translate(shapes[i].x, shapes[i].y);
+            ctx.beginPath();
+            ctx.arc(shapes[i].x, shapes[i].y, 5, Math.PI * 2, false);
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fill();
+            ctx.closePath();
+            ctx.restore();
+
+            shapes[i].z += 250;
+            if (shapes[i].z > 99999) {
+                shapes[i].z = 0;
+            }
+        }
+    }
+
+
+    /** Events **/
+
+    // Animation control: KeyDown
+    document.body.addEventListener("keydown", function(e) {
+        //console.log("Key pressed: ", e.keyCode);
+        switch (e.keyCode) {
+            case 27:                        // Esc
+                if (player.playing) {
+                    player.stop();
+                    console.log("> Scene stopped");
+                } else {
+                    player.play();
+                    console.log("> Playing scene");
+                }
+                break;
+            default:
+                break;
+        }
+    });
+};
