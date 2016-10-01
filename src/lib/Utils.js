@@ -44,20 +44,20 @@ export default class Utils {
     }
 
     circleCollision(c0, c1) {
-        return Utils.distance(c0, c1) <= c0.radius + c1.radius;
+        return this.distance(c0, c1) <= c0.radius + c1.radius;
     }
 
     rectangleCollision(r0, r1) {
-        return  Utils.rangeIntersect(r0.x, r0.x + r0.width, r1.x, r1.x + r1.width) &&
-                Utils.rangeIntersect(r0.y, r0.y + r0.height, r1.y, r1.y + r1.height);
+        return  this.rangeIntersect(r0.x, r0.x + r0.width, r1.x, r1.x + r1.width) &&
+                this.rangeIntersect(r0.y, r0.y + r0.height, r1.y, r1.y + r1.height);
     }
 
     circlePointCollision(px, py, circle) {
-        return Utils.distanceXY(px, py, circle.x, circle.y) < circle.radius;
+        return this.distanceXY(px, py, circle.x, circle.y) < circle.radius;
     }
 
     rectanglePointCollision(px, py, rect) {
-        return  Utils.inRange(px, rect.x, rect.x + rect.width) &&
-                Utils.inRange(py, rect.y, rect.y + rect.height);
+        return  this.inRange(px, rect.x, rect.x + rect.width) &&
+                this.inRange(py, rect.y, rect.y + rect.height);
     }
 }

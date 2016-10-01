@@ -7,10 +7,10 @@ export default class Vector {
         this.setX(settings.x);
         this.setY(settings.y);
 
-        if (settings.length !== 0) {
+        if (settings.length) {
             this.setLength(settings.length);
         }
-        if (settings.angle !== 0) {
+        if (settings.angle) {
             this.setAngle(settings.angle);
         }
     }
