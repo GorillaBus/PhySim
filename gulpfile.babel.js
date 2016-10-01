@@ -6,7 +6,7 @@ let browserify = require('browserify');
 let watchify = require('watchify');
 let babel = require('babelify');
 
-let allProjects = ['planetario', '2.5D'];
+let allProjects = ['collision-detect', 'particles', 'planetario', '2.5D', 'spaceship'];
 let projects = getParams() || allProjects;
 
 gulp.task('default', compile);
@@ -22,7 +22,7 @@ function buildAll() {
 
 function watchProject() {
     if (projects.length > 1) {
-        console.error("Please use '--project <project>' to watch");
+        console.error("Please use '-p <project>' to watch");
         return false;
     }
 
@@ -65,7 +65,7 @@ function copyfiles(project) {
 }
 
 function getParams() {
-    let i = process.argv.indexOf("--project");
+    let i = process.argv.indexOf("-p");
     if(i>-1 && process.argv[i+1] !== undefined) {
         return [process.argv[i+1]];
     }
