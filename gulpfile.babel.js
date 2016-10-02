@@ -6,7 +6,7 @@ let browserify = require('browserify');
 let watchify = require('watchify');
 let babel = require('babelify');
 
-let allProjects = ['2.5D', 'bezier-curves', 'collision-detect', 'earth-sun-gravitation', 'friction', 'gravitations', 'particles', 'planetario', 'spaceship'];
+let allProjects = ['2.5D', 'bezier-curves', 'bigbang', 'collision-detect', 'earth-sun-gravitation', 'friction', 'gravitations', 'particles', 'planetario', 'spaceship', 'springs-1', 'springs-2'];
 let projects = getParams() || allProjects;
 
 gulp.task('default', compile);
