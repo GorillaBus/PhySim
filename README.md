@@ -13,19 +13,21 @@ The code is commented and should be quite self explanatory but I'm doing documen
 
 ## Classes provided
 
-### Vector · (/src/lib/Vector.js)
+    Vector · (/src/lib/Vector.js)
 
     Lets you create vector objects and do different operations between them like adding, multiplying, dividing, etc. It can still have some possible optimizations (do you know any? I'll appretiate if you share!).
 
-### Particle · (/src/lib/Particle.js)
+
+    Particle · (/src/lib/Particle.js)
 
     Handles particle objects and the relation between them. Particles can gravitate and spring between them. Also can be accelerated by vectors, de-celerated by friction and more. I managed to do some optimizations already but still looking for more possibilities.
 
-### Utils · (/src/lib/Utils.js)
+
+    Utils · (/src/lib/Utils.js)
 
     Many helpful utilities that right now don't belong to a special entity/object class but will. Some of them are collision detection, managing random values, calculating ranges, distances, bezier curves and more. Much of this I did with great help from the YOUTUBE channel 'Coding Math' which not only I totally recommend, but also I encourage to donate for the so valuable resource the author is creating.
 
-### AnimationPlayer.js · (/src/lib/AnimationPlayer.js)
+## AnimationPlayer.js · (/src/lib/AnimationPlayer.js)
 
     A very simple object that will handle the 'game loop'. You just pass it an update function where you will do your calculations and drawings and it will play it. You can PAUSE/RESUME playback with 'Esc'. I'm now working on a UI and more functionality I'm starting to require.
 
