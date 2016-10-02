@@ -5,13 +5,11 @@ HTML, BODY {
     padding:0;
 }
 
-/* Planetario demo */
-
-#planetarioDemo {
+BODY {
     background: #000000;
 }
 
-#planetarioDemo DIV {
+BODY DIV {
     opacity: 0.5;
     width:100%;
     height:100%;
@@ -19,5 +17,5 @@ HTML, BODY {
     top:0;
     position:absolute;
     z-index: -1;
-    background: #000000 url(images/space-bg.jpg) 0 0 no-repeat;
+    background: #000000 url(../images/space-bg.jpg) 0 0 repeat;
 }

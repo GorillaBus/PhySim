@@ -1,39 +1,43 @@
-var player;
+import Particle from '../../src/lib/Particle';
+import AnimationPlayer from '../../src/lib/AnimationPlayer';
+import Utils from '../../src/lib/Utils';
 
-window.onload = function() {
-    var canvas = document.getElementById("canvas");
-    var ctx = canvas.getContext("2d");
-    var width = canvas.width = window.innerWidth-4;
-    var height = canvas.height = window.innerHeight-4;
-    var springPoint = {
+window.onload = () => {
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const width = canvas.width = window.innerWidth-4;
+    const height = canvas.height = window.innerHeight-4;
+
+    let player = new AnimationPlayer();
+    let utils = new Utils();
+
+    let springPoint = {
         x: width / 2,
         y: height / 2
     };
-    var springPoint2 = {
-        x: Utils.randomRange(0, width),
-        y: Utils.randomRange(0, height)
+    let springPoint2 = {
+        x: utils.randomRange(0, width),
+        y: utils.randomRange(0, height)
     };
-    var weight = Particle.create({
+    let weight = new Particle({
         x: Math.random() * width,
         y: Math.random() * height,
         radius: 20,
         friction: 0.9
     });
-    var k = 0.1;
-    var springLength = 100;
+    let k = 0.1;
+    let springLength = 100;
 
     weight.addSpring(springPoint, k, springLength);
     weight.addSpring(springPoint2, k, springLength);
 
     // Demo player
-    player = AnimationPlayer.create();        
     player.setUpdateFn(update);
     player.play();
 
-
     // Frame drawing function
-    function update(updateFn) {
-        ctx.clearRect(0,0, width, height);    
+    function update() {
+        ctx.clearRect(0,0, width, height);
 
         weight.update();
 
@@ -67,13 +71,13 @@ window.onload = function() {
 
 
     // Animation control: MouseMove
-    document.body.addEventListener("mousemove", function(e) {
+    document.body.addEventListener("mousemove", (e) => {
         springPoint.x = e.clientX;
         springPoint.y = e.clientY;
     });
 
     // Animation control: KeyDown
-    document.body.addEventListener("keydown", function(e) {
+    document.body.addEventListener("keydown", (e) => {
         //console.log("Key pressed: ", e.keyCode);
         switch (e.keyCode) {
             case 27:                        // Esc

@@ -1,25 +1,25 @@
-var player;
+import Particle from '../../src/lib/Particle';
+import AnimationPlayer from '../../src/lib/AnimationPlayer';
 
-// Browser compatibility hack
-var module = function() {
-    this.exports = function() { };
-};
+window.onload = () => {
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const width = canvas.width = window.innerWidth-4;
+    const height = canvas.height = window.innerHeight-4;
 
-window.onload = function() {
-    var canvas = document.getElementById("canvas");
-    var ctx = canvas.getContext("2d");
-    var width = canvas.width = window.innerWidth-4;
-    var height = canvas.height = window.innerHeight-4;
-    var startY = height / 2;
-    var baseX = width / 2;
-    var _sunCfg = {
+    let player = new AnimationPlayer();
+
+    let startY = height / 2;
+    let baseX = width / 2;
+    let _sunCfg = {
         x: baseX,
         y: startY,
         mass: 3000,
-        speed: 0
-    };    
-    var sun = Particle.create(_sunCfg);
-    var planetsSetup = [{
+        speed: 0,
+        gravity: 0
+    };
+    let sun = new Particle(_sunCfg);
+    let planetsSetup = [{
         x: baseX - 100,
         y: startY,
         speed: 5.5,
@@ -83,36 +83,41 @@ window.onload = function() {
         color: '#C951A9',
         mass: 43
     }];
-    var planets = createPlanets(planetsSetup);
-
-    // Movement of the Sun
-    var sunMovement = Vector.create({ x: 0, y: 0 });
-    var sunMovementing = false;
-    var angle = 0;
-    var scale = {
+    let planets = createPlanets(planetsSetup);
+    let scale = {
         x: 1,
         y: 1,
         increment: 0.1
-    }
-    var pos = {
+    };
+    let pos = {
         x: 0,
         y: 0,
         increment: 1
-    }
+    };
+
+    // TODO: Look for a better implementation
+    updateStyle();
 
     // Demo player
-    player = AnimationPlayer.create();        
     player.setUpdateFn(update);
     player.play();
 
-
-    /** Frame drawing function **/
-
-    function update(updateFn) {
+    // Frame drawing function
+    function update() {
         ctx.clearRect(0,0, width, height);
 
-        var total = planets.length;
-        for (var i=0; i<total; i++) {
+        sun.update();
+
+        ctx.beginPath();
+        ctx.fillStyle = "#FFE500";
+        ctx.arc(sun.x, sun.y, 32, 0, Math.PI * 2, false);
+        ctx.shadowBlur = 54;
+        ctx.shadowColor = '#E8FF00';
+        ctx.fill();
+        ctx.closePath();
+
+        let total = planets.length;
+        for (let i=0; i<total; i++) {
             planets[i].gravitateTo(sun);
             planets[i].update();
 
@@ -123,28 +128,16 @@ window.onload = function() {
             ctx.shadowColor = 'rgba(255,255,255,0.5)';
             ctx.fill();
             ctx.closePath();
-
-            if (i === total-1) {
-                sun.update();
-
-                ctx.beginPath();
-                ctx.fillStyle = "#FFE500";
-                ctx.arc(sun.x, sun.y, 32, 0, Math.PI * 2, false);
-                ctx.shadowBlur = 54;
-                ctx.shadowColor = '#E8FF00';
-                ctx.fill();
-                ctx.closePath();
-            }
         }
     }
 
     /** Helpers **/
 
     function createPlanets(config) {
-        var total = config.length;
-        var planets = [];
-        for (var i=0; i<total; i++) {
-            var p = Particle.create(config[i]);
+        let total = config.length;
+        let planets = [];
+        for (let i=0; i<total; i++) {
+            let p = new Particle(config[i]);
             p.color = config[i].color;
             p.radius = p.mass * 0.2;
             planets.push(p);
@@ -154,17 +147,8 @@ window.onload = function() {
 
     /** Events **/
 
-    document.body.addEventListener('mousemove', function (e) {
-        sunMovement.setX(e.clientX - (width/2));
-        sunMovement.setY(e.clientY - (height/2));
-        sun.direction = sunMovement.getAngle();
-        if (sun.speed < 0.3) {
-            sun.speed(0.3);
-        }
-    });
-
     // Animation control: KeyDown
-    document.body.addEventListener("keydown", function(e) {
+    document.body.addEventListener("keydown", (e) => {
         //console.log("Key pressed: ", e.keyCode);
         switch (e.keyCode) {
             case 27:                        // Esc
@@ -176,36 +160,16 @@ window.onload = function() {
                     console.log("> Playing scene");
                 }
                 break;
-            /*case 37: // left
-                pos.x -= pos.increment;
-                break;
-            case 38: // up
-                pos.y -= pos.increment;
-                break;
-            case 39: // right
-                pos.x += pos.increment;
-                break;
-            case 40: // down
-                pos.y += pos.increment;
-                break;*/
             default:
                 break;
         }
         updateStyle();
     });
 
-    if (document.body.addEventListener) {
-        // IE9, Chrome, Safari, Opera
-        document.body.addEventListener("mousewheel", MouseWheelHandler, false);
-        // Firefox
-        document.body.addEventListener("DOMMouseScroll", MouseWheelHandler, false);
-    }
-    // IE 6/7/8
-    else document.body.attachEvent("onmousewheel", MouseWheelHandler);
+    document.body.addEventListener("mousewheel", MouseWheelHandler, false);
 
     function MouseWheelHandler(e) {
-        var e = window.event || e;
-        var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+        let delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
         if(delta > 0){
             scale.x += scale.increment;
             scale.y += scale.increment;
@@ -214,11 +178,9 @@ window.onload = function() {
             scale.y = (scale.y > 0) ? scale.y - scale.increment : 0;
         }
         updateStyle();
-    };
+    }
 
     function updateStyle(){
         canvas.style.transform = 'translate(' + pos.x + 'px, ' + pos.y + 'px) scale(' + scale.x + ',' + scale.y + ')'
     }
-
-    updateStyle();
 };
