@@ -173,7 +173,7 @@ export default class Particle {
         for (let i=0; i<length; i++){
             if (this.springs[i].point === point) {
                 this.springs.splice(i, 1);
-                return true;
+                return;
             }
         }
     }
