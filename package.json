@@ -1,7 +1,7 @@
 {
   "name": "Vector",
   "version": "1.0.0",
-  "description": "Vector/Particle phisics experiments for the browser Canvas",
+  "description": "Vector/Particle physics experiments for the browser Canvas",
   "main": "app.js",
   "directories": {
     "test": "tests"
