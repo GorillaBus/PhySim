@@ -1,4 +1,3 @@
-import Utils from '../../src/lib/Utils.js';
 import Particle from '../../src/lib/Particle.js';
 import AnimationPlayer from '../../src/lib/AnimationPlayer';
 
@@ -7,12 +6,12 @@ window.onload = () => {
     const ctx = canvas.getContext("2d");
     const width = canvas.width = window.innerWidth-4;
     const height = canvas.height = window.innerHeight-4;
-    let player;
+
+    let player = new AnimationPlayer();
 
     ctx.scale(.1, .1);
 
     /*
-
         We know that the SUN is:
 
         * 109 times the diameter of the earth:          if earth radius is 1, sun radius should be 109
@@ -45,13 +44,10 @@ window.onload = () => {
     earth.addGravitation(sun);
 
     // Demo player
-    player = new AnimationPlayer();
     player.setUpdateFn(update);
     player.play();
 
-
-    /** Frame drawing function **/
-
+    // Frame drawing function
     function update() {
         ctx.clearRect(0,0, width, height);
 

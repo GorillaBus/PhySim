@@ -1,14 +1,14 @@
 import Particle from '../../src/lib/Particle';
-import Vector from '../../src/lib/Vector';
 import AnimationPlayer from '../../src/lib/AnimationPlayer';
 
-let player;
-
 window.onload = () => {
-    let canvas = document.getElementById("canvas");
-    let ctx = canvas.getContext("2d");
-    let width = canvas.width = window.innerWidth-4;
-    let height = canvas.height = window.innerHeight-4;
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const width = canvas.width = window.innerWidth-4;
+    const height = canvas.height = window.innerHeight-4;
+
+    let player = new AnimationPlayer();
+
     let startY = height / 2;
     let baseX = width / 2;
     let _sunCfg = {
@@ -95,16 +95,15 @@ window.onload = () => {
         increment: 1
     };
 
-    
+    // TODO: Look for a better implementation
+    updateStyle();
+
     // Demo player
-    player = new AnimationPlayer();
     player.setUpdateFn(update);
     player.play();
 
-
-    /** Frame drawing function **/
-
-    function update(updateFn) {
+    // Frame drawing function
+    function update() {
         ctx.clearRect(0,0, width, height);
 
         sun.update();
@@ -149,7 +148,7 @@ window.onload = () => {
     /** Events **/
 
     // Animation control: KeyDown
-    document.body.addEventListener("keydown", function(e) {
+    document.body.addEventListener("keydown", (e) => {
         //console.log("Key pressed: ", e.keyCode);
         switch (e.keyCode) {
             case 27:                        // Esc
@@ -184,6 +183,4 @@ window.onload = () => {
     function updateStyle(){
         canvas.style.transform = 'translate(' + pos.x + 'px, ' + pos.y + 'px) scale(' + scale.x + ',' + scale.y + ')'
     }
-
-    updateStyle();
 };

@@ -1,7 +1,7 @@
 import Utils from '../../src/lib/Utils';
 import AnimationPlayer from '../../src/lib/AnimationPlayer';
 
-window.onload = function() {
+window.onload = () => {
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
     const width = canvas.width = window.innerWidth-4;
@@ -44,7 +44,6 @@ window.onload = function() {
 
     // Frame drawing function
     function update() {
-
         ctx.clearRect(0,0, width, height);
 
         // Calculate a quadratic bezier

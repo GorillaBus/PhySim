@@ -2,12 +2,13 @@ import Particle from '../../src/lib/Particle';
 import AnimationPlayer from '../../src/lib/AnimationPlayer';
 import Vector from '../../src/lib/Vector';
 
-window.onload = function() {
+window.onload = () => {
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
     const width = canvas.width = window.innerWidth-4;
     const height = canvas.height = window.innerHeight-4;
-    var player;
+
+    var player = new AnimationPlayer();;
 
     let particleCfg = {
         x: width / 2,
@@ -23,10 +24,8 @@ window.onload = function() {
     let friction = new Vector({ x:0, y:0, length: 0.15 });
 
     // Demo player
-    player = new AnimationPlayer();
     player.setUpdateFn(update);
     player.play();
-
 
     // Frame drawing function
     function update() {

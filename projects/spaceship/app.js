@@ -2,13 +2,13 @@ import Particle from '../../src/lib/Particle';
 import AnimationPlayer from '../../src/lib/AnimationPlayer';
 import Vector from '../../src/lib/Vector';
 
-let player;
-
 window.onload = () => {
-    let canvas = document.getElementById("canvas");
-    let ctx = canvas.getContext("2d");
-    let width = canvas.width = window.innerWidth-4;
-    let height = canvas.height = window.innerHeight-4;
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const width = canvas.width = window.innerWidth-4;
+    const height = canvas.height = window.innerHeight-4;
+
+    let player = new AnimationPlayer();
 
     // Ship movement & actions
     let angle = 0;
@@ -29,7 +29,6 @@ window.onload = () => {
     let numBullets = 0;
 
     // Demo player
-    player = new AnimationPlayer();
     player.setUpdateFn(update);
     player.play();
 

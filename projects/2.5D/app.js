@@ -2,14 +2,16 @@ import Particle from '../../src/lib/Particle';
 import AnimationPlayer from '../../src/lib/AnimationPlayer';
 import Utils from '../../src/lib/Utils';
 
-let player;
-let utils = new Utils();
 
-window.onload = function() {
-    let canvas = document.getElementById("canvas");
-    let ctx = canvas.getContext("2d");
-    let width = canvas.width = window.innerWidth-4;
-    let height = canvas.height = window.innerHeight-4;
+
+window.onload = () => {
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const width = canvas.width = window.innerWidth-4;
+    const height = canvas.height = window.innerHeight-4;
+
+    let player = new AnimationPlayer();
+    let utils = new Utils();
 
     let fl = 5500;
     let shapes = [];
@@ -23,20 +25,15 @@ window.onload = function() {
         };
     }
 
-
     // Demo player
-    player = new AnimationPlayer();
     player.setUpdateFn(update);
     player.play();
-
 
     // New 0,0 position (vanish point)
     ctx.translate(width/2, height/2);
 
-
-    /** Frame drawing function **/
-
-    function update(updateFn) {
+    // Frame drawing function
+    function update() {
 
         shapes.sort(function(shapeA, shapeB) {
             return shapeB.z - shapeA.z;
@@ -69,7 +66,7 @@ window.onload = function() {
     /** Events **/
 
     // Animation control: KeyDown
-    document.body.addEventListener("keydown", function(e) {
+    document.body.addEventListener("keydown", (e) => {
         //console.log("Key pressed: ", e.keyCode);
         switch (e.keyCode) {
             case 27:                        // Esc
