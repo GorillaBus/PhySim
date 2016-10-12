@@ -6,7 +6,7 @@ Hi! This repo holds an JavaScript + Gulp environment for developing physics expe
 
 This is the project on which I work while I studdy phisics, chemistry, computer graphics, fractals, AI and more. I go writing classes to do the math -like vectors and particles-, UI components -like the demo playback and a console I'll upload very soon-, projects/experiments -there are already some under /projects- and the environment to compile each project, transpile to Ecma5 and copy resources.
 
-I just started with all this and hope to do some cool stuff (defining 'cool' as user interactive applications with which consiciousness of the universe where we live could be spread between those who, like me, area interested in what the fuck is going on in the universe and what the fuck life is).
+I just started with all this and hope to do some cool stuff (defining 'cool' as user interactive applications with which consiciousness about the universe we perceive can be spread between those who, like me, are interested. What is life? What is this place? What's going on out there and *in* there?).
 
 The code is commented and should be quite self explanatory but I'm doing documentation that will also provide links to resources related with math and phisics.
 
