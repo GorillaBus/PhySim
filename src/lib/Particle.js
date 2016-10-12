@@ -1,3 +1,5 @@
+import FEATURE_TOGGLE from '../../src/feature-toggle';
+
 export default class Particle {
 
     constructor(settings) {
