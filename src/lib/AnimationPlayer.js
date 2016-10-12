@@ -24,7 +24,7 @@ export default class AnimationPlayer {
         this.updateFn = (
             () => {
                 this.requestId = this.window.requestAnimationFrame(this.updateFn);
-                updateFn.apply(this);
+                updateFn();
             });
     }
 
