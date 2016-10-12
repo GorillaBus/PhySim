@@ -2,14 +2,16 @@ import FEATURE_TOGGLE from '../../src/feature-toggle';
 
 export default class AnimationPlayer {
 
-    constructor(windowElement) {
-        this.window = windowElement || window;
+    constructor(settings) {
+        settings = settings || {};
+        
+        this.window = settings.windowElement || window;
         this.requestId = null;
         this.playing = false;
 
         // FPS control
         if (FEATURE_TOGGLE.FPS_CONTROL) {
-          this.fps = 3;
+          this.fps = settings.fps || 30;
           this.now;
           this.lastTime = Date.now();
           this.interval = 1000/this.fps;
