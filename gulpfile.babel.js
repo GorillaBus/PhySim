@@ -5,8 +5,9 @@ let buffer = require('vinyl-buffer');
 let browserify = require('browserify');
 let watchify = require('watchify');
 let babel = require('babelify');
+let fs = require('fs');
 
-let allProjects = ['2.5D', 'bezier-curves', 'bigbang', 'collision-detect', 'earth-sun-gravitation', 'friction', 'gravitations', 'particles', 'planetario', 'spaceship', 'springs-1', 'springs-2'];
+let allProjects = ['2.5D', 'bezier-curves', 'bigbang', 'collision-detect', 'earth-sun-gravitation', 'friction', 'gravitations', 'particles', 'planetario', 'spaceship', 'springs-1', 'springs-2', 'random-walker', 'uniform-distribution-meter'];
 let projects = getParams() || allProjects;
 
 gulp.task('default', compile);
@@ -60,8 +61,18 @@ function compile(project, watch) {
 }
 
 function copyfiles(project) {
+    let commonCssDir = './projects/'+ project +'/css';
+
     gulp.src('./projects/'+ project +'/**/*.{jpg,png,gif,svg,html,css}')
     .pipe(gulp.dest('./build/'+ project +'/'));
+
+    // Copy common CSS and check if CSS dir exists
+    if (!fs.existsSync(commonCssDir)){
+        fs.mkdirSync(commonCssDir);
+    }
+
+    gulp.src('./src/css/common.css')
+    .pipe(gulp.dest('./build/'+ project +'/css'));
 }
 
 function getParams() {
