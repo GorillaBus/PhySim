@@ -1,10 +1,14 @@
 import Utils from '../../../src/lib/Utils';
+import Perlin from '../../../src/lib/Perlin';
 
 export default class Walker {
     constructor(settings) {
       this.x = settings.x || 0;
       this.y = settings.y || 0;
+      this.maxX = settings.maxX || 1280;
+      this.maxY = settings.maxY || 740;
       this.utils = new Utils();
+      this.pn = new Perlin('some random seed');
       this.stepSize = settings.stepSize || 1;
     }
 
@@ -23,6 +27,20 @@ export default class Walker {
 
       this.x += this.stepSize * xValue
       this.y += this.stepSize * yValue;
+    }
+
+    stepPerlin(tx, ty) {
+      let xValue = 0;
+      let yValue = 0;
+
+      // Eventually jump to a distant location
+      xValue = Math.floor(this.pn.noise(tx,0,0) * ((this.maxX) - 1 + 1)) + 1;
+      yValue = Math.floor(this.pn.noise(ty,0,0) * ((this.maxY) - 1 + 1)) + 1;
+
+      this.x = xValue;
+      this.y = yValue;
+
+      this.handlOffscreen();
     }
 
     stepMontecarlo(w, h) {
@@ -47,17 +65,7 @@ export default class Walker {
       this.x = xValue;
       this.y = yValue;
 
-      if (this.x >= w) {
-        this.x = w;
-      } else if (this.x < 1) {
-        this.x = 1;
-      }
-
-      if (this.y >= h) {
-        this.y = h;
-      } else if (this.y < 1) {
-        this.y = 1;
-      }
+      this.handlOffscreen();
     }
 
     /**
@@ -86,4 +94,17 @@ export default class Walker {
       this.y += this.stepSize * yValue;
     }
 
+    handlOffscreen() {
+      if (this.x >= this.maxX) {
+        this.x = this.maxX;
+      } else if (this.x < 1) {
+        this.x = 1;
+      }
+
+      if (this.y >= this.maxY) {
+        this.y = this.maxY;
+      } else if (this.y < 1) {
+        this.y = 1;
+      }
+    }
 }

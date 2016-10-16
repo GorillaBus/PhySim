@@ -12,11 +12,18 @@ window.onload = () => {
     canvas.width = width;
     canvas.style.backgroundColor="#999999";
 
-    let player = new AnimationPlayer({ fps: 5 });
+    let player = new AnimationPlayer({ fps: 55 });
     let walker = new Walker({
                     x: center.x,
                     y: center.y,
-                    stepSize: 10 });
+                    stepSize: 10,
+                    maxX: width,
+                    maxY: height
+                });
+
+    // Perlin noise offsets
+    let tx = 0;
+    let ty = 1000;
 
     // Demo player setup
     player.setUpdateFn(update);
@@ -32,7 +39,13 @@ window.onload = () => {
         // Choose a random direction: between 4 posibilities, with 40% of chossing the right ->
         //walker.stepProbability();
 
+        // Choose a random direction or jump (using Montecarlo algorithm)
         walker.stepMontecarlo(width, height);
+
+        //walker.stepPerlin(tx, ty);
+        tx += 0.01;
+        ty += 0.01;
+
 
         // Draw walker
         ctx.beginPath();
