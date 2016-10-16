@@ -1,7 +1,10 @@
+import Utils from '../../../src/lib/Utils';
+
 export default class Walker {
     constructor(settings) {
       this.x = settings.x || 0;
       this.y = settings.y || 0;
+      this.utils = new Utils();
       this.stepSize = settings.stepSize || 1;
     }
 
@@ -20,6 +23,41 @@ export default class Walker {
 
       this.x += this.stepSize * xValue
       this.y += this.stepSize * yValue;
+    }
+
+    stepMontecarlo(w, h) {
+      const min = -1;
+      const max = 1;
+
+      let xValue=0;
+      let yValue=0;
+      let value = Math.floor(this.utils.montecarlo() * (6 - 1 + 1)) + 1;
+
+      // Eventually jump to a distant location
+      if (value < 2) {
+        xValue = Math.floor(Math.random() * ((w-10) - 10 + 1)) + 10;
+        yValue = Math.floor(Math.random() * ((h-10) - 10 + 1)) + 10;
+
+      } else {
+
+        xValue += this.x + this.stepSize * (Math.floor(Math.random() * (max - min + 1)) + min);
+        yValue += this.y + this.stepSize * (Math.floor(Math.random() * (max - min + 1)) + min);
+      }
+
+      this.x = xValue;
+      this.y = yValue;
+
+      if (this.x >= w) {
+        this.x = w;
+      } else if (this.x < 1) {
+        this.x = 1;
+      }
+
+      if (this.y >= h) {
+        this.y = h;
+      } else if (this.y < 1) {
+        this.y = 1;
+      }
     }
 
     /**

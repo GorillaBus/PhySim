@@ -30,7 +30,9 @@ window.onload = () => {
         //walker.stepMultipleDirections();
 
         // Choose a random direction: between 4 posibilities, with 40% of chossing the right ->
-        walker.stepProbability();
+        //walker.stepProbability();
+
+        walker.stepMontecarlo(width, height);
 
         // Draw walker
         ctx.beginPath();
