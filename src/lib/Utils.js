@@ -2,64 +2,75 @@ import FEATURE_TOGGLE from '../../src/feature-toggle';
 
 export default class Utils {
 
-    lerp(norm, min, max) {
-        return (max - min) * norm + min;
+  montecarlo() {
+    while(true) {
+      let r1 = Math.random();
+      let p = r1;
+      let r2 = Math.random();
+      if (r2 < p) {
+        return r1;
+      }
     }
+  }
 
-    quadraticBezier(p0, p1, p2, t, pFinal) {
-        pFinal = pFinal || {};
-        pFinal.x = Math.pow(1 - t, 2) * p0.x + (1 - t) * 2 * t * p1.x + t * t * p2.x;
-        pFinal.y = Math.pow(1 - t, 2) * p0.y + (1 - t) * 2 * t * p1.y + t * t * p2.y;
-        return pFinal;
-    }
+  lerp(norm, min, max) {
+    return (max - min) * norm + min;
+  }
 
-    cubicBezier(p0, p1, p2, p3, t, pFinal) {
-        pFinal = pFinal || {};
-        pFinal.x = Math.pow(1 - t, 3) * p0.x + Math.pow(1 - t, 2) * 3 * t * p1.x + (1 - t) * 3 * t * t * p2.x + t * t * t * p3.x;
-        pFinal.y = Math.pow(1 - t, 3) * p0.y + Math.pow(1 - t, 2) * 3 * t * p1.y + (1 - t) * 3 * t * t * p2.y + t * t * t * p3.y;
-        return pFinal;
-    }
+  quadraticBezier(p0, p1, p2, t, pFinal) {
+    pFinal = pFinal || {};
+    pFinal.x = Math.pow(1 - t, 2) * p0.x + (1 - t) * 2 * t * p1.x + t * t * p2.x;
+    pFinal.y = Math.pow(1 - t, 2) * p0.y + (1 - t) * 2 * t * p1.y + t * t * p2.y;
+    return pFinal;
+  }
 
-    distance(p0, p1) {
-        let dx = p0.x - p1.x;
-        let dy = p0.y - p1.y;
-        return Math.sqrt(dx * dx + dy * dy);
-    }
+  cubicBezier(p0, p1, p2, p3, t, pFinal) {
+    pFinal = pFinal || {};
+    pFinal.x = Math.pow(1 - t, 3) * p0.x + Math.pow(1 - t, 2) * 3 * t * p1.x + (1 - t) * 3 * t * t * p2.x + t * t * t * p3.x;
+    pFinal.y = Math.pow(1 - t, 3) * p0.y + Math.pow(1 - t, 2) * 3 * t * p1.y + (1 - t) * 3 * t * t * p2.y + t * t * t * p3.y;
+    return pFinal;
+  }
 
-    distanceXY(x0, y0, x1, y1) {
-        let dx = x1 - x0;
-        let dy = y1 - y0;
-        return Math.sqrt(dx * dx + dy * dy);
-    }
+  distance(p0, p1) {
+    let dx = p0.x - p1.x;
+    let dy = p0.y - p1.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
 
-    inRange(value, min, max) {
-        return value >= Math.min(min, max) && value <= Math.max(min, max);
-    }
+  distanceXY(x0, y0, x1, y1) {
+    let dx = x1 - x0;
+    let dy = y1 - y0;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
 
-    rangeIntersect(min0, max0, min1, max1) {
-        return  Math.max(min0, max0) >= Math.min(min1, max1) &&
-                Math.min(min0, max0) <= Math.max(min1, max1);
-    }
+  inRange(value, min, max) {
+    return value >= Math.min(min, max) && value <= Math.max(min, max);
+  }
 
-    randomRange(min, max) {
-        return min + Math.random() * (max - min);
-    }
+  rangeIntersect(min0, max0, min1, max1) {
+    return  Math.max(min0, max0) >= Math.min(min1, max1) &&
+    Math.min(min0, max0) <= Math.max(min1, max1);
+  }
 
-    circleCollision(c0, c1) {
-        return this.distance(c0, c1) <= c0.radius + c1.radius;
-    }
+  randomRange(min, max) {
+    return min + Math.random() * (max - min);
+  }
 
-    rectangleCollision(r0, r1) {
-        return  this.rangeIntersect(r0.x, r0.x + r0.width, r1.x, r1.x + r1.width) &&
-                this.rangeIntersect(r0.y, r0.y + r0.height, r1.y, r1.y + r1.height);
-    }
+  circleCollision(c0, c1) {
+    return this.distance(c0, c1) <= c0.radius + c1.radius;
+  }
 
-    circlePointCollision(px, py, circle) {
-        return this.distanceXY(px, py, circle.x, circle.y) < circle.radius;
-    }
+  rectangleCollision(r0, r1) {
+    return  this.rangeIntersect(r0.x, r0.x + r0.width, r1.x, r1.x + r1.width) &&
+    this.rangeIntersect(r0.y, r0.y + r0.height, r1.y, r1.y + r1.height);
+  }
 
-    rectanglePointCollision(px, py, rect) {
-        return  this.inRange(px, rect.x, rect.x + rect.width) &&
-                this.inRange(py, rect.y, rect.y + rect.height);
-    }
+  circlePointCollision(px, py, circle) {
+    return this.distanceXY(px, py, circle.x, circle.y) < circle.radius;
+  }
+
+  rectanglePointCollision(px, py, rect) {
+    return  this.inRange(px, rect.x, rect.x + rect.width) &&
+    this.inRange(py, rect.y, rect.y + rect.height);
+  }
 }
