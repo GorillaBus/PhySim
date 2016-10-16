@@ -19,6 +19,8 @@
     "browserify": "^13.1.0",
     "chai": "^3.5.0",
     "gulp": "^3.9.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-replace": "^0.5.4",
     "gulp-sourcemaps": "^1.6.0",
     "mocha": "^3.0.2",
     "sinon": "^1.17.3",
