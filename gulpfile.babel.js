@@ -1,13 +1,15 @@
 let gulp = require('gulp');
 let sourcemaps = require('gulp-sourcemaps');
 let source = require('vinyl-source-stream');
+let rename = require('gulp-rename');
+let replace = require('gulp-replace');
 let buffer = require('vinyl-buffer');
 let browserify = require('browserify');
 let watchify = require('watchify');
 let babel = require('babelify');
 let fs = require('fs');
 
-let allProjects = ['2.5D', 'bezier-curves', 'bigbang', 'collision-detect', 'earth-sun-gravitation', 'friction', 'gravitations', 'particles', 'planetario', 'spaceship', 'springs-1', 'springs-2', 'random-walker', 'uniform-distribution-meter'];
+let allProjects = ['2.5D', 'bezier-curves', 'bigbang', 'collision-detect', 'earth-sun-gravitation', 'friction', 'gravitations', 'normal-distribution-meter', 'paint-splatter', 'particles', 'planetario', 'spaceship', 'springs-1', 'springs-2', 'random-walker', 'uniform-distribution-meter'];
 let projects = getParams() || allProjects;
 
 gulp.task('default', compile);
@@ -22,12 +24,12 @@ function buildAll() {
 }
 
 function watchProject() {
-    if (projects.length > 1) {
-        console.error("Please use '-p <project>' to watch");
-        return false;
-    }
+  if (projects.length > 1) {
+    console.error("Please use '-p <project>' to watch");
+    return false;
+  }
 
-    compile(projects[0], true);
+  compile(projects[0], true);
 }
 
 function compile(project, watch) {
@@ -40,12 +42,12 @@ function compile(project, watch) {
 
   function rebundle() {
     bundler.bundle()
-      .on('error', function(err) { console.error(err); this.emit('end'); })
-      .pipe(source('app.js'))
-      .pipe(buffer())
-      .pipe(sourcemaps.init({ loadMaps: true }))
-      .pipe(sourcemaps.write('./'))
-      .pipe(gulp.dest('./build/'+ project +'/'));
+    .on('error', function(err) { console.error(err); this.emit('end'); })
+    .pipe(source('app.js'))
+    .pipe(buffer())
+    .pipe(sourcemaps.init({ loadMaps: true }))
+    .pipe(sourcemaps.write('./'))
+    .pipe(gulp.dest('./build/'+ project +'/'));
   }
 
   if (watch) {
@@ -61,18 +63,47 @@ function compile(project, watch) {
 }
 
 function copyfiles(project) {
-    let commonCssDir = './projects/'+ project +'/css';
+  let localCSS = '';
+  let path = {
+              project: './projects/'+ project,
+              build: './build/'+ project
+            };
 
-    gulp.src('./projects/'+ project +'/**/*.{jpg,png,gif,svg,html,css}')
+  let dir = fs.existsSync(path.project + '/css') ? fs.readdirSync(path.project + '/css'):[];
+
+  if (dir.length) {
+    let pattern = /.+\.css$/;
+    for (var i=0; i<dir.length; i++) {
+      if (pattern.test(dir[i])) {
+        localCSS += "<link rel='stylesheet' href='css/"+ dir[i] +"' />";
+      }
+    }
+  }
+
+  if (fs.existsSync('./projects/'+ project +'/index.html')){
+  };
+  // Copy common index file unless there is a local one
+  if (!fs.existsSync('./projects/'+ project +'/index.html')){
+    gulp.src('./src/default.html')
+    //.pipe(replace(/%(.{3})%/g, '$1foo'))
+    .pipe(replace('%title%', project.charAt(0).toUpperCase() + project.slice(1)))
+    .pipe(replace('%local_css%', localCSS))
+    .pipe(rename('index.html'))
     .pipe(gulp.dest('./build/'+ project +'/'));
 
-    // Copy common CSS and check if CSS dir exists
-    if (!fs.existsSync(commonCssDir)){
-        fs.mkdirSync(commonCssDir);
-    }
+  } else {
 
-    gulp.src('./src/css/common.css')
-    .pipe(gulp.dest('./build/'+ project +'/css'));
+    gulp.src('./projects/'+ project +'/index.html')
+    .pipe(gulp.dest('./build/'+ project +'/'));
+  }
+
+  // Copy common CSS and check if CSS dir exists
+  gulp.src('./src/css/common.css')
+  .pipe(gulp.dest('./build/'+ project +'/css'));
+
+  // Copy resources and local stylesheets
+  gulp.src('./projects/'+ project +'/**/*.{jpg,png,gif,svg,css}')
+  .pipe(gulp.dest('./build/'+ project +'/'));
 }
 
 function getParams() {
