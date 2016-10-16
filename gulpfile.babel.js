@@ -9,7 +9,7 @@ let watchify = require('watchify');
 let babel = require('babelify');
 let fs = require('fs');
 
-let allProjects = ['2.5D', 'bezier-curves', 'bigbang', 'collision-detect', 'earth-sun-gravitation', 'friction', 'gravitations', 'normal-distribution-meter', 'paint-splatter', 'particles', 'planetario', 'spaceship', 'springs-1', 'springs-2', 'random-walker', 'uniform-distribution-meter'];
+let allProjects = ['2.5D', 'bezier-curves', 'bigbang', 'collision-detect', 'earth-sun-gravitation', 'friction', 'gravitations', 'normal-distribution-meter', 'paint-splatter', 'particles', 'perlin-noise', 'planetario', 'spaceship', 'springs-1', 'springs-2', 'random-walker', 'uniform-distribution-meter'];
 let projects = getParams() || allProjects;
 
 gulp.task('default', compile);
