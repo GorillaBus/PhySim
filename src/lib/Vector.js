@@ -2,90 +2,97 @@ import FEATURE_TOGGLE from '../../src/feature-toggle';
 
 export default class Vector {
 
-    constructor(settings) {
-        this._x = 0;
-        this._y = 0;
+  constructor(settings) {
+    this._x = 0;
+    this._y = 0;
 
-        this.setX(settings.x);
-        this.setY(settings.y);
+    this.setX(settings.x);
+    this.setY(settings.y);
 
-        if (settings.length) {
-            this.setLength(settings.length);
-        }
-        if (settings.angle) {
-            this.setAngle(settings.angle);
-        }
+    if (settings.length) {
+      this.setLength(settings.length);
     }
-
-    setX(value) {
-        this._x = value;
+    if (settings.angle) {
+      this.setAngle(settings.angle);
     }
+  }
 
-    getX(value) {
-        return this._x;
-    }
+  setX(value) {
+    this._x = value;
+  }
 
-    setY(value) {
-        this._y = value;
-    }
+  getX(value) {
+    return this._x;
+  }
 
-    getY(value) {
-        return this._y;
-    }
+  setY(value) {
+    this._y = value;
+  }
 
-    setAngle(angle) {
-        let length = this.getLength();
-        this._x = Math.cos(angle) * length;
-        this._y = Math.sin(angle) * length;
-    }
+  getY(value) {
+    return this._y;
+  }
 
-    getAngle() {
-        return Math.atan2(this._y, this._x);
-    }
+  setAngle(angle) {
+    let length = this.getLength();
+    this._x = Math.cos(angle) * length;
+    this._y = Math.sin(angle) * length;
+  }
 
-    setLength(length) {
-        let angle = this.getAngle();
-        this._x = Math.cos(angle) * length;
-        this._y = Math.sin(angle) * length;
-    }
+  getAngle() {
+    return Math.atan2(this._y, this._x);
+  }
 
-    getLength() {
-        return Math.sqrt(this._x * this._x + this._y * this._y);
-    }
+  setLength(length) {
+    let angle = this.getAngle();
+    this._x = Math.cos(angle) * length;
+    this._y = Math.sin(angle) * length;
+  }
 
-    add(vector) {
-        return Vector.create({ x: this._x + vector.getX(), y: this._y + vector.getY() });
-    }
+  getLength() {
+    return Math.sqrt(this._x * this._x + this._y * this._y);
+  }
 
-    substract(vector) {
-        return Vector.create({ x: this._x - vector.getX(), y: this._y - vector.getY() });
-    }
+  add(vector) {
+    return this.create({ x: this._x + vector.getX(), y: this._y + vector.getY() });
+  }
 
-    multiply(value) {
-        return Vector.create({ x: this._x * value, y: this._y * value });
-    }
+  substract(vector) {
+    return new Vector({ x: this._x - vector.getX(), y: this._y - vector.getY() });
+  }
 
-    divide(value) {
-        return Vector.create({ x: this._x / value, y: this._y / value });
-    }
+  multiply(value) {
+    return this.create({ x: this._x * value, y: this._y * value });
+  }
 
-    addTo(vector) {
-        this._x += vector.getX();
-        this._y += vector.getY();
-    }
+  divide(value) {
+    return this.create({ x: this._x / value, y: this._y / value });
+  }
 
-    substractFrom(vector) {
-        this._x -= vector.getX();
-        this._y -= vector.getY();
-    }
+  addTo(vector) {
+    this._x += vector.getX();
+    this._y += vector.getY();
+  }
 
-    multiplyBy(value) {
-        this._x *= value;
-        this._y *= value;
-    }
+  substractFrom(vector) {
+    this._x -= vector.getX();
+    this._y -= vector.getY();
+  }
 
-    divideBy(value) {
-        this._x /= value;
-        this._y /= value;
+  multiplyBy(value) {
+    this._x *= value;
+    this._y *= value;
+  }
+
+  divideBy(value) {
+    this._x /= value;
+    this._y /= value;
+  }
+
+  normalize() {
+    var length = this.getLength();
+    if (length != 0) {
+      this.divideBy(length);
     }
+  }
 };
