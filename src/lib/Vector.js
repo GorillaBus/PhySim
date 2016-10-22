@@ -54,7 +54,7 @@ export default class Vector {
   }
 
   add(vector) {
-    return this.create({ x: this._x + vector.getX(), y: this._y + vector.getY() });
+    return new Vector({ x: this._x + vector.getX(), y: this._y + vector.getY() });
   }
 
   substract(vector) {
@@ -62,11 +62,11 @@ export default class Vector {
   }
 
   multiply(value) {
-    return this.create({ x: this._x * value, y: this._y * value });
+    return new Vector({ x: this._x * value, y: this._y * value });
   }
 
   divide(value) {
-    return this.create({ x: this._x / value, y: this._y / value });
+    return new Vector({ x: this._x / value, y: this._y / value });
   }
 
   addTo(vector) {
