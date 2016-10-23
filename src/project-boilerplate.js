@@ -1,5 +1,10 @@
-import Perlin from '../../src/lib/Perlin';
+
 import AnimationPlayer from '../../src/lib/AnimationPlayer';
+import Particle from '../../src/lib/Particle.js';
+import Vector from '../../src/lib/Vector';
+import Utils from '../../src/lib/Utils.js';
+import Perlin from '../../src/lib/Perlin';
+
 
 window.onload = () => {
     const canvas = document.getElementById("canvas");
