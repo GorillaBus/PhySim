@@ -11,7 +11,7 @@ export default class AnimationPlayer {
 
         // FPS control
         if (FEATURE_TOGGLE.FPS_CONTROL) {
-          this.fps = settings.fps || 60;
+          this.fps = settings.fps || 90;
           this.now;
           this.lastTime = Date.now();
           this.interval = 1000/this.fps;
