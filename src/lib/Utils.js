@@ -42,6 +42,15 @@ export default class Utils {
     let dy = y1 - y0;
     return Math.sqrt(dx * dx + dy * dy);
   }
+  
+  // TODO: Check if and why we need to parseInt() the result
+  mapRange(value, low1, high1, low2, high2) {
+    let result = low2 + (high2 - low2) * (value - low1) / (high1 - low1);
+    if (low2 === parseInt(low2, 10) || high2 === parseInt(high2, 10)) {
+      result = parseInt(result);
+    }
+    return result;
+  }
 
   inRange(value, min, max) {
     return value >= Math.min(min, max) && value <= Math.max(min, max);
