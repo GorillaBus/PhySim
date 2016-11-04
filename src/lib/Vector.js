@@ -3,11 +3,14 @@ import FEATURE_TOGGLE from '../../src/feature-toggle';
 export default class Vector {
 
   constructor(settings) {
-    this._x = 0;
-    this._y = 0;
+    settings = settings || {};
+    settings.x = settings.x || 0;
+    settings.y = settings.y || 0;
+    settings.length = settings.length || 0;
+    settings.angle = settings.angle || 0;
 
-    this.setX(settings.x);
-    this.setY(settings.y);
+    this._x = settings.x;
+    this._y = settings.y;
 
     if (settings.length) {
       this.setLength(settings.length);
@@ -87,6 +90,13 @@ export default class Vector {
   divideBy(value) {
     this._x /= value;
     this._y /= value;
+  }
+
+  copy() {
+    return new Vector({
+      x: this.getX(),
+      y: this.getY()
+    });
   }
 
   normalize() {
