@@ -1,4 +1,3 @@
-import Utils from '../../src/lib/Utils';
 import Ziggurat from '../../src/lib/Ziggurat';
 
 window.onload = () => {
@@ -13,7 +12,6 @@ window.onload = () => {
   canvas.width = width;
 
   let ziggurat = new Ziggurat();
-  let utils = new Utils();
   let paintDrops = new Array(500);
   let xMean = center.x;
   let yMean = center.y;

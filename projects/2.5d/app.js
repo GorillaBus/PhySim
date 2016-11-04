@@ -9,7 +9,6 @@ window.onload = () => {
   const height = canvas.height = window.innerHeight-4;
 
   let player = new AnimationPlayer();
-  let utils = new Utils();
 
   let fl = 5500;
   let shapes = [];
@@ -17,9 +16,9 @@ window.onload = () => {
 
   for (let i=0;i<numShapes;i++) {
     shapes[i] = {
-      x: utils.randomRange(-1000, 1000),
-      y: utils.randomRange(-1000, 1000),
-      z: utils.randomRange(0, 100000)
+      x: Utils.randomRange(-1000, 1000),
+      y: Utils.randomRange(-1000, 1000),
+      z: Utils.randomRange(0, 100000)
     };
   }
 

@@ -7,7 +7,6 @@ export default class Walker {
       this.y = settings.y || 0;
       this.maxX = settings.maxX || 1280;
       this.maxY = settings.maxY || 740;
-      this.utils = new Utils();
       this.pn = new Perlin('some random seed');
       this.stepSize = settings.stepSize || 1;
     }
@@ -49,7 +48,7 @@ export default class Walker {
 
       let xValue=0;
       let yValue=0;
-      let value = Math.floor(this.utils.montecarlo() * (6 - 1 + 1)) + 1;
+      let value = Math.floor(Utils.montecarlo() * (6 - 1 + 1)) + 1;
 
       // Eventually jump to a distant location
       if (value < 2) {

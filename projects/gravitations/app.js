@@ -9,7 +9,6 @@ window.onload = () => {
     const height = canvas.height = window.innerHeight-4;
 
     let player = new AnimationPlayer();
-    let utils = new Utils();
 
     let sun1 = new Particle({ x: 300, y: 200 });
     let sun2 = new Particle({ x: 800, y: 600 });
@@ -30,8 +29,8 @@ window.onload = () => {
         let p = new Particle({
             x: emitter.x,
             y: emitter.y,
-            speed: utils.randomRange(7, 8),
-            direction: Math.PI / 2 * utils.randomRange(-.1, .1)
+            speed: Utils.randomRange(7, 8),
+            direction: Math.PI / 2 * Utils.randomRange(-.1, .1)
         });
         p.addGravitation(sun1);
         p.addGravitation(sun2);
@@ -71,8 +70,8 @@ window.onload = () => {
                     p.x = emitter.x;
                     p.y = emitter.y;
                     p.startTime = new Date();
-                    p.setSpeed(utils.randomRange(7,9));
-                    p.setHeading(Math.PI / 2 * utils.randomRange(-.1, .1));
+                    p.setSpeed(Utils.randomRange(7,9));
+                    p.setHeading(Math.PI / 2 * Utils.randomRange(-.1, .1));
             }
         }
     }

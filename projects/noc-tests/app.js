@@ -1,8 +1,10 @@
+/*
+    Example 3.9
+
+    Dynamic wave drawn as a continuous line
+*/
 import AnimationPlayer from '../../src/lib/AnimationPlayer';
-import Noise from '../../src/lib/Perlin';
-import Utils from '../../src/lib/Utils';
-import Vector from '../../src/lib/Vector';
-import Mover from './lib/Mover.js';
+import Wave from './lib/Wave';
 
 window.onload = () => {
   const canvas = document.getElementById("canvas");
@@ -14,63 +16,25 @@ window.onload = () => {
   canvas.height = height;
   canvas.width = width;
 
-  let utils = new Utils();
-  let noise = new Noise();
-  noise.seed(Math.random());
-  let xOff = 0;
-  let zOff = 1000;
-
-  let mover = new Mover(center.x, center.y, 10);
-  let helio = new Vector({
-    x: 0,
-    y: -0.1
-  });
-  let wind = new Vector({
-    x: utils.mapRange(noise.noise(xOff, 0), 0, 1, 0, 3),
-    y: 0
-  });
-
-  let wind2 = new Vector({
-    x: utils.mapRange(noise.noise(zOff, 0), 0, 1, 0, -3),
-    y: 0
-  });
-
+  let wave = new Wave(200);
 
   // Demo player
-  let player = new AnimationPlayer();
-
+  let player = new AnimationPlayer({ fps: 25 });
   player.setUpdateFn(() => {
-    ctx.clearRect(0,0, width, height);
-
-    mover.applyForce(helio);
-
-    wind.setX(utils.mapRange(noise.noise(xOff, 0), 0, 1, 0, 3));
-    mover.applyForce(wind);
-
-    wind2.setX(utils.mapRange(noise.noise(zOff, 0), 0, 1, 0, -3));
-    mover.applyForce(wind2);
-
-    mover.checkEdges(width, height);
-
-    mover.update();
+    ctx.clearRect(0, 0, width, height);
 
     ctx.beginPath();
-    ctx.arc(mover.location.getX(), mover.location.getY(), 20, 0, Math.PI * 2, false);
-    ctx.fill();
-    ctx.closePath();
 
-    xOff += 0.1;
-    zOff += 0.1;
+    let waveData = wave.oscillate();
+    ctx.lineTo(waveData.x, waveData.y);
+
+    ctx.closePath();
+    ctx.stroke();
   });
+
 
   // Play a loop function
   player.play();
-
-
-  document.onmousemove = (e) => {
-    //mouse.setX(e.clientX);
-    //mouse.setY(e.clientY);
-  };
 
   // Animation control
   document.onkeyup = (e) => {

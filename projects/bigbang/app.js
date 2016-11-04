@@ -9,7 +9,6 @@ window.onload = function() {
     const height = canvas.height = window.innerHeight-4;
 
     let player = new AnimationPlayer();
-    let utils = new Utils();
 
     // Particles setup
     let particles = [];
@@ -19,7 +18,7 @@ window.onload = function() {
         let particleSettings = {
             x: width/2,
             y: height/2,
-            speed: utils.randomRange(0.1, 12),
+            speed: Utils.randomRange(0.1, 12),
             direction: Math.random() * Math.PI * 2,
             mass: 0.1,
             radius: 1
@@ -44,7 +43,7 @@ window.onload = function() {
                 for (let x=0;x<numParticles;x++) {
                     if (x===i) { continue; }
                     let z = particles[x];
-                    if (utils.circleCollision(
+                    if (Utils.circleCollision(
                             {x: p.x, y: p.y, radius: p.radius },
                             {x: z.x, y: z.y, radius: z.radius})) {
 

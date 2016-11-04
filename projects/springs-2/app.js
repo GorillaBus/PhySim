@@ -9,7 +9,6 @@ window.onload = () => {
     const height = canvas.height = window.innerHeight-4;
 
     let player = new AnimationPlayer();
-    let utils = new Utils();
 
     let springPoint = {
         x: width / 2,
@@ -84,7 +83,7 @@ window.onload = () => {
         }
         return arWeights;
     }
-    
+
 
     /* Events */
 

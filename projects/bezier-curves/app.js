@@ -9,7 +9,6 @@ window.onload = () => {
 
   let increment = 0.01;
   let player = new AnimationPlayer();;
-  let utils = new Utils();
 
   let t = 0;
   let direction = true;
@@ -47,10 +46,10 @@ window.onload = () => {
     ctx.clearRect(0,0, width, height);
 
     // Calculate a quadratic bezier
-    utils.quadraticBezier(p0, p2, p1, t, pResult);
+    Utils.quadraticBezier(p0, p2, p1, t, pResult);
 
     // Replace with this for Cubic Bezier
-    //utils.cubicBezier(p0, p2, p3, p1, t, pResult);
+    //Utils.cubicBezier(p0, p2, p3, p1, t, pResult);
 
     t += increment;
 

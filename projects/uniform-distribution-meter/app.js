@@ -9,7 +9,6 @@ window.onload = () => {
     const center = { x: width/2, y: height/2 };
 
     let player = new AnimationPlayer();
-    let utils = new Utils();
     let randomCount = new Array(10).fill(0);
     let barWidth = 50;
     let margin = 50;
@@ -31,7 +30,7 @@ window.onload = () => {
         ctx.clearRect(0,0, width, height);
 
         //let index = Math.floor(Math.random() * (10 - 0 + 1)) + 0;
-        let index = Math.floor(utils.montecarlo() * (10 - 0 + 1)) + 0;
+        let index = Math.floor(Utils.montecarlo() * (10 - 0 + 1)) + 0;
         randomCount[index]++;
 
         for (let i=0; i<randomCount.length; i++) {

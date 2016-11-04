@@ -9,7 +9,6 @@ window.onload = () => {
     const height = canvas.height = window.innerHeight-4;
 
     let player = new AnimationPlayer();;
-    let utils = new Utils();
 
     let demoType = getUrllet()['collision-type'];
     let figure0 = null,
@@ -100,7 +99,7 @@ window.onload = () => {
                 figure1.x = mousePos.x;
                 figure1.y = mousePos.y;
 
-                if (utils.circleCollision(figure0, figure1)) {
+                if (Utils.circleCollision(figure0, figure1)) {
                     ctx.fillStyle = "#f66";
                 } else {
                     ctx.fillStyle = "#999";
@@ -119,7 +118,7 @@ window.onload = () => {
 
             // Detects CIRCLE - POINT collisions
             case 'circle-point':
-                if (utils.circlePointCollision(mousePos.x, mousePos.y, figure0)) {
+                if (Utils.circlePointCollision(mousePos.x, mousePos.y, figure0)) {
                     ctx.fillStyle = "#f66";
                 } else {
                     ctx.fillStyle = "#999";
@@ -136,7 +135,7 @@ window.onload = () => {
                 figure1.x = mousePos.x;
                 figure1.y = mousePos.y;
 
-                if (utils.rectangleCollision(figure0, figure1)) {
+                if (Utils.rectangleCollision(figure0, figure1)) {
                     ctx.fillStyle = "#f66";
                 } else {
                     ctx.fillStyle = "#999";
@@ -153,7 +152,7 @@ window.onload = () => {
 
             // Detects RECTANGLE - POINT collisions
             default:
-                if (utils.rectanglePointCollision(mousePos.x, mousePos.y, figure0)) {
+                if (Utils.rectanglePointCollision(mousePos.x, mousePos.y, figure0)) {
                     ctx.fillStyle = "#f66";
                 } else {
                     ctx.fillStyle = "#999";
