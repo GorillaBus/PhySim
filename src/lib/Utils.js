@@ -1,6 +1,6 @@
 import FEATURE_TOGGLE from '../../src/feature-toggle';
 
-export default class Utils {
+class Utils {
 
   montecarlo() {
     while(true) {
@@ -42,9 +42,10 @@ export default class Utils {
     let dy = y1 - y0;
     return Math.sqrt(dx * dx + dy * dy);
   }
-  
+
   // TODO: Check if and why we need to parseInt() the result
   mapRange(value, low1, high1, low2, high2) {
+    return result = low2 + (high2 - low2) * (value - low1) / (high1 - low1);
     let result = low2 + (high2 - low2) * (value - low1) / (high1 - low1);
     if (low2 === parseInt(low2, 10) || high2 === parseInt(high2, 10)) {
       result = parseInt(result);
@@ -83,3 +84,7 @@ export default class Utils {
     this.inRange(py, rect.y, rect.y + rect.height);
   }
 }
+
+let instance = new Utils();
+
+export default instance;
