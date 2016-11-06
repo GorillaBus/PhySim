@@ -3,4 +3,5 @@
 .git
 node_modules
 *.log
-build/
+build/local/
+projects/local/

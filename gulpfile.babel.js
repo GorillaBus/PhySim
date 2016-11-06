@@ -8,31 +8,52 @@ let browserify = require('browserify');
 let watchify = require('watchify');
 let babel = require('babelify');
 let fs = require('fs');
+let path = require('path');
 
-let allProjects = ['2.5d', '3d-points-lines', 'bezier-curves', 'bigbang', 'collision-detect', 'earth-sun-gravitation', 'friction', 'gravitations', 'normal-distribution-meter', 'paint-splatter', 'particles', 'perlin-noise', 'planetario', 'spaceship', 'springs-1', 'springs-2', 'random-walker', 'uniform-distribution-meter'];
-let projects = getParams() || allProjects;
+// Global variables
+let paths = {
+  project: './projects/',
+  local: './projects/local/',
+  build: './build/'
+};
 
+// Gulp tasks
 gulp.task('default', compile);
 gulp.task('build', buildAll);
 gulp.task('watch', watchProject);
+gulp.task('create', createProject);
 
-// Will build only one if '--project' is specified
+
+// Will build only one if '-p' is specified
 function buildAll() {
-    projects.forEach(function(project) {
-        compile(project, false);
-    });
+  let param = getParams();
+  let projects = param ? [param] : getProjects();
+
+  if (param && param === '*local') {
+    projects = getProjects(true);
+  }
+
+  projects.forEach(function(project) {
+      compile(project, false);
+  });
 }
 
+// Watch project files and recompile when needed
 function watchProject() {
-  if (projects.length > 1) {
-    console.error("Please use '-p <project>' to watch");
+  let project = getParams();
+
+  if (project) {
+    compile(project, true);
+  }
+}
+
+// Bundle project files and create build directory
+function compile(project, watch) {
+  if (!fs.existsSync(paths.project + project) || project === 'local') {
+    console.error(">> Invalid project directory name '", project, "'");
     return false;
   }
 
-  compile(projects[0], true);
-}
-
-function compile(project, watch) {
   let bundler = browserify('./projects/'+ project +'/app.js', { debug: true });
   if (watch) {
       bundler = watchify(bundler);
@@ -62,14 +83,10 @@ function compile(project, watch) {
   rebundle();
 }
 
+// Copy resources to project's build directory
 function copyfiles(project) {
   let localCSS = '';
-  let path = {
-              project: './projects/'+ project,
-              build: './build/'+ project
-            };
-
-  let dir = fs.existsSync(path.project + '/css') ? fs.readdirSync(path.project + '/css'):[];
+  let dir = fs.existsSync(paths.project + project + '/css') ? fs.readdirSync(paths.project + project + '/css'):[];
 
   if (dir.length) {
     let pattern = /.+\.css$/;
@@ -80,8 +97,10 @@ function copyfiles(project) {
     }
   }
 
-  if (fs.existsSync('./projects/'+ project +'/index.html')){
-  };
+  // if (fs.existsSync('./projects/'+ project +'/index.html')){
+  //
+  // };
+
   // Copy common index file unless there is a local one
   if (!fs.existsSync('./projects/'+ project +'/index.html')){
     gulp.src('./src/default.html')
@@ -106,9 +125,50 @@ function copyfiles(project) {
   .pipe(gulp.dest('./build/'+ project +'/'));
 }
 
-function getParams() {
-    let i = process.argv.indexOf("-p");
+
+// Create a new project from boilerplate
+function createProject() {
+  let project = getParams();
+  if (fs.existsSync(paths.project + project )) {
+    console.error(">> Project directory '", project, "' already exists.");
+    return;
+  }
+  gulp.src(['src/boilerplate/**/*', '!src/boilerplate/**/*.gitignore'], {
+    base: 'src/boilerplate'
+  })
+  .pipe(gulp.dest(paths.project + project));
+}
+
+
+/* Helper functions */
+
+function getParams(pKey) {
+    pKey = pKey || '-p';
+    let i = process.argv.indexOf(pKey);
     if(i>-1 && process.argv[i+1] !== undefined) {
-        return [process.argv[i+1]];
+        return [process.argv[i+1]].toString();
     }
+    return false;
+}
+
+function getProjects(local) {
+  let localDir = fs.readdirSync(paths.local)
+                   .filter(function(file) {
+                     return fs.statSync(path.join(paths.local, file)).isDirectory();
+                   });
+  localDir.forEach(function(p, i) {
+    localDir[i] = 'local/' + p;
+  });
+
+  // Returns only LOCAL project directories
+  if (local) {
+    return localDir;
+  }
+
+  let pubDir = fs.readdirSync(paths.project)
+                 .filter(function(file) {
+                   return fs.statSync(path.join(paths.project, file)).isDirectory();
+                 });
+  pubDir.splice(pubDir.indexOf('local'), 1);
+  return pubDir.concat(localDir);
 }

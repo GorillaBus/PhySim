@@ -1,0 +1,16 @@
+H1  {
+  position:absolute;
+  top:100px;
+  left:0;
+  width:100%;
+  text-align:center;"
+}
+
+SPAN {
+  position:absolute;
+  left:0; 
+  top:0;
+  display:block;
+  width:0;
+  text-align:center;
+}
