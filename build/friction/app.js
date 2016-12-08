@@ -1,6 +1,10 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
+var _Drawer = require('../../src/lib/Drawer');
+
+var _Drawer2 = _interopRequireDefault(_Drawer);
+
 var _Particle = require('../../src/lib/Particle');
 
 var _Particle2 = _interopRequireDefault(_Particle);
@@ -16,84 +20,77 @@ var _Vector2 = _interopRequireDefault(_Vector);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 window.onload = function () {
-    var canvas = document.getElementById("canvas");
-    var ctx = canvas.getContext("2d");
-    var width = canvas.width = window.innerWidth - 4;
-    var height = canvas.height = window.innerHeight - 4;
+  var drawer = new _Drawer2.default();
+  var player = new _AnimationPlayer2.default();
 
-    var player = new _AnimationPlayer2.default();;
+  var particleCfg = {
+    x: drawer.width / 2,
+    y: drawer.height / 2,
+    speed: 10,
+    direction: Math.random() * Math.PI * 2,
+    radius: 10,
+    friction: 0.97
+  };
+  var p = new _Particle2.default(particleCfg);
 
-    var particleCfg = {
-        x: width / 2,
-        y: height / 2,
-        speed: 10,
-        direction: Math.random() * Math.PI * 2,
-        radius: 10,
-        friction: 0.97
-    };
-    var p = new _Particle2.default(particleCfg);
+  // For a real friction, use this
+  var friction = new _Vector2.default({ x: 0, y: 0, length: 0.15 });
 
-    // For a real friction, use this
-    var friction = new _Vector2.default({ x: 0, y: 0, length: 0.15 });
+  // Demo player
+  player.setUpdateFn(update);
+  player.play();
 
-    // Demo player
-    player.setUpdateFn(update);
-    player.play();
+  // Frame drawing function
+  function update() {
+    drawer.clear();
 
-    // Frame drawing function
-    function update() {
-        ctx.clearRect(0, 0, width, height);
-
-        /*
-        // Real friction method (cpu intensive)
-        if (p.velocity.getLength() > friction.getLength()) {
-            friction.setAngle(p.velocity.getAngle());
-            p.velocity.substractFrom(friction);
-        } else {
-            p.velocity.setLength(0);
-        }
-        */
-        p.update();
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, Math.PI * 2, false);
-        ctx.fill();
-        ctx.closePath();
+    /*
+    // Real friction method (cpu intensive)
+    if (p.velocity.getLength() > friction.getLength()) {
+      friction.setAngle(p.velocity.getAngle());
+      p.velocity.substractFrom(friction);
+    } else {
+      p.velocity.setLength(0);
     }
+    */
+    p.update();
 
-    // Animation control: KeyDown
-    document.body.addEventListener("keydown", function (e) {
-        //console.log("Key pressed: ", e.keyCode);
-        switch (e.keyCode) {
-            case 38:
-                // Up
-                thrusting = true;
-                break;
-            case 37:
-                // Left
-                turningLeft = true;
-                break;
-            case 39:
-                // Right
-                turningRight = true;
-                break;
-            case 27:
-                // Esc
-                if (player.playing) {
-                    player.stop();
-                    console.log("> Scene stopped");
-                } else {
-                    player.play();
-                    console.log("> Playing scene");
-                }
-                break;
-            default:
-                break;
+    drawer.circle(p.x, p.y, p.radius);
+  }
+
+  // Animation control: KeyDown
+  document.body.addEventListener("keydown", function (e) {
+    //console.log("Key pressed: ", e.keyCode);
+    switch (e.keyCode) {
+      case 38:
+        // Up
+        thrusting = true;
+        break;
+      case 37:
+        // Left
+        turningLeft = true;
+        break;
+      case 39:
+        // Right
+        turningRight = true;
+        break;
+      case 27:
+        // Esc
+        if (player.playing) {
+          player.stop();
+          console.log("> Scene stopped");
+        } else {
+          player.play();
+          console.log("> Playing scene");
         }
-    });
+        break;
+      default:
+        break;
+    }
+  });
 };
 
-},{"../../src/lib/AnimationPlayer":3,"../../src/lib/Particle":4,"../../src/lib/Vector":5}],2:[function(require,module,exports){
+},{"../../src/lib/AnimationPlayer":3,"../../src/lib/Drawer":4,"../../src/lib/Particle":5,"../../src/lib/Vector":6}],2:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -108,7 +105,7 @@ Object.defineProperty(exports, "__esModule", {
  */
 
 var FEATURE_TOGGLE = {
-  FPS_CONTROL: true // FPS controll for AnimationPlayer class
+  FPS_CONTROL: false // FPS controll for AnimationPlayer class
 };
 
 exports.default = FEATURE_TOGGLE;
@@ -202,6 +199,74 @@ var AnimationPlayer = function () {
 exports.default = AnimationPlayer;
 
 },{"../../src/feature-toggle":2}],4:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Drawer = function () {
+  function Drawer(canvas) {
+    _classCallCheck(this, Drawer);
+
+    this.canvas = canvas || null;
+    this.ctx = null;
+    this.width = null;
+    this.height = null;
+    this.center = { x: null, y: null };
+
+    this.setup(canvas);
+  }
+
+  _createClass(Drawer, [{
+    key: "setup",
+    value: function setup(canvas) {
+      this.canvas = canvas ? canvas : document.createElement("canvas");
+      this.canvas.setAttribute("id", "canvas");
+      this.ctx = this.canvas.getContext("2d");
+      this.width = this.canvas.width = window.innerWidth - 4;
+      this.height = this.canvas.height = window.innerHeight - 4;
+      this.center = { x: this.width / 2, y: this.height / 2 };
+
+      if (!canvas) {
+        this.insertCanvas(this.canvas);
+      }
+    }
+  }, {
+    key: "insertCanvas",
+    value: function insertCanvas(canvas) {
+      document.getElementsByTagName("BODY")[0].appendChild(canvas);
+    }
+  }, {
+    key: "clear",
+    value: function clear(x, y, width, height) {
+      x = x || 0;
+      y = y || 0;
+      width = width || this.width;
+      height = height || this.height;
+
+      this.ctx.clearRect(x, y, width, height);
+    }
+  }, {
+    key: "circle",
+    value: function circle(x, y, radio) {
+      this.ctx.beginPath();
+      this.ctx.arc(x, y, radio, 0, 2 * Math.PI, false);
+      this.ctx.fill();
+      this.ctx.closePath();
+    }
+  }]);
+
+  return Drawer;
+}();
+
+exports.default = Drawer;
+
+},{}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -463,7 +528,7 @@ var Particle = function () {
 
 exports.default = Particle;
 
-},{"../../src/feature-toggle":2}],5:[function(require,module,exports){
+},{"../../src/feature-toggle":2}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
