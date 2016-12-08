@@ -7,7 +7,7 @@
  */
 
  const FEATURE_TOGGLE = {
-   FPS_CONTROL: true                // FPS controll for AnimationPlayer class
+   FPS_CONTROL: false                // FPS controll for AnimationPlayer class
  };
 
  export default FEATURE_TOGGLE;
