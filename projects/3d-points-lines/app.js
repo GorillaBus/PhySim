@@ -12,17 +12,19 @@ window.onload = () => {
 
     let player = new AnimationPlayer({ fps: 90 });
 
-    let fl = 300;
+    let fl = 900;
     let points = [];
+    let centerZ = 1000;
     let needsUpdate = true;
-    points[0] = { x: -500, y: -500, z: 1000 };
-    points[1] = { x: 500, y: -500, z: 1000 };
-    points[2] = { x: 500, y: -500, z: 500 };
-    points[3] = { x: -500, y: -500, z: 500 };
-    points[4] = { x: -500, y: 500, z: 1000 };
-    points[5] = { x: 500, y: 500, z: 1000 };
-    points[6] = { x: 500, y: 500, z: 500 };
-    points[7] = { x: -500, y: 500, z: 500 };
+
+    points[0] = { x: -500, y: -500, z: 500 };
+    points[1] = { x: 500, y: -500, z: 500 };
+    points[2] = { x: 500, y: -500, z: -500 };
+    points[3] = { x: -500, y: -500, z: -500 };
+    points[4] = { x: -500, y: 500, z: 500 };
+    points[5] = { x: 500, y: 500, z: 500 };
+    points[6] = { x: 500, y: 500, z: -500 };
+    points[7] = { x: -500, y: 500, z: -500 };
 
     // Demo player setup
     player.setUpdateFn(update);
@@ -52,7 +54,7 @@ window.onload = () => {
     function project() {
       for (let i=0;i<points.length;i++) {
         let p = points[i];
-        let scale = fl / (fl + p.z);
+        let scale = fl / (fl + p.z + centerZ);
 
         p.sx = p.x * scale;
         p.sy = p.y * scale;
@@ -78,27 +80,120 @@ window.onload = () => {
       needsUpdate = true;
     }
 
+    /**
+     *  Rotate X axis:
+     *    y1 = y * cos(angle) - z * sin(angle)
+     *    z1 = z * cos(angle) + y * sin(angle)
+     */
+    function rotateX(angle) {
+      let cos = Math.cos(angle);
+      let sin = Math.sin(angle);
+
+      for (let i=0; i<points.length; i++) {
+        let p = points[i];
+        let y = p.y * cos - p.z * sin;
+        let z = p.z * cos + p.y * sin;
+        p.y = y;
+        p.z = z;
+      }
+      needsUpdate = true;
+    }
+
+    /**
+     *  Rotate Z axis:
+     *    x1 = x * cos(angle) - y * sin(angle)
+     *    y1 = y * cos(angle) + x * sin(angle)
+     */
+    function rotateZ(angle) {
+      let cos = Math.cos(angle);
+      let sin = Math.sin(angle);
+
+      for (let i=0; i<points.length; i++) {
+        let p = points[i];
+        let x = p.x * cos - p.y * sin;
+        let y = p.y * cos + p.x * sin;
+        p.x = x;
+        p.y = y;
+      }
+      needsUpdate = true;
+    }
+
+    /**
+     *  Rotate X axis:
+     *    y1 = y * cos(angle) - z * sin(angle)
+     *    z1 = z * cos(angle) + y * sin(angle)
+     */
+    function rotateX(angle) {
+      let cos = Math.cos(angle);
+      let sin = Math.sin(angle);
+
+      for (let i=0; i<points.length; i++) {
+        let p = points[i];
+        let y = p.y * cos - p.z * sin;
+        let z = p.z * cos + p.y * sin;
+        p.y = y;
+        p.z = z;
+      }
+      needsUpdate = true;
+    }
+
+    /**
+     *  Rotate Y axis:
+     *    x1 = x * cos(angle) - z * sin(angle)
+     *    z1 = z * cos(angle) + x * sin(angle)
+     */
+    function rotateY(angle) {
+      let cos = Math.cos(angle);
+      let sin = Math.sin(angle);
+
+      for (let i=0; i<points.length; i++) {
+        let p = points[i];
+        let x = p.x * cos - p.z * sin;
+        let z = p.z * cos + p.x * sin;
+        p.x = x;
+        p.z = z;
+      }
+      needsUpdate = true;
+    }
+
+
     document.body.addEventListener("keydown", (e) => {
         switch (e.keyCode) {
           case 37: // Left
-            translateModel(-20, 0, 0);
+            if (event.shiftKey) {
+              rotateY(0.05);
+            } else if (event.altKey) {
+              rotateZ(0.05);
+            } else {
+              translateModel(-20, 0, 0);
+            }
           break;
 
           case 39: // Right
-            translateModel(20, 0, 0);
+            if (event.shiftKey) {
+              rotateY(-0.05);
+            } else if (event.altKey) {
+              rotateZ(-0.05);
+            } else {
+              translateModel(20, 0, 0);
+            }
           break;
 
           case 38: // Up
-            if (event.shiftKey) {
+            if (event.ctrlKey) {
               translateModel(0, 0, 20);
+            } else if (event.shiftKey) {
+              rotateX(0.05);
             } else {
               translateModel(0, -20, 0);
             }
           break;
 
           case 40: // Down
-            if (event.shiftKey) {
+            if (event.ctrlKey) {
               translateModel(0, 0, -20);
+            } else if (event.shiftKey) {
+              rotateX(-0.05);
             } else {
               translateModel(0, 20, 0);
             }
