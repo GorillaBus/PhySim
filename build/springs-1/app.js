@@ -122,7 +122,7 @@ Object.defineProperty(exports, "__esModule", {
  */
 
 var FEATURE_TOGGLE = {
-  FPS_CONTROL: true // FPS controll for AnimationPlayer class
+  FPS_CONTROL: false // FPS controll for AnimationPlayer class
 };
 
 exports.default = FEATURE_TOGGLE;
