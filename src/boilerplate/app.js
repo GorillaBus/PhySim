@@ -28,7 +28,7 @@ window.onload = () => {
 
         let x = center.x;
         let y = center.y;
-        
+
         // Draw
         ctx.beginPath();
         ctx.arc(x, y, 4, 0, Math.PI * 2, false);
@@ -43,16 +43,24 @@ window.onload = () => {
         //console.log("Key pressed: ", e.keyCode);
         switch (e.keyCode) {
             case 27:                        // Esc
-                if (player.playing) {
-                    player.stop();
-                    console.log("> Scene stopped");
-                } else {
-                    player.play();
-                    console.log("> Playing scene");
-                }
-                break;
+              if (player.playing) {
+                  player.stop();
+                  console.log("> Scene stopped");
+              } else {
+                  player.play();
+                  console.log("> Playing scene");
+              }
+            break;
+
+            case 13:
+              player.stop();
+              player.play();
+              player.stop();
+              console.log("> Step forward");
+            break;
+
             default:
-                break;
+              break;
         }
     });
 
