@@ -2,24 +2,24 @@ export default class Monitor {
 
   constructor() {
     this.HTMLObject = this.createWrapper();
-    this.outputs = [];
+    this.outputs = {};
   }
 
   out(t, v) {
-    t = t-1;
     if (!this.outputs[t]) {
-      console.warn("Monitor > no output #" + t);
+      console.warn("Monitor > no output '" + t +"'");
       return false;
     }
     this.outputs[t].innerHTML = v;
   }
 
   newOutput(title) {
+    title = this.sanitize(title);
     let e = this.createOutput(title);
     let v = e.getElementsByTagName("SPAN")[0];
-    this.outputs.push(v);
+    this.outputs[title] = v;
     this.HTMLObject.appendChild(e);
-    return this.outputs.length;
+    return Object.keys(this.outputs).length;
   }
 
   createWrapper() {
@@ -30,8 +30,6 @@ export default class Monitor {
   }
 
   createOutput(title) {
-    title = this.sanitize(title);
-
     let e = document.createElement("DIV");
     e.setAttribute("class", "monitor");
     e.setAttribute("id", title);
