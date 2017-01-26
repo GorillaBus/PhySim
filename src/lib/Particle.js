@@ -69,6 +69,19 @@ export default class Particle {
     }
 
     /*
+     *  Bounce if the particle hits the box (i.e. screen) borders
+     */
+     checkBorders(width, height) {
+       if (this.x < 0 || this.x > width) {
+         this.vx *= -1;
+       }
+
+       if (this.y < 0 || this.y > height) {
+         this.vy *= -1;
+       }
+     }
+
+    /*
      *  Calculates the angle between this particle and 'p2'
      */
     angleTo(p2) {
