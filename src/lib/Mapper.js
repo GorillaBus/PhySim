@@ -1,41 +1,38 @@
 export default class Mapper {
 
-  constructor(particles, regionSize) {
-    this.particles = particles || [];
+  constructor(regionSize) {
     this.regionSize = regionSize || 400;
     this.regions = {};
   }
 
-  // Add particles reference to the object
-  injectParticles(particles) {
-    this.particles = particles;
-  }
+  /*
+   *  Subscribes particle 'p' to region 'rLabel'
+   */
+  subscribe(p, rLabel) {
+    let region = this.regions[rLabel];
+    if (!region.particles.hasOwnProperty(p.id)) {
 
-  // Main processing method
-  run() {
+      // Delete particle from previous region
+      if (p.mapperRegion !== null) {
+        this.unsubscribe(p, p.mapperRegion);
+      }
 
-    for (let i=0; i<this.particles.length; i++) {
-      let p = this.particles[i];
-      let rData = this.qualifyParticle(p);
-
-      // Update regions and particle
-      this.update(rData, p);
-
-      // Iterate thru other particles in the region
-      // let rParticles = this.regions[rData.rLabel].particles;
-      // for (let x=0; x<rParticles.length; i++) {
-      //   let p2 = rParticles[i];
-      //   if (p2.id === p.id) {
-      //     continue;
-      //   }
-      //
-      //   // Check collision
-      //
-      // }
+      region.particles[p.id] = p;
+      p.mapperRegion = rLabel;
+      p.color = region.color;
     }
   }
 
-  // Update map state
+  /*
+   *  Unsubscribe particle 'p' from region 'rLabel'
+   */
+  unsubscribe(p, rLabel) {
+    delete this.regions[rLabel].particles[p.id];
+  }
+
+  /*
+   *  Update map state
+   */
   update(rData, p) {
     if (p.mapperRegion === rData.rLabel) {
       return;
@@ -46,22 +43,13 @@ export default class Mapper {
       this.createRegion(rData)
     }
 
-    // Delete particle from previous region
-    if (p.mapperRegion !== null) {
-      delete this.regions[p.mapperRegion].particles[p.id];
-    }
-
-    p.mapperRegion = rData.rLabel;
-    p.color = this.regions[p.mapperRegion].color;
-
     // Insert particle into the region stack if it's not already inside
-    let rParticles = this.regions[rData.rLabel].particles;
-    if (!rParticles.hasOwnProperty(p.id)) {
-      rParticles[p.id] = p;
-    }
+    this.subscribe(p, rData.rLabel);
   }
 
-  // Get particle's region data
+  /*
+   *  Get particle's region data
+   */
   qualifyParticle(p) {
     let pX = p.x;
     let pY = p.y;
@@ -74,7 +62,9 @@ export default class Mapper {
     return rData;
   }
 
-  // Create a new region
+  /*
+   *  Create a new region
+   */
   createRegion(rData) {
 
     // Pre-calculate region offset
