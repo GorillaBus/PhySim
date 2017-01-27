@@ -1,5 +1,6 @@
 import Mapper from './Mapper';
 import Monitor from './Monitor';
+import Collisioner from './Collisioner';
 
 export default class ParticleManager {
 
@@ -16,6 +17,7 @@ export default class ParticleManager {
 
     this.ctx = ctx;
     this.mapper = new Mapper(settings.regionSize);
+    this.collisioner = new Collisioner();
     this.regionMon = settings.regionMon;
     this.regionDraw = settings.regionDraw;
     this.monitor = settings.regionMon ? new Monitor() : null;
@@ -42,8 +44,6 @@ export default class ParticleManager {
 
       // Update region status
       this.mapper.update(rData, p);
-
-
     }
   }
 
@@ -57,38 +57,17 @@ export default class ParticleManager {
 
     // Draw map regions (debugging)
     if (this.regionDraw) {
-
-      // Draw regions
-      for (var r in this.mapper.regions) {
-        if (this.mapper.regions.hasOwnProperty(r)) {
-
-          if (this.regionMon) {
-            if (!this.monitor.outputs.hasOwnProperty(r)) {
-              this.monitor.newOutput(r);
-            }
-
-            this.monitor.out(r, Object.keys(mRegion.particles).length);
-          }
-
-          let mRegion = this.mapper.regions[r];
-          this.ctx.beginPath();
-          this.ctx.strokeStyle = mRegion.color;
-          this.ctx.rect(mRegion.beginsAtX, mRegion.beginsAtY, this.mapper.regionSize-2, this.mapper.regionSize-2);
-          this.ctx.stroke();
-          this.ctx.closePath();
-        }
-      }
+      this.drawMappgerRegions();
     }
 
-    // Draw points
+    // Draw particles
     for (let i=0; i<this.particles.length; i++) {
-      let p = this.particles[i];
+      let p0 = this.particles[i];
 
-      this.ctx.beginPath();
-      this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2, false);
-      this.ctx.fillStyle = p.color;
-      this.ctx.fill();
-      this.ctx.closePath();
+      // Check collisions with particles from the same region
+      this.checkCollisions(p0);
+
+      this.drawParticle(p0);
     }
   }
 
@@ -100,4 +79,64 @@ export default class ParticleManager {
     Array.prototype.push.apply(this.particles, particles);
   }
 
+  /*
+   *  Check and resolve collisions within a particle's mapper region
+   */
+  checkCollisions(p0) {
+    let region = this.mapper.regions[p0.mapperRegion];
+
+    for (var r in region.particles) {
+      if (region.particles.hasOwnProperty(r)) {
+        let p1 = region.particles[r];
+
+        if (p0.id === p1.id) {
+          continue;
+        }
+
+        let result = this.collisioner.circleCollision(p0, p1);
+
+        // Reslve collision
+        if (result) {
+          p0.color = p1.color = "red";
+        }
+      }
+    }
+  }
+
+  /*
+   *  Draw a single particle
+   */
+  drawParticle(p) {
+    this.ctx.beginPath();
+    this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2, false);
+    this.ctx.fillStyle = p.color || '#000000';
+    this.ctx.fill();
+    this.ctx.closePath();
+  }
+
+  /*
+   *  Draw Mappger Regions (for debugging)
+   */
+  drawMappgerRegions() {
+    // Draw regions
+    for (var r in this.mapper.regions) {
+      if (this.mapper.regions.hasOwnProperty(r)) {
+
+        if (this.regionMon) {
+          if (!this.monitor.outputs.hasOwnProperty(r)) {
+            this.monitor.newOutput(r);
+          }
+
+          this.monitor.out(r, Object.keys(mRegion.particles).length);
+        }
+
+        let mRegion = this.mapper.regions[r];
+        this.ctx.beginPath();
+        this.ctx.strokeStyle = mRegion.color;
+        this.ctx.rect(mRegion.beginsAtX, mRegion.beginsAtY, this.mapper.regionSize-2, this.mapper.regionSize-2);
+        this.ctx.stroke();
+        this.ctx.closePath();
+      }
+    }
+  }
 }
