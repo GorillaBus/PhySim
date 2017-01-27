@@ -19,7 +19,6 @@ export default class Mapper {
 
       region.particles[p.id] = p;
       p.mapperRegion = rLabel;
-      p.color = region.color;
     }
   }
 
