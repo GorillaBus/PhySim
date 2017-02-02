@@ -9,10 +9,16 @@ export default class Particle {
         this.vy = (Math.sin(settings.direction) * settings.speed) || 0;
         this.gravity = settings.gravity || 0;
         this.mass = settings.mass || 1;
-        this.radius = settings.radius || 1;
+        this.radius = settings.radius || settings.mass * 0.87;
         this.friction = settings.friction || 1;
         this.springs = [];
         this.gravitations = [];
+
+        this.shape = settings.shape || "circle";
+        this.mapperRegions = settings.mapperRegions || [];
+        this.color = settings.color || "#000000";
+        this.points = settings.points || [];
+        this.boxBounce = settings.boxBounce || false;
     }
 
     /*
@@ -26,6 +32,10 @@ export default class Particle {
         this.vy *= this.friction;
         this.x += this.vx;
         this.y += this.vy;
+
+        if (this.boxBounce) {
+          this.checkBorders(this.boxBounce.w, this.boxBounce.h);
+        }
     }
 
     /*
@@ -69,17 +79,25 @@ export default class Particle {
     }
 
     /*
-     *  Bounce if the particle hits the box (i.e. screen) borders
-     */
-     checkBorders(width, height) {
-       if (this.x < 0 || this.x > width) {
-         this.vx *= -1;
-       }
+    *  Bounce if the particle hits the box (i.e. screen) borders
+    */
+    checkBorders(width, height) {
+      if (this.x + this.radius >= width) {
+        this.x = width - this.radius;
+        this.vx *=  -1;
+      } else if (this.x - this.radius <= 0) {
+        this.x = this.radius;
+        this.vx *= -1;
+      }
 
-       if (this.y < 0 || this.y > height) {
-         this.vy *= -1;
-       }
-     }
+      if (this.y + this.radius >= height) {
+        this.y = height - this.radius;
+        this.vy *=  -1;
+      } else if (this.y - this.radius <= 0) {
+        this.y = this.radius;
+        this.vy *= -1;
+      }
+    }
 
     /*
      *  Calculates the angle between this particle and 'p2'
