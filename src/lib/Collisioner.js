@@ -22,17 +22,37 @@ export default class Collisioner {
    *  Check for collision between two circular particles
    */
   circleCollision(p0, p1) {
-    let distance = this.distance(p0, p1);
-    let collides = distance <= p0.radius + p1.radius;
+    // Calculate the Distance Vector
+    let xDist = p0.x - p1.x;
+    let yDist = p0.y - p1.y;
+    let distSquared = xDist*xDist + yDist*yDist;
+    let radiusSquared = (p0.radius + p1.radius) * (p0.radius + p1.radius);
 
-    if (!collides) {
-      return collides;
+    // Check collision: using squared distances, same result and saves one Math.sqrt()
+    if (distSquared < radiusSquared) {
+
+      // Calculate if particles are moving towards each other or away (after a previous collision)
+      let xVelocity = p1.vx - p0.vx;
+      let yVelocity = p1.vy - p0.vy;
+      let dotProduct = xDist*xVelocity + yDist*yVelocity;
+
+      // If particles are moving away (already collided) return
+      if (dotProduct <= 0) {
+        return false;
+      }
+
+      // Collision Vector: the speed difference projected over the Distance Vector
+      // This is the component for the speed difference for the collision
+      let collisionScale = dotProduct / distSquared;
+      let collision = {
+        x: xDist * collisionScale,
+        y: yDist * collisionScale
+      };
+
+      return collision;
     }
 
-    return {
-      distance: distance,
-      angle: this.angle(p0, p1)
-    };
+    return false;
   }
 
 }
