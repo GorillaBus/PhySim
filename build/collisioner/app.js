@@ -29,31 +29,33 @@ window.onload = function () {
   canvas.height = height;
   canvas.width = width;
 
-  var player = new _AnimationPlayer2.default({ fps: 60 });
-
-  var monOutputs = {};
-  var pmanager = new _ParticleManager2.default({
-    regionDraw: false,
-    regionSize: 10,
-    regionMon: false
-  }, ctx);
+  var player = new _AnimationPlayer2.default({ fps: 30 });
+  var greaterRad = 0;
 
   // Create particles
   var particles = new Array(1000);
   for (var i = 0; i < particles.length; i++) {
     particles[i] = new _Particle2.default({
-      x: _Utils2.default.randomRange(0, width),
-      y: _Utils2.default.randomRange(0, height),
-      radius: 2,
+      x: _Utils2.default.randomRange(0, width - 30),
+      y: _Utils2.default.randomRange(0, height - 30),
       direction: Math.random() * Math.PI * 2,
-      speed: 2
+      speed: 1,
+      mass: _Utils2.default.randomRange(1, 22),
+      boxBounce: { w: width, h: height }
     });
 
     var p = particles[i];
     p.id = uuid();
-    p.mapperRegion = null;
-    p.color = "#000000";
+
+    if (p.radius > greaterRad) {
+      greaterRad = p.radius;
+    }
   }
+  var regionSize = greaterRad * 4;
+  var pmanager = new _ParticleManager2.default({
+    regionDraw: true,
+    regionSize: regionSize
+  }, ctx);
 
   // Inject particles into the Mapper
   pmanager.injectParticles(particles);
@@ -120,7 +122,7 @@ Object.defineProperty(exports, "__esModule", {
  */
 
 var FEATURE_TOGGLE = {
-  FPS_CONTROL: false // FPS controll for AnimationPlayer class
+  FPS_CONTROL: true // FPS controll for AnimationPlayer class
 };
 
 exports.default = FEATURE_TOGGLE;
@@ -224,6 +226,54 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var Collide = function () {
+  function Collide() {
+    _classCallCheck(this, Collide);
+  }
+
+  _createClass(Collide, [{
+    key: "elastic2D",
+
+
+    /*
+     *  2D Elastic Collision
+     *
+     *  Formula used:
+     *  Final Vel 1 =  Velocity += (2 * mass2) / (mass1 + mass2)
+     *  Final Vel 2 =  Velocity -= (2 * mass1) / (mass1 + mass2)
+     *
+     */
+    value: function elastic2D(p0, p1, collisionV) {
+
+      // 2D-Elastic collision formula
+      var combinedMass = p0.mass + p1.mass;
+      var collisionWeight0 = 2 * p1.mass / combinedMass;
+      var collisionWeight1 = 2 * p0.mass / combinedMass;
+
+      // Adds the computed collision results to the velocities of p0 / p1
+      p0.vx += collisionWeight0 * collisionV.x;
+      p0.vy += collisionWeight0 * collisionV.y;
+      p1.vx -= collisionWeight1 * collisionV.x;
+      p1.vy -= collisionWeight1 * collisionV.y;
+    }
+  }]);
+
+  return Collide;
+}();
+
+exports.default = Collide;
+
+},{}],5:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 var Collisioner = function () {
   function Collisioner() {
     _classCallCheck(this, Collisioner);
@@ -257,17 +307,37 @@ var Collisioner = function () {
   }, {
     key: "circleCollision",
     value: function circleCollision(p0, p1) {
-      var distance = this.distance(p0, p1);
-      var collides = distance <= p0.radius + p1.radius;
+      // Calculate the Distance Vector
+      var xDist = p0.x - p1.x;
+      var yDist = p0.y - p1.y;
+      var distSquared = xDist * xDist + yDist * yDist;
+      var radiusSquared = (p0.radius + p1.radius) * (p0.radius + p1.radius);
 
-      if (!collides) {
-        return collides;
+      // Check collision: using squared distances, same result and saves one Math.sqrt()
+      if (distSquared < radiusSquared) {
+
+        // Calculate if particles are moving towards each other or away (after a previous collision)
+        var xVelocity = p1.vx - p0.vx;
+        var yVelocity = p1.vy - p0.vy;
+        var dotProduct = xDist * xVelocity + yDist * yVelocity;
+
+        // If particles are moving away (already collided) return
+        if (dotProduct <= 0) {
+          return false;
+        }
+
+        // Collision Vector: the speed difference projected over the Distance Vector
+        // This is the component for the speed difference for the collision
+        var collisionScale = dotProduct / distSquared;
+        var collision = {
+          x: xDist * collisionScale,
+          y: yDist * collisionScale
+        };
+
+        return collision;
       }
 
-      return {
-        distance: distance,
-        angle: this.angle(p0, p1)
-      };
+      return false;
     }
   }]);
 
@@ -276,7 +346,7 @@ var Collisioner = function () {
 
 exports.default = Collisioner;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -284,6 +354,12 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _Utils = require("./Utils");
+
+var _Utils2 = _interopRequireDefault(_Utils);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -303,17 +379,7 @@ var Mapper = function () {
   _createClass(Mapper, [{
     key: "subscribe",
     value: function subscribe(p, rLabel) {
-      var region = this.regions[rLabel];
-      if (!region.particles.hasOwnProperty(p.id)) {
-
-        // Delete particle from previous region
-        if (p.mapperRegion !== null) {
-          this.unsubscribe(p, p.mapperRegion);
-        }
-
-        region.particles[p.id] = p;
-        p.mapperRegion = rLabel;
-      }
+      this.regions[rLabel].particles[p.id] = p;
     }
 
     /*
@@ -332,35 +398,74 @@ var Mapper = function () {
 
   }, {
     key: "update",
-    value: function update(rData, p) {
-      if (p.mapperRegion === rData.rLabel) {
-        return;
+    value: function update(p) {
+
+      // Qualify particle in the mapper and get the region data
+      var rData = this.qualifyParticle(p);
+
+      if (this.regionsCompare(rData.labels, p.mapperRegions)) {
+        return false;
       }
 
-      // Create the region if it doesn't exist already
-      if (!this.regions.hasOwnProperty(rData.rLabel)) {
-        this.createRegion(rData);
+      // Areas have changed: unsubscribe particle from any region
+      for (var i = 0; i < p.maperRegions; i++) {
+        this.unsubscribe(p.mapperRegions[i]);
       }
 
-      // Insert particle into the region stack if it's not already inside
-      this.subscribe(p, rData.rLabel);
+      // Create regions if they doesn't exist already
+      for (var _i = 0; _i < rData.regions.length; _i++) {
+        var r = rData.regions[_i];
+        if (!this.regions.hasOwnProperty(r.rLabel)) {
+          this.createRegion(r);
+        }
+
+        // Insert particle into the region stack if it's not already inside
+        this.subscribe(p, r.rLabel);
+      }
+
+      // Update particle regions register
+      p.mapperRegions = rData.labels;
     }
 
     /*
-     *  Get particle's region data
+     *  Get particle's region data.
+     *  NOTE: For now we'll consider that every particle is circular
      */
 
   }, {
     key: "qualifyParticle",
     value: function qualifyParticle(p) {
-      var pX = p.x;
-      var pY = p.y;
+      var points = _Utils2.default.getCirclePoints(p);
+      var regions = [];
+      var labels = [];
 
+      for (var i = 0; i < points.length; i++) {
+        var r = this.qualilyPoint(points[i]);
+
+        if (labels.indexOf(r.rLabel) === -1) {
+          labels.push(r.rLabel);
+          regions.push(r);
+        }
+      }
+      // Save points on particle for debugging
+      p.points = points;
+      return { regions: regions, labels: labels };
+    }
+
+    /*
+     *  Qualify a single point within a region
+     */
+
+  }, {
+    key: "qualilyPoint",
+    value: function qualilyPoint(p) {
       var rData = {
-        rX: pX > this.regionSize ? Math.floor(Math.abs(pX / this.regionSize)) : 0,
-        rY: pY > this.regionSize ? Math.floor(Math.abs(pY / this.regionSize)) : 0
+        rX: p.x > this.regionSize ? Math.floor(Math.abs(p.x / this.regionSize)) : 0,
+        rY: p.y > this.regionSize ? Math.floor(Math.abs(p.y / this.regionSize)) : 0,
+        rLabel: ""
       };
       rData.rLabel = rData.rX + "_" + rData.rY;
+
       return rData;
     }
 
@@ -371,7 +476,6 @@ var Mapper = function () {
   }, {
     key: "createRegion",
     value: function createRegion(rData) {
-
       // Pre-calculate region offset
       var rOffsetX = rData.rX * this.regionSize;
       var rOffsetY = rData.rY * this.regionSize;
@@ -387,6 +491,24 @@ var Mapper = function () {
         endsAtY: rOffsetY + this.regionSize
       };
     }
+
+    /*
+     *  Helper: Compares two region array structures, returns true when equal
+     */
+
+  }, {
+    key: "regionsCompare",
+    value: function regionsCompare(reg1, reg2) {
+      if (reg1.length !== reg2.length) {
+        return false;
+      }
+
+      for (var i = reg1.length; i--;) {
+        if (reg1[i] !== reg2[i]) return false;
+      }
+
+      return true;
+    }
   }]);
 
   return Mapper;
@@ -394,83 +516,8 @@ var Mapper = function () {
 
 exports.default = Mapper;
 
-},{}],6:[function(require,module,exports){
+},{"./Utils":9}],7:[function(require,module,exports){
 "use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Monitor = function () {
-  function Monitor() {
-    _classCallCheck(this, Monitor);
-
-    this.HTMLObject = this.createWrapper();
-    this.outputs = {};
-  }
-
-  _createClass(Monitor, [{
-    key: "out",
-    value: function out(t, v) {
-      if (!this.outputs[t]) {
-        console.warn("Monitor > no output '" + t + "'");
-        return false;
-      }
-      this.outputs[t].innerHTML = v;
-    }
-  }, {
-    key: "newOutput",
-    value: function newOutput(title) {
-      title = this.sanitize(title);
-      var e = this.createOutput(title);
-      var v = e.getElementsByTagName("SPAN")[0];
-      this.outputs[title] = v;
-      this.HTMLObject.appendChild(e);
-      return Object.keys(this.outputs).length;
-    }
-  }, {
-    key: "createWrapper",
-    value: function createWrapper() {
-      var e = document.createElement("DIV");
-      e.setAttribute("id", "monitorWrapper");
-      document.getElementsByTagName("body")[0].appendChild(e);
-      return e;
-    }
-  }, {
-    key: "createOutput",
-    value: function createOutput(title) {
-      var e = document.createElement("DIV");
-      e.setAttribute("class", "monitor");
-      e.setAttribute("id", title);
-
-      var head = document.createElement("H3");
-      head.innerHTML = title;
-      e.appendChild(head);
-
-      var val = document.createElement("SPAN");
-      val.innerHTML = "---";
-      e.appendChild(val);
-
-      return e;
-    }
-  }, {
-    key: "sanitize",
-    value: function sanitize(s) {
-      return s.replace(/\W/g, '');
-    }
-  }]);
-
-  return Monitor;
-}();
-
-exports.default = Monitor;
-
-},{}],7:[function(require,module,exports){
-'use strict';
 
 Object.defineProperty(exports, "__esModule", {
     value: true
@@ -478,7 +525,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _featureToggle = require('../../src/feature-toggle');
+var _featureToggle = require("../../src/feature-toggle");
 
 var _featureToggle2 = _interopRequireDefault(_featureToggle);
 
@@ -496,10 +543,16 @@ var Particle = function () {
         this.vy = Math.sin(settings.direction) * settings.speed || 0;
         this.gravity = settings.gravity || 0;
         this.mass = settings.mass || 1;
-        this.radius = settings.radius || 1;
+        this.radius = settings.radius || settings.mass * 0.87;
         this.friction = settings.friction || 1;
         this.springs = [];
         this.gravitations = [];
+
+        this.shape = settings.shape || "circle";
+        this.mapperRegions = settings.mapperRegions || [];
+        this.color = settings.color || "#000000";
+        this.points = settings.points || [];
+        this.boxBounce = settings.boxBounce || false;
     }
 
     /*
@@ -508,7 +561,7 @@ var Particle = function () {
 
 
     _createClass(Particle, [{
-        key: 'update',
+        key: "update",
         value: function update() {
             this.handleSprings();
             this.handleGravitations();
@@ -517,6 +570,10 @@ var Particle = function () {
             this.vy *= this.friction;
             this.x += this.vx;
             this.y += this.vy;
+
+            if (this.boxBounce) {
+                this.checkBorders(this.boxBounce.w, this.boxBounce.h);
+            }
         }
 
         /*
@@ -524,7 +581,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'getSpeed',
+        key: "getSpeed",
         value: function getSpeed() {
             return Math.sqrt(this.vx * this.vx + this.vy * this.vy);
         }
@@ -534,7 +591,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'setSpeed',
+        key: "setSpeed",
         value: function setSpeed(speed) {
             var heading = this.getHeading();
             this.vx = Math.cos(heading) * speed;
@@ -546,7 +603,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'getHeading',
+        key: "getHeading",
         value: function getHeading() {
             return Math.atan2(this.vy, this.vx);
         }
@@ -556,7 +613,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'setHeading',
+        key: "setHeading",
         value: function setHeading(heading) {
             var speed = this.getSpeed();
             this.vx = Math.cos(heading) * speed;
@@ -568,24 +625,32 @@ var Particle = function () {
          */
 
     }, {
-        key: 'accelerate',
+        key: "accelerate",
         value: function accelerate(x, y) {
             this.vx += x;
             this.vy += y;
         }
 
         /*
-         *  Bounce if the particle hits the box (i.e. screen) borders
-         */
+        *  Bounce if the particle hits the box (i.e. screen) borders
+        */
 
     }, {
-        key: 'checkBorders',
+        key: "checkBorders",
         value: function checkBorders(width, height) {
-            if (this.x < 0 || this.x > width) {
+            if (this.x + this.radius >= width) {
+                this.x = width - this.radius;
+                this.vx *= -1;
+            } else if (this.x - this.radius <= 0) {
+                this.x = this.radius;
                 this.vx *= -1;
             }
 
-            if (this.y < 0 || this.y > height) {
+            if (this.y + this.radius >= height) {
+                this.y = height - this.radius;
+                this.vy *= -1;
+            } else if (this.y - this.radius <= 0) {
+                this.y = this.radius;
                 this.vy *= -1;
             }
         }
@@ -595,7 +660,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'angleTo',
+        key: "angleTo",
         value: function angleTo(p2) {
             return Math.atan2(p2.y - this.y, p2.x - this.x);
         }
@@ -605,7 +670,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'distanceTo',
+        key: "distanceTo",
         value: function distanceTo(p) {
             var dx = p.x - this.x;
             var dy = p.y - this.y;
@@ -617,7 +682,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'gravitateTo',
+        key: "gravitateTo",
         value: function gravitateTo(p) {
             var dx = p.x - this.x;
             var dy = p.y - this.y;
@@ -645,7 +710,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'addGravitation',
+        key: "addGravitation",
         value: function addGravitation(p) {
             this.removeGravitation(p);
             this.gravitations.push(p);
@@ -656,7 +721,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'removeGravitation',
+        key: "removeGravitation",
         value: function removeGravitation(p) {
             var length = this.gravitations.length;
             for (var i = 0; i < length; i++) {
@@ -672,7 +737,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'handleGravitations',
+        key: "handleGravitations",
         value: function handleGravitations() {
             var length = this.gravitations.length;
             for (var i = 0; i < length; i++) {
@@ -685,7 +750,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'springTo',
+        key: "springTo",
         value: function springTo(point, k, length) {
             var dx = point.x - this.x;
             var dy = point.y - this.y;
@@ -701,7 +766,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'addSpring',
+        key: "addSpring",
         value: function addSpring(point, k, length) {
             this.removeSpring(point);
             this.springs.push({
@@ -716,7 +781,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'removeSpring',
+        key: "removeSpring",
         value: function removeSpring(point) {
             var length = this.springs.length;
             for (var i = 0; i < length; i++) {
@@ -732,7 +797,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'handleSprings',
+        key: "handleSprings",
         value: function handleSprings() {
             var length = this.springs.length;
             for (var i = 0; i < length; i++) {
@@ -760,13 +825,13 @@ var _Mapper = require('./Mapper');
 
 var _Mapper2 = _interopRequireDefault(_Mapper);
 
-var _Monitor = require('./Monitor');
-
-var _Monitor2 = _interopRequireDefault(_Monitor);
-
 var _Collisioner = require('./Collisioner');
 
 var _Collisioner2 = _interopRequireDefault(_Collisioner);
+
+var _Collide = require('./Collide');
+
+var _Collide2 = _interopRequireDefault(_Collide);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -782,16 +847,14 @@ var ParticleManager = function () {
       boxWidth: settings.boxWidth || window.innerWidth,
       boxHeight: settings.boxHeight || window.innerHeight - 4,
       regionDraw: settings.regionDraw || false,
-      regionSize: settings.regionSize || null,
-      regionMon: settings.regionMon || false
+      regionSize: settings.regionSize || null
     };
 
     this.ctx = ctx;
     this.mapper = new _Mapper2.default(settings.regionSize);
     this.collisioner = new _Collisioner2.default();
-    this.regionMon = settings.regionMon;
+    this.collide = new _Collide2.default();
     this.regionDraw = settings.regionDraw;
-    this.monitor = settings.regionMon ? new _Monitor2.default() : null;
     this.particles = settings.particles;
     this.boxWidth = settings.boxWidth;
     this.boxHeight = settings.boxHeight;
@@ -811,13 +874,9 @@ var ParticleManager = function () {
 
         // Update particle position
         p.update();
-        p.checkBorders(this.boxWidth, this.boxHeight);
-
-        // Qualify particle in the mapper and get the region data
-        var rData = this.mapper.qualifyParticle(p);
 
         // Update region status
-        this.mapper.update(rData, p);
+        this.mapper.update(p);
       }
     }
 
@@ -843,7 +902,6 @@ var ParticleManager = function () {
 
         // Check collisions with particles from the same region
         this.checkCollisions(p0);
-
         this.drawParticle(p0);
       }
     }
@@ -866,21 +924,23 @@ var ParticleManager = function () {
   }, {
     key: 'checkCollisions',
     value: function checkCollisions(p0) {
-      var region = this.mapper.regions[p0.mapperRegion];
+      for (var i = 0; i < p0.mapperRegions.length; i++) {
+        var rLabel = p0.mapperRegions[i];
+        var region = this.mapper.regions[rLabel];
+        for (var r in region.particles) {
+          if (region.particles.hasOwnProperty(r)) {
+            var p1 = region.particles[r];
 
-      for (var r in region.particles) {
-        if (region.particles.hasOwnProperty(r)) {
-          var p1 = region.particles[r];
+            if (p0.id === p1.id) {
+              continue;
+            }
 
-          if (p0.id === p1.id) {
-            continue;
-          }
+            var collision = this.collisioner.circleCollision(p0, p1);
 
-          var result = this.collisioner.circleCollision(p0, p1);
-
-          // Reslve collision
-          if (result) {
-            p0.color = p1.color = "red";
+            // Reslve collision
+            if (collision) {
+              this.collide.elastic2D(p0, p1, collision);
+            }
           }
         }
       }
@@ -911,18 +971,10 @@ var ParticleManager = function () {
       for (var r in this.mapper.regions) {
         if (this.mapper.regions.hasOwnProperty(r)) {
 
-          if (this.regionMon) {
-            if (!this.monitor.outputs.hasOwnProperty(r)) {
-              this.monitor.newOutput(r);
-            }
-
-            this.monitor.out(r, Object.keys(_mRegion.particles).length);
-          }
-
-          var _mRegion = this.mapper.regions[r];
+          var mRegion = this.mapper.regions[r];
           this.ctx.beginPath();
-          this.ctx.strokeStyle = _mRegion.color;
-          this.ctx.rect(_mRegion.beginsAtX, _mRegion.beginsAtY, this.mapper.regionSize - 2, this.mapper.regionSize - 2);
+          this.ctx.strokeStyle = mRegion.color;
+          this.ctx.rect(mRegion.beginsAtX, mRegion.beginsAtY, this.mapper.regionSize - 2, this.mapper.regionSize - 2);
           this.ctx.stroke();
           this.ctx.closePath();
         }
@@ -935,8 +987,8 @@ var ParticleManager = function () {
 
 exports.default = ParticleManager;
 
-},{"./Collisioner":4,"./Mapper":5,"./Monitor":6}],9:[function(require,module,exports){
-'use strict';
+},{"./Collide":4,"./Collisioner":5,"./Mapper":6}],9:[function(require,module,exports){
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -944,7 +996,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _featureToggle = require('../../src/feature-toggle');
+var _featureToggle = require("../../src/feature-toggle");
 
 var _featureToggle2 = _interopRequireDefault(_featureToggle);
 
@@ -955,10 +1007,60 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var Utils = function () {
   function Utils() {
     _classCallCheck(this, Utils);
+
+    this.cache = {};
   }
 
   _createClass(Utils, [{
-    key: 'montecarlo',
+    key: "cacheStore",
+    value: function cacheStore(caller, key, value) {
+      if (!this.cache.hasOwnProperty(caller)) {
+        this.cache[caller] = {};
+      }
+      this.cache[caller][key] = value;
+    }
+  }, {
+    key: "cacheRetrieve",
+    value: function cacheRetrieve(caller, key) {
+      var fnCache = this.cache[caller] || [];
+      var value = fnCache[key] || false;
+      return value;
+    }
+
+    /*
+     *  Get 'n' points from a circular shaped 'Particle' object
+     */
+
+  }, {
+    key: "getCirclePoints",
+    value: function getCirclePoints(p, n, radius) {
+      n = n || 8;
+      radius = radius || p.radius || 0;
+
+      var angle = -1;
+      var angleStep = Math.PI * 2 / n;
+      var points = [];
+
+      for (var i = 0; i < n; i++) {
+        var cData = this.cacheRetrieve("getCirclePoints", angle);
+        var cos = cData.cos || Math.cos(angle);
+        var sin = cData.sin || Math.sin(angle);
+        var pt = {
+          x: p.x + cos * p.radius,
+          y: p.y + sin * p.radius
+        };
+        points.push(pt);
+        if (!cData) {
+          this.cacheStore("getCirclePoints", angle, { cos: cos, sin: sin });
+        }
+        angle += angleStep;
+      }
+
+      // Add the center point
+      return points;
+    }
+  }, {
+    key: "montecarlo",
     value: function montecarlo() {
       while (true) {
         var r1 = Math.random();
@@ -970,12 +1072,12 @@ var Utils = function () {
       }
     }
   }, {
-    key: 'lerp',
+    key: "lerp",
     value: function lerp(norm, min, max) {
       return (max - min) * norm + min;
     }
   }, {
-    key: 'quadraticBezier',
+    key: "quadraticBezier",
     value: function quadraticBezier(p0, p1, p2, t, pFinal) {
       pFinal = pFinal || {};
       pFinal.x = Math.pow(1 - t, 2) * p0.x + (1 - t) * 2 * t * p1.x + t * t * p2.x;
@@ -983,7 +1085,7 @@ var Utils = function () {
       return pFinal;
     }
   }, {
-    key: 'cubicBezier',
+    key: "cubicBezier",
     value: function cubicBezier(p0, p1, p2, p3, t, pFinal) {
       pFinal = pFinal || {};
       pFinal.x = Math.pow(1 - t, 3) * p0.x + Math.pow(1 - t, 2) * 3 * t * p1.x + (1 - t) * 3 * t * t * p2.x + t * t * t * p3.x;
@@ -991,14 +1093,14 @@ var Utils = function () {
       return pFinal;
     }
   }, {
-    key: 'distance',
+    key: "distance",
     value: function distance(p0, p1) {
       var dx = p0.x - p1.x;
       var dy = p0.y - p1.y;
       return Math.sqrt(dx * dx + dy * dy);
     }
   }, {
-    key: 'distanceXY',
+    key: "distanceXY",
     value: function distanceXY(x0, y0, x1, y1) {
       var dx = x1 - x0;
       var dy = y1 - y0;
@@ -1008,7 +1110,7 @@ var Utils = function () {
     // TODO: Check if and why we need to parseInt() the result
 
   }, {
-    key: 'mapRange',
+    key: "mapRange",
     value: function mapRange(value, low1, high1, low2, high2) {
       return result = low2 + (high2 - low2) * (value - low1) / (high1 - low1);
       var result = low2 + (high2 - low2) * (value - low1) / (high1 - low1);
@@ -1018,37 +1120,37 @@ var Utils = function () {
       return result;
     }
   }, {
-    key: 'inRange',
+    key: "inRange",
     value: function inRange(value, min, max) {
       return value >= Math.min(min, max) && value <= Math.max(min, max);
     }
   }, {
-    key: 'rangeIntersect',
+    key: "rangeIntersect",
     value: function rangeIntersect(min0, max0, min1, max1) {
       return Math.max(min0, max0) >= Math.min(min1, max1) && Math.min(min0, max0) <= Math.max(min1, max1);
     }
   }, {
-    key: 'randomRange',
+    key: "randomRange",
     value: function randomRange(min, max) {
       return min + Math.random() * (max - min);
     }
   }, {
-    key: 'circleCollision',
+    key: "circleCollision",
     value: function circleCollision(c0, c1) {
       return this.distance(c0, c1) <= c0.radius + c1.radius;
     }
   }, {
-    key: 'rectangleCollision',
+    key: "rectangleCollision",
     value: function rectangleCollision(r0, r1) {
       return this.rangeIntersect(r0.x, r0.x + r0.width, r1.x, r1.x + r1.width) && this.rangeIntersect(r0.y, r0.y + r0.height, r1.y, r1.y + r1.height);
     }
   }, {
-    key: 'circlePointCollision',
+    key: "circlePointCollision",
     value: function circlePointCollision(px, py, circle) {
       return this.distanceXY(px, py, circle.x, circle.y) < circle.radius;
     }
   }, {
-    key: 'rectanglePointCollision',
+    key: "rectanglePointCollision",
     value: function rectanglePointCollision(px, py, rect) {
       return this.inRange(px, rect.x, rect.x + rect.width) && this.inRange(py, rect.y, rect.y + rect.height);
     }
