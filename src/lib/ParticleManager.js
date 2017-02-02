@@ -1,6 +1,6 @@
 import Mapper from './Mapper';
-import Monitor from './Monitor';
 import Collisioner from './Collisioner';
+import Collide from './Collide';
 
 export default class ParticleManager {
 
@@ -11,16 +11,14 @@ export default class ParticleManager {
       boxWidth: settings.boxWidth || window.innerWidth,
       boxHeight: settings.boxHeight || window.innerHeight-4,
       regionDraw: settings.regionDraw || false,
-      regionSize: settings.regionSize || null,
-      regionMon: settings.regionMon || false
+      regionSize: settings.regionSize || null
     }
 
     this.ctx = ctx;
     this.mapper = new Mapper(settings.regionSize);
     this.collisioner = new Collisioner();
-    this.regionMon = settings.regionMon;
+    this.collide = new Collide();
     this.regionDraw = settings.regionDraw;
-    this.monitor = settings.regionMon ? new Monitor() : null;
     this.particles = settings.particles;
     this.boxWidth = settings.boxWidth;
     this.boxHeight = settings.boxHeight;
@@ -37,13 +35,9 @@ export default class ParticleManager {
 
       // Update particle position
       p.update();
-      p.checkBorders(this.boxWidth, this.boxHeight)
-
-      // Qualify particle in the mapper and get the region data
-      let rData = this.mapper.qualifyParticle(p);
 
       // Update region status
-      this.mapper.update(rData, p);
+      this.mapper.update(p);
     }
   }
 
@@ -66,7 +60,6 @@ export default class ParticleManager {
 
       // Check collisions with particles from the same region
       this.checkCollisions(p0);
-
       this.drawParticle(p0);
     }
   }
@@ -83,21 +76,23 @@ export default class ParticleManager {
    *  Check and resolve collisions within a particle's mapper region
    */
   checkCollisions(p0) {
-    let region = this.mapper.regions[p0.mapperRegion];
+    for (let i=0; i<p0.mapperRegions.length; i++) {
+      let rLabel = p0.mapperRegions[i];
+      let region = this.mapper.regions[rLabel];
+      for (var r in region.particles) {
+        if (region.particles.hasOwnProperty(r)) {
+          let p1 = region.particles[r];
 
-    for (var r in region.particles) {
-      if (region.particles.hasOwnProperty(r)) {
-        let p1 = region.particles[r];
+          if (p0.id === p1.id) {
+            continue;
+          }
 
-        if (p0.id === p1.id) {
-          continue;
-        }
+          let collision = this.collisioner.circleCollision(p0, p1);
 
-        let result = this.collisioner.circleCollision(p0, p1);
-
-        // Reslve collision
-        if (result) {
-          p0.color = p1.color = "red";
+          // Reslve collision
+          if (collision) {
+            this.collide.elastic2D(p0, p1, collision);
+          }
         }
       }
     }
@@ -119,16 +114,8 @@ export default class ParticleManager {
    */
   drawMappgerRegions() {
     // Draw regions
-    for (var r in this.mapper.regions) {
+    for (let r in this.mapper.regions) {
       if (this.mapper.regions.hasOwnProperty(r)) {
-
-        if (this.regionMon) {
-          if (!this.monitor.outputs.hasOwnProperty(r)) {
-            this.monitor.newOutput(r);
-          }
-
-          this.monitor.out(r, Object.keys(mRegion.particles).length);
-        }
 
         let mRegion = this.mapper.regions[r];
         this.ctx.beginPath();
