@@ -14,31 +14,34 @@ window.onload = () => {
     canvas.height = height;
     canvas.width = width;
 
-    let player = new AnimationPlayer({ fps: 60 });
-
-    let monOutputs = {};
-    let pmanager = new ParticleManager({
-      regionDraw: false,
-      regionSize: 10,
-      regionMon: false
-    }, ctx);
+    let player = new AnimationPlayer({ fps: 30 });
+    let greaterRad = 0;
 
     // Create particles
     let particles = new Array(1000);
     for (let i=0; i<particles.length; i++) {
       particles[i] = new Particle({
-        x: Utils.randomRange(0, width),
-        y: Utils.randomRange(0, height),
-        radius: 2,
+        x: Utils.randomRange(0, width-30),
+        y: Utils.randomRange(0, height-30),
         direction: Math.random() * Math.PI * 2,
-        speed: 2
+        speed: 1,
+        mass: Utils.randomRange(1, 22),
+        boxBounce: { w: width, h: height }
       });
 
       let p = particles[i];
       p.id = uuid();
-      p.mapperRegion = null;
-      p.color = "#000000";
+
+      if (p.radius > greaterRad) {
+        greaterRad = p.radius;
+      }
     }
+    let regionSize = greaterRad * 4;
+    let pmanager = new ParticleManager({
+      regionDraw: true,
+      regionSize: regionSize
+    }, ctx);
+
 
     // Inject particles into the Mapper
     pmanager.injectParticles(particles);
