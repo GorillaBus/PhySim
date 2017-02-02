@@ -1,6 +1,52 @@
 import FEATURE_TOGGLE from '../../src/feature-toggle';
 
 class Utils {
+  constructor() {
+    this.cache = {};
+  }
+
+  cacheStore(caller, key, value) {
+    if (!this.cache.hasOwnProperty(caller)) {
+      this.cache[caller] = {};
+    }
+    this.cache[caller][key] = value;
+  }
+
+  cacheRetrieve(caller, key) {
+    let fnCache = this.cache[caller] || [];
+    let value = fnCache[key] || false;
+    return value;
+  }
+
+  /*
+   *  Get 'n' points from a circular shaped 'Particle' object
+   */
+  getCirclePoints(p, n, radius) {
+    n = n || 8;
+    radius = radius || p.radius || 0;
+
+    let angle = -1;
+    let angleStep = (Math.PI * 2) / n;
+    let points = [];
+
+    for (let i=0; i<n; i++) {
+      let cData = this.cacheRetrieve("getCirclePoints", angle);
+      let cos = cData.cos || Math.cos(angle);
+      let sin = cData.sin || Math.sin(angle);
+      let pt = {
+        x: p.x + (cos * p.radius),
+        y: p.y + (sin * p.radius)
+      };
+      points.push(pt);
+      if (!cData) {
+        this.cacheStore("getCirclePoints", angle, {cos: cos, sin: sin});
+      }
+      angle += angleStep;
+    }
+
+    // Add the center point
+    return points;
+  }
 
   montecarlo() {
     while(true) {
