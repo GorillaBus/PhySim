@@ -1,3 +1,5 @@
+import Utils from './Utils';
+
 export default class Mapper {
 
   constructor(regionSize) {
@@ -9,17 +11,7 @@ export default class Mapper {
    *  Subscribes particle 'p' to region 'rLabel'
    */
   subscribe(p, rLabel) {
-    let region = this.regions[rLabel];
-    if (!region.particles.hasOwnProperty(p.id)) {
-
-      // Delete particle from previous region
-      if (p.mapperRegion !== null) {
-        this.unsubscribe(p, p.mapperRegion);
-      }
-
-      region.particles[p.id] = p;
-      p.mapperRegion = rLabel;
-    }
+    this.regions[rLabel].particles[p.id] = p;
   }
 
   /*
@@ -32,40 +24,77 @@ export default class Mapper {
   /*
    *  Update map state
    */
-  update(rData, p) {
-    if (p.mapperRegion === rData.rLabel) {
-      return;
+  update(p) {
+
+    // Qualify particle in the mapper and get the region data
+    let rData = this.qualifyParticle(p);
+
+    if (this.regionsCompare(rData.labels, p.mapperRegions)) {
+      return false;
     }
 
-    // Create the region if it doesn't exist already
-    if (!this.regions.hasOwnProperty(rData.rLabel)) {
-      this.createRegion(rData)
+    // Areas have changed: unsubscribe particle from any region
+    for (let i=0; i<p.maperRegions; i++) {
+      this.unsubscribe(p.mapperRegions[i]);
     }
 
-    // Insert particle into the region stack if it's not already inside
-    this.subscribe(p, rData.rLabel);
+    // Create regions if they doesn't exist already
+    for (let i=0; i<rData.regions.length; i++) {
+      let r = rData.regions[i];
+      if (!this.regions.hasOwnProperty(r.rLabel)) {
+        this.createRegion(r);
+      }
+
+      // Insert particle into the region stack if it's not already inside
+      this.subscribe(p, r.rLabel);
+    }
+
+    // Update particle regions register
+    p.mapperRegions = rData.labels;
   }
 
   /*
-   *  Get particle's region data
+   *  Get particle's region data.
+   *  NOTE: For now we'll consider that every particle is circular
    */
   qualifyParticle(p) {
-    let pX = p.x;
-    let pY = p.y;
+    let points = Utils.getCirclePoints(p);
+    let regions = [];
+    let labels = [];
 
-    let rData = {
-      rX: pX > this.regionSize ? Math.floor(Math.abs(pX / this.regionSize)):0,
-      rY: pY > this.regionSize ? Math.floor(Math.abs(pY / this.regionSize)):0
-    };
-    rData.rLabel = rData.rX +"_"+ rData.rY
-    return rData;
+    for (let i=0; i<points.length; i++) {
+      let r = this.qualilyPoint(points[i]);
+
+      if (labels.indexOf(r.rLabel) === -1) {
+        labels.push(r.rLabel);
+        regions.push(r);
+      }
+    }
+    // Save points on particle for debugging
+    p.points = points;
+    return { regions: regions, labels: labels };
   }
+
+
+  /*
+   *  Qualify a single point within a region
+   */
+   qualilyPoint(p) {
+     let rData = {
+       rX: p.x > this.regionSize ? Math.floor(Math.abs(p.x / this.regionSize)):0,
+       rY: p.y > this.regionSize ? Math.floor(Math.abs(p.y / this.regionSize)):0,
+       rLabel: ""
+     };
+     rData.rLabel = rData.rX + "_"+ rData.rY;
+
+     return rData;
+   }
+
 
   /*
    *  Create a new region
    */
   createRegion(rData) {
-
     // Pre-calculate region offset
     let rOffsetX = rData.rX * this.regionSize;
     let rOffsetY = rData.rY * this.regionSize;
@@ -78,5 +107,21 @@ export default class Mapper {
       endsAtX: rOffsetX + this.regionSize,
       endsAtY: rOffsetY + this.regionSize
     };
+  }
+
+  /*
+   *  Helper: Compares two region array structures, returns true when equal
+   */
+  regionsCompare(reg1, reg2) {
+      if(reg1.length !== reg2.length) {
+          return false;
+      }
+
+      for(let i = reg1.length; i--;) {
+          if(reg1[i] !== reg2[i])
+              return false;
+      }
+
+      return true;
   }
 }
