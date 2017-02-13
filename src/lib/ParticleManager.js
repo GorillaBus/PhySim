@@ -5,23 +5,14 @@ import Collide from './Collide';
 export default class ParticleManager {
 
   constructor(settings, ctx) {
-    settings = settings || {};
-    settings = {
-      particles: settings.particles || [],
-      boxWidth: settings.boxWidth || window.innerWidth,
-      boxHeight: settings.boxHeight || window.innerHeight-4,
-      regionDraw: settings.regionDraw || false,
-      regionSize: settings.regionSize || null
-    }
-
     this.ctx = ctx;
-    this.mapper = new Mapper(settings.regionSize);
+    this.mapper = new Mapper(settings.mapper);
     this.collisioner = new Collisioner();
     this.collide = new Collide();
-    this.regionDraw = settings.regionDraw;
-    this.particles = settings.particles;
-    this.boxWidth = settings.boxWidth;
-    this.boxHeight = settings.boxHeight;
+    this.regionDraw = settings.regionDraw || false;
+    this.particles = settings.particles || [];
+    this.boxWidth = settings.boxWidth || window.innerWidth;
+    this.boxHeight = settings.boxHeight || window.innerHeight-4;
   }
 
 
@@ -59,7 +50,8 @@ export default class ParticleManager {
       let p0 = this.particles[i];
 
       // Check collisions with particles from the same region
-      this.checkCollisions(p0);
+      this.handleCollisions(p0);
+      this.handleAttraction(p0);
       this.drawParticle(p0);
     }
   }
@@ -72,14 +64,47 @@ export default class ParticleManager {
     Array.prototype.push.apply(this.particles, particles);
   }
 
+  handleAttraction(p0) {
+    // TODO: Is this really necesary?
+    if (!p0.mapperRegions.hasOwnProperty('gravity')) {
+      return false;
+    }
+
+    for (let i=0; i<p0.mapperRegions['gravity'].length; i++) {
+      let rLabel = p0.mapperRegions['gravity'][i];
+      let region = this.mapper.layers['gravity'].regions[rLabel];
+      for (var r in region.particles) {
+
+        if (region.particles.hasOwnProperty(r)) {
+          let p1 = region.particles[r];
+
+          if (p0.id === p1.id) {
+            continue;
+          }
+
+          p0.gravitateTo(p1);
+
+        }
+      }
+    }
+
+  }
+
+
   /*
    *  Check and resolve collisions within a particle's mapper region
    */
-  checkCollisions(p0) {
-    for (let i=0; i<p0.mapperRegions.length; i++) {
-      let rLabel = p0.mapperRegions[i];
-      let region = this.mapper.regions[rLabel];
+  handleCollisions(p0) {
+    // TODO: Is this really necesary?
+    if (!p0.mapperRegions.hasOwnProperty('collision')) {
+      return false;
+    }
+
+    for (let i=0; i<p0.mapperRegions['collision'].length; i++) {
+      let rLabel = p0.mapperRegions['collision'][i];
+      let region = this.mapper.layers['collision'].regions[rLabel];
       for (var r in region.particles) {
+
         if (region.particles.hasOwnProperty(r)) {
           let p1 = region.particles[r];
 
@@ -113,17 +138,26 @@ export default class ParticleManager {
    *  Draw Mappger Regions (for debugging)
    */
   drawMappgerRegions() {
-    // Draw regions
-    for (let r in this.mapper.regions) {
-      if (this.mapper.regions.hasOwnProperty(r)) {
 
-        let mRegion = this.mapper.regions[r];
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = mRegion.color;
-        this.ctx.rect(mRegion.beginsAtX, mRegion.beginsAtY, this.mapper.regionSize-2, this.mapper.regionSize-2);
-        this.ctx.stroke();
-        this.ctx.closePath();
+    // Draw layer regions
+    for (let layer in this.mapper.layers) {
+      if (this.mapper.layers.hasOwnProperty(layer)) {
+        let layerObj = this.mapper.layers[layer];
+
+        for (let r in layerObj.regions) {
+          if (layerObj.regions.hasOwnProperty(r)) {
+
+            let mRegion = layerObj.regions[r];
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = mRegion.color;
+            this.ctx.rect(mRegion.beginsAtX, mRegion.beginsAtY, layerObj.regionSize-2, layerObj.regionSize-2);
+            this.ctx.stroke();
+            this.ctx.closePath();
+          }
+        }
+
       }
     }
+
   }
 }

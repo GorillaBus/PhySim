@@ -2,23 +2,42 @@ import Utils from './Utils';
 
 export default class Mapper {
 
-  constructor(regionSize) {
-    this.regionSize = regionSize || 400;
-    this.regions = {};
+  /*
+   *  Each layer holds regions in which particles may subscribe to interact with other particles
+   *
+   */
+  constructor(settings) {
+    this.layers = {};
+
+    // GRAVITY layer
+    if (settings.hasOwnProperty('gravity')) {
+      this.layers.gravity = {
+        regionSize: settings.gravity.regionSize || 500,
+        regions: {}
+      };
+    }
+
+    // COLLISION layer
+    if (settings.hasOwnProperty('collision')) {
+      this.layers.collision = {
+        regionSize: settings.collision.regionSize || 100,
+        regions: {}
+      };
+    }
   }
 
   /*
    *  Subscribes particle 'p' to region 'rLabel'
    */
-  subscribe(p, rLabel) {
-    this.regions[rLabel].particles[p.id] = p;
+  subscribe(p, layer, rLabel) {
+    this.layers[layer].regions[rLabel].particles[p.id] = p;
   }
 
   /*
    *  Unsubscribe particle 'p' from region 'rLabel'
    */
-  unsubscribe(p, rLabel) {
-    delete this.regions[rLabel].particles[p.id];
+  unsubscribe(p, layer, rLabel) {
+    delete this.layers[layer].regions[rLabel].particles[p.id];
   }
 
   /*
@@ -26,31 +45,41 @@ export default class Mapper {
    */
   update(p) {
 
-    // Qualify particle in the mapper and get the region data
+    // Qualify particle in the mapper and get the layer => region data
     let rData = this.qualifyParticle(p);
 
-    if (this.regionsCompare(rData.labels, p.mapperRegions)) {
-      return false;
-    }
+    for (let layer in rData.layerRegionData) {
+      if (rData.layerRegionData.hasOwnProperty(layer)) {
 
-    // Areas have changed: unsubscribe particle from any region
-    for (let i=0; i<p.maperRegions; i++) {
-      this.unsubscribe(p.mapperRegions[i]);
-    }
+        if (!p.mapperRegions.hasOwnProperty(layer)) {
+          p.mapperRegions[layer] = [];
+        }
 
-    // Create regions if they doesn't exist already
-    for (let i=0; i<rData.regions.length; i++) {
-      let r = rData.regions[i];
-      if (!this.regions.hasOwnProperty(r.rLabel)) {
-        this.createRegion(r);
+        if (this.regionsCompare(layer, rData.layerRegionData, p.mapperRegions)) {
+          continue;
+        }
+
+        // Areas have changed: unsubscribe particle from any region
+        // TODO: Can we remove validation?
+        for (let i=0; i<p.mapperRegions[layer].length; i++) {
+          this.unsubscribe(p, layer, p.mapperRegions[layer][i]);
+        }
+
+        // Create regions if they doesn't exist already
+        for (let reg in rData.layerRegionData[layer].regions) {
+
+          if (!this.layers[layer].regions.hasOwnProperty(reg)) {
+            this.createRegion(layer, reg, rData.layerRegionData[layer].regions[reg]);
+          }
+
+          // Insert particle into the region stack if it's not already inside
+          this.subscribe(p, layer, reg);
+        }
+
+        // Update particle regions register
+        p.mapperRegions[layer] = rData.ptLabels[layer].regions;
       }
-
-      // Insert particle into the region stack if it's not already inside
-      this.subscribe(p, r.rLabel);
     }
-
-    // Update particle regions register
-    p.mapperRegions = rData.labels;
   }
 
   /*
@@ -59,30 +88,62 @@ export default class Mapper {
    */
   qualifyParticle(p) {
     let points = Utils.getCirclePoints(p);
-    let regions = [];
-    let labels = [];
+    let layers = {};
+    let layerRegionData = {};
 
-    for (let i=0; i<points.length; i++) {
-      let r = this.qualilyPoint(points[i]);
+    for (let layer in this.layers) {
+      if (this.layers.hasOwnProperty(layer)) {
+        let tempRegions = [];
+        let regionLabels = [];
 
-      if (labels.indexOf(r.rLabel) === -1) {
-        labels.push(r.rLabel);
-        regions.push(r);
+        if (!layers.hasOwnProperty(layer)) {
+          // Holds the structure to update particle's subscribbed regions (array of region labels)
+          layers[layer] = {
+            regions: []
+          };
+
+          // Holds the structure with data to identify region boundries
+          layerRegionData[layer] = {
+            regions: {}
+          };
+        }
+
+        for (let i=0; i<points.length; i++) {
+          let ptRegion = this.qualilyPoint(points[i], layer);
+
+          if (regionLabels.indexOf(ptRegion.rLabel) === -1) {
+            regionLabels.push(ptRegion.rLabel);
+
+            layerRegionData[layer].regions[ptRegion.rLabel] = {
+              rX: ptRegion.rX,
+              rY: ptRegion.rY
+            };
+          }
+        }
+
+        layers[layer].regions = regionLabels;
+        //layerRegionData[layer].regions[] = tempRegions;
       }
     }
+
     // Save points on particle for debugging
-    p.points = points;
-    return { regions: regions, labels: labels };
+    if (!p.points.length) {
+      p.points = points;
+    }
+
+    return { ptLabels: layers, layerRegionData: layerRegionData };
   }
 
 
   /*
    *  Qualify a single point within a region
    */
-   qualilyPoint(p) {
+   qualilyPoint(p, layer) {
+     let regionSize = this.layers[layer].regionSize;
+
      let rData = {
-       rX: p.x > this.regionSize ? Math.floor(Math.abs(p.x / this.regionSize)):0,
-       rY: p.y > this.regionSize ? Math.floor(Math.abs(p.y / this.regionSize)):0,
+       rX: p.x > regionSize ? Math.floor(Math.abs(p.x / regionSize)):0,
+       rY: p.y > regionSize ? Math.floor(Math.abs(p.y / regionSize)):0,
        rLabel: ""
      };
      rData.rLabel = rData.rX + "_"+ rData.rY;
@@ -94,33 +155,51 @@ export default class Mapper {
   /*
    *  Create a new region
    */
-  createRegion(rData) {
-    // Pre-calculate region offset
-    let rOffsetX = rData.rX * this.regionSize;
-    let rOffsetY = rData.rY * this.regionSize;
+  createRegion(layer, label, rData) {
+    let layerObj = this.layers[layer];
 
-    this.regions[rData.rLabel] = {
+    // Pre-calculate region offset
+    let rOffsetX = rData.rX * layerObj.regionSize;
+    let rOffsetY = rData.rY * layerObj.regionSize;
+
+    layerObj.regions[label] = {
       color: "#000000".replace(/0/g,function(){return (~~(Math.random()*16)).toString(16);}),
       particles: {},
       beginsAtX: rOffsetX,
       beginsAtY: rOffsetY,
-      endsAtX: rOffsetX + this.regionSize,
-      endsAtY: rOffsetY + this.regionSize
+      endsAtX: rOffsetX + layerObj.regionSize,
+      endsAtY: rOffsetY + layerObj.regionSize
     };
   }
 
   /*
    *  Helper: Compares two region array structures, returns true when equal
    */
-  regionsCompare(reg1, reg2) {
-      if(reg1.length !== reg2.length) {
-          return false;
+  regionsCompare(layer, reg1, reg2) {
+
+    if (!reg2.hasOwnProperty(layer)) {
+      return false;
+    }
+
+    if(Object.keys(reg1[layer].regions).length !== reg2[layer].length) {
+      return false;
+    }
+
+    for (let region in reg1[layer].regions) {
+
+      if (!reg2[layer].indexOf(region) === -1) {
+        return false;
       }
 
-      for(let i = reg1.length; i--;) {
-          if(reg1[i] !== reg2[i])
-              return false;
-      }
+      // for(let i = Object(reg1[label].regions).keys.length; i--;) {
+      //     if(reg1[label].regions[i] !== reg2[label].regions[i]) {
+      //       return false;
+      //     }
+      // }
+    }
+
+
+
 
       return true;
   }
