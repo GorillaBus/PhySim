@@ -18,13 +18,13 @@ window.onload = () => {
     let greaterRad = 0;
 
     // Create particles
-    let particles = new Array(1000);
+    let particles = new Array(500);
     for (let i=0; i<particles.length; i++) {
       particles[i] = new Particle({
         x: Utils.randomRange(0, width-30),
         y: Utils.randomRange(0, height-30),
         direction: Math.random() * Math.PI * 2,
-        speed: 1,
+        speed: 0,
         mass: Utils.randomRange(1, 22),
         boxBounce: { w: width, h: height }
       });
@@ -38,8 +38,12 @@ window.onload = () => {
     }
     let regionSize = greaterRad * 4;
     let pmanager = new ParticleManager({
-      regionDraw: true,
-      regionSize: regionSize
+      regionDraw: false,
+      mapper: {
+        collision: {
+          regionSize: 100
+        }
+      }
     }, ctx);
 
 
