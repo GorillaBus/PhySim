@@ -33,13 +33,13 @@ window.onload = function () {
   var greaterRad = 0;
 
   // Create particles
-  var particles = new Array(1000);
+  var particles = new Array(500);
   for (var i = 0; i < particles.length; i++) {
     particles[i] = new _Particle2.default({
       x: _Utils2.default.randomRange(0, width - 30),
       y: _Utils2.default.randomRange(0, height - 30),
       direction: Math.random() * Math.PI * 2,
-      speed: 1,
+      speed: 0,
       mass: _Utils2.default.randomRange(1, 22),
       boxBounce: { w: width, h: height }
     });
@@ -53,8 +53,12 @@ window.onload = function () {
   }
   var regionSize = greaterRad * 4;
   var pmanager = new _ParticleManager2.default({
-    regionDraw: true,
-    regionSize: regionSize
+    regionDraw: false,
+    mapper: {
+      collision: {
+        regionSize: 100
+      }
+    }
   }, ctx);
 
   // Inject particles into the Mapper
@@ -347,7 +351,7 @@ var Collisioner = function () {
 exports.default = Collisioner;
 
 },{}],6:[function(require,module,exports){
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -355,7 +359,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _Utils = require("./Utils");
+var _Utils = require('./Utils');
 
 var _Utils2 = _interopRequireDefault(_Utils);
 
@@ -364,11 +368,31 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Mapper = function () {
-  function Mapper(regionSize) {
+
+  /*
+   *  Each layer holds regions in which particles may subscribe to interact with other particles
+   *
+   */
+  function Mapper(settings) {
     _classCallCheck(this, Mapper);
 
-    this.regionSize = regionSize || 400;
-    this.regions = {};
+    this.layers = {};
+
+    // GRAVITY layer
+    if (settings.hasOwnProperty('gravity')) {
+      this.layers.gravity = {
+        regionSize: settings.gravity.regionSize || 500,
+        regions: {}
+      };
+    }
+
+    // COLLISION layer
+    if (settings.hasOwnProperty('collision')) {
+      this.layers.collision = {
+        regionSize: settings.collision.regionSize || 100,
+        regions: {}
+      };
+    }
   }
 
   /*
@@ -377,9 +401,9 @@ var Mapper = function () {
 
 
   _createClass(Mapper, [{
-    key: "subscribe",
-    value: function subscribe(p, rLabel) {
-      this.regions[rLabel].particles[p.id] = p;
+    key: 'subscribe',
+    value: function subscribe(p, layer, rLabel) {
+      this.layers[layer].regions[rLabel].particles[p.id] = p;
     }
 
     /*
@@ -387,9 +411,9 @@ var Mapper = function () {
      */
 
   }, {
-    key: "unsubscribe",
-    value: function unsubscribe(p, rLabel) {
-      delete this.regions[rLabel].particles[p.id];
+    key: 'unsubscribe',
+    value: function unsubscribe(p, layer, rLabel) {
+      delete this.layers[layer].regions[rLabel].particles[p.id];
     }
 
     /*
@@ -397,34 +421,44 @@ var Mapper = function () {
      */
 
   }, {
-    key: "update",
+    key: 'update',
     value: function update(p) {
 
-      // Qualify particle in the mapper and get the region data
+      // Qualify particle in the mapper and get the layer => region data
       var rData = this.qualifyParticle(p);
 
-      if (this.regionsCompare(rData.labels, p.mapperRegions)) {
-        return false;
-      }
+      for (var layer in rData.layerRegionData) {
+        if (rData.layerRegionData.hasOwnProperty(layer)) {
 
-      // Areas have changed: unsubscribe particle from any region
-      for (var i = 0; i < p.maperRegions; i++) {
-        this.unsubscribe(p.mapperRegions[i]);
-      }
+          if (!p.mapperRegions.hasOwnProperty(layer)) {
+            p.mapperRegions[layer] = [];
+          }
 
-      // Create regions if they doesn't exist already
-      for (var _i = 0; _i < rData.regions.length; _i++) {
-        var r = rData.regions[_i];
-        if (!this.regions.hasOwnProperty(r.rLabel)) {
-          this.createRegion(r);
+          if (this.regionsCompare(layer, rData.layerRegionData, p.mapperRegions)) {
+            continue;
+          }
+
+          // Areas have changed: unsubscribe particle from any region
+          // TODO: Can we remove validation?
+          for (var i = 0; i < p.mapperRegions[layer].length; i++) {
+            this.unsubscribe(p, layer, p.mapperRegions[layer][i]);
+          }
+
+          // Create regions if they doesn't exist already
+          for (var reg in rData.layerRegionData[layer].regions) {
+
+            if (!this.layers[layer].regions.hasOwnProperty(reg)) {
+              this.createRegion(layer, reg, rData.layerRegionData[layer].regions[reg]);
+            }
+
+            // Insert particle into the region stack if it's not already inside
+            this.subscribe(p, layer, reg);
+          }
+
+          // Update particle regions register
+          p.mapperRegions[layer] = rData.ptLabels[layer].regions;
         }
-
-        // Insert particle into the region stack if it's not already inside
-        this.subscribe(p, r.rLabel);
       }
-
-      // Update particle regions register
-      p.mapperRegions = rData.labels;
     }
 
     /*
@@ -433,23 +467,53 @@ var Mapper = function () {
      */
 
   }, {
-    key: "qualifyParticle",
+    key: 'qualifyParticle',
     value: function qualifyParticle(p) {
       var points = _Utils2.default.getCirclePoints(p);
-      var regions = [];
-      var labels = [];
+      var layers = {};
+      var layerRegionData = {};
 
-      for (var i = 0; i < points.length; i++) {
-        var r = this.qualilyPoint(points[i]);
+      for (var layer in this.layers) {
+        if (this.layers.hasOwnProperty(layer)) {
+          var tempRegions = [];
+          var regionLabels = [];
 
-        if (labels.indexOf(r.rLabel) === -1) {
-          labels.push(r.rLabel);
-          regions.push(r);
+          if (!layers.hasOwnProperty(layer)) {
+            // Holds the structure to update particle's subscribbed regions (array of region labels)
+            layers[layer] = {
+              regions: []
+            };
+
+            // Holds the structure with data to identify region boundries
+            layerRegionData[layer] = {
+              regions: {}
+            };
+          }
+
+          for (var i = 0; i < points.length; i++) {
+            var ptRegion = this.qualilyPoint(points[i], layer);
+
+            if (regionLabels.indexOf(ptRegion.rLabel) === -1) {
+              regionLabels.push(ptRegion.rLabel);
+
+              layerRegionData[layer].regions[ptRegion.rLabel] = {
+                rX: ptRegion.rX,
+                rY: ptRegion.rY
+              };
+            }
+          }
+
+          layers[layer].regions = regionLabels;
+          //layerRegionData[layer].regions[] = tempRegions;
         }
       }
+
       // Save points on particle for debugging
-      p.points = points;
-      return { regions: regions, labels: labels };
+      if (!p.points.length) {
+        p.points = points;
+      }
+
+      return { ptLabels: layers, layerRegionData: layerRegionData };
     }
 
     /*
@@ -457,11 +521,13 @@ var Mapper = function () {
      */
 
   }, {
-    key: "qualilyPoint",
-    value: function qualilyPoint(p) {
+    key: 'qualilyPoint',
+    value: function qualilyPoint(p, layer) {
+      var regionSize = this.layers[layer].regionSize;
+
       var rData = {
-        rX: p.x > this.regionSize ? Math.floor(Math.abs(p.x / this.regionSize)) : 0,
-        rY: p.y > this.regionSize ? Math.floor(Math.abs(p.y / this.regionSize)) : 0,
+        rX: p.x > regionSize ? Math.floor(Math.abs(p.x / regionSize)) : 0,
+        rY: p.y > regionSize ? Math.floor(Math.abs(p.y / regionSize)) : 0,
         rLabel: ""
       };
       rData.rLabel = rData.rX + "_" + rData.rY;
@@ -474,21 +540,23 @@ var Mapper = function () {
      */
 
   }, {
-    key: "createRegion",
-    value: function createRegion(rData) {
-      // Pre-calculate region offset
-      var rOffsetX = rData.rX * this.regionSize;
-      var rOffsetY = rData.rY * this.regionSize;
+    key: 'createRegion',
+    value: function createRegion(layer, label, rData) {
+      var layerObj = this.layers[layer];
 
-      this.regions[rData.rLabel] = {
+      // Pre-calculate region offset
+      var rOffsetX = rData.rX * layerObj.regionSize;
+      var rOffsetY = rData.rY * layerObj.regionSize;
+
+      layerObj.regions[label] = {
         color: "#000000".replace(/0/g, function () {
           return (~~(Math.random() * 16)).toString(16);
         }),
         particles: {},
         beginsAtX: rOffsetX,
         beginsAtY: rOffsetY,
-        endsAtX: rOffsetX + this.regionSize,
-        endsAtY: rOffsetY + this.regionSize
+        endsAtX: rOffsetX + layerObj.regionSize,
+        endsAtY: rOffsetY + layerObj.regionSize
       };
     }
 
@@ -497,14 +565,28 @@ var Mapper = function () {
      */
 
   }, {
-    key: "regionsCompare",
-    value: function regionsCompare(reg1, reg2) {
-      if (reg1.length !== reg2.length) {
+    key: 'regionsCompare',
+    value: function regionsCompare(layer, reg1, reg2) {
+
+      if (!reg2.hasOwnProperty(layer)) {
         return false;
       }
 
-      for (var i = reg1.length; i--;) {
-        if (reg1[i] !== reg2[i]) return false;
+      if (Object.keys(reg1[layer].regions).length !== reg2[layer].length) {
+        return false;
+      }
+
+      for (var region in reg1[layer].regions) {
+
+        if (!reg2[layer].indexOf(region) === -1) {
+          return false;
+        }
+
+        // for(let i = Object(reg1[label].regions).keys.length; i--;) {
+        //     if(reg1[label].regions[i] !== reg2[label].regions[i]) {
+        //       return false;
+        //     }
+        // }
       }
 
       return true;
@@ -549,7 +631,7 @@ var Particle = function () {
         this.gravitations = [];
 
         this.shape = settings.shape || "circle";
-        this.mapperRegions = settings.mapperRegions || [];
+        this.mapperRegions = settings.mapperRegions || {};
         this.color = settings.color || "#000000";
         this.points = settings.points || [];
         this.boxBounce = settings.boxBounce || false;
@@ -841,23 +923,14 @@ var ParticleManager = function () {
   function ParticleManager(settings, ctx) {
     _classCallCheck(this, ParticleManager);
 
-    settings = settings || {};
-    settings = {
-      particles: settings.particles || [],
-      boxWidth: settings.boxWidth || window.innerWidth,
-      boxHeight: settings.boxHeight || window.innerHeight - 4,
-      regionDraw: settings.regionDraw || false,
-      regionSize: settings.regionSize || null
-    };
-
     this.ctx = ctx;
-    this.mapper = new _Mapper2.default(settings.regionSize);
+    this.mapper = new _Mapper2.default(settings.mapper);
     this.collisioner = new _Collisioner2.default();
     this.collide = new _Collide2.default();
-    this.regionDraw = settings.regionDraw;
-    this.particles = settings.particles;
-    this.boxWidth = settings.boxWidth;
-    this.boxHeight = settings.boxHeight;
+    this.regionDraw = settings.regionDraw || false;
+    this.particles = settings.particles || [];
+    this.boxWidth = settings.boxWidth || window.innerWidth;
+    this.boxHeight = settings.boxHeight || window.innerHeight - 4;
   }
 
   /*
@@ -901,7 +974,8 @@ var ParticleManager = function () {
         var p0 = this.particles[i];
 
         // Check collisions with particles from the same region
-        this.checkCollisions(p0);
+        this.handleCollisions(p0);
+        this.handleAttraction(p0);
         this.drawParticle(p0);
       }
     }
@@ -916,18 +990,49 @@ var ParticleManager = function () {
     value: function injectParticles(particles) {
       Array.prototype.push.apply(this.particles, particles);
     }
+  }, {
+    key: 'handleAttraction',
+    value: function handleAttraction(p0) {
+      // TODO: Is this really necesary?
+      if (!p0.mapperRegions.hasOwnProperty('gravity')) {
+        return false;
+      }
+
+      for (var i = 0; i < p0.mapperRegions['gravity'].length; i++) {
+        var rLabel = p0.mapperRegions['gravity'][i];
+        var region = this.mapper.layers['gravity'].regions[rLabel];
+        for (var r in region.particles) {
+
+          if (region.particles.hasOwnProperty(r)) {
+            var p1 = region.particles[r];
+
+            if (p0.id === p1.id) {
+              continue;
+            }
+
+            p0.gravitateTo(p1);
+          }
+        }
+      }
+    }
 
     /*
      *  Check and resolve collisions within a particle's mapper region
      */
 
   }, {
-    key: 'checkCollisions',
-    value: function checkCollisions(p0) {
-      for (var i = 0; i < p0.mapperRegions.length; i++) {
-        var rLabel = p0.mapperRegions[i];
-        var region = this.mapper.regions[rLabel];
+    key: 'handleCollisions',
+    value: function handleCollisions(p0) {
+      // TODO: Is this really necesary?
+      if (!p0.mapperRegions.hasOwnProperty('collision')) {
+        return false;
+      }
+
+      for (var i = 0; i < p0.mapperRegions['collision'].length; i++) {
+        var rLabel = p0.mapperRegions['collision'][i];
+        var region = this.mapper.layers['collision'].regions[rLabel];
         for (var r in region.particles) {
+
           if (region.particles.hasOwnProperty(r)) {
             var p1 = region.particles[r];
 
@@ -967,16 +1072,23 @@ var ParticleManager = function () {
   }, {
     key: 'drawMappgerRegions',
     value: function drawMappgerRegions() {
-      // Draw regions
-      for (var r in this.mapper.regions) {
-        if (this.mapper.regions.hasOwnProperty(r)) {
 
-          var mRegion = this.mapper.regions[r];
-          this.ctx.beginPath();
-          this.ctx.strokeStyle = mRegion.color;
-          this.ctx.rect(mRegion.beginsAtX, mRegion.beginsAtY, this.mapper.regionSize - 2, this.mapper.regionSize - 2);
-          this.ctx.stroke();
-          this.ctx.closePath();
+      // Draw layer regions
+      for (var layer in this.mapper.layers) {
+        if (this.mapper.layers.hasOwnProperty(layer)) {
+          var layerObj = this.mapper.layers[layer];
+
+          for (var r in layerObj.regions) {
+            if (layerObj.regions.hasOwnProperty(r)) {
+
+              var mRegion = layerObj.regions[r];
+              this.ctx.beginPath();
+              this.ctx.strokeStyle = mRegion.color;
+              this.ctx.rect(mRegion.beginsAtX, mRegion.beginsAtY, layerObj.regionSize - 2, layerObj.regionSize - 2);
+              this.ctx.stroke();
+              this.ctx.closePath();
+            }
+          }
         }
       }
     }
