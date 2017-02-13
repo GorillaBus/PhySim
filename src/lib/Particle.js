@@ -15,7 +15,7 @@ export default class Particle {
         this.gravitations = [];
 
         this.shape = settings.shape || "circle";
-        this.mapperRegions = settings.mapperRegions || [];
+        this.mapperRegions = settings.mapperRegions || {};
         this.color = settings.color || "#000000";
         this.points = settings.points || [];
         this.boxBounce = settings.boxBounce || false;
