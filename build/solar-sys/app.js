@@ -45,7 +45,7 @@ window.onload = function () {
         speed: 0,
         color: "yellow",
         type: "sun",
-        center: true
+        center: false
     };
 
     var planetsSetup = [{
@@ -62,16 +62,16 @@ window.onload = function () {
         y: center.y,
         speed: 1.2,
         direction: -Math.PI / 2,
-        color: '#FF3500',
+        color: 'CornflowerBlue',
         mass: 11,
         type: "planet",
-        center: false
+        center: true
     }, {
         x: center.x - 230,
         y: center.y,
         speed: 1,
         direction: -Math.PI / 2,
-        color: '#30AD1F',
+        color: 'DarkGoldenRod',
         mass: 18,
         type: "planet",
         center: false
@@ -80,7 +80,7 @@ window.onload = function () {
         y: center.y,
         speed: 0.9,
         direction: -Math.PI / 2,
-        color: '#F0C65A',
+        color: 'maroon',
         mass: 27,
         type: "planet",
         center: false
@@ -98,7 +98,7 @@ window.onload = function () {
         y: center.y,
         speed: 0.8,
         direction: -Math.PI / 2,
-        color: '#3582AF',
+        color: 'DarkOliveGreen',
         mass: 173,
         type: "planet",
         center: false
@@ -107,7 +107,7 @@ window.onload = function () {
         y: center.y,
         speed: 0.8,
         direction: Math.PI / 2,
-        color: '#C951A9',
+        color: 'DarkGray',
         mass: 43,
         type: "planet",
         center: false
@@ -368,7 +368,6 @@ var Planet = function (_Particle) {
     value: function drawPlanet(lightSource) {
       var x = void 0,
           y = void 0;
-
       switch (this.center) {
         case false:
           x = this.scaledX;
@@ -390,13 +389,23 @@ var Planet = function (_Particle) {
   }, {
     key: "drawShadow",
     value: function drawShadow(lightSource) {
+
       // Get distance from source
       var dx = this.scaledX - lightSource.scaledX;
       var dy = this.scaledY - lightSource.scaledY;
       var dist = Math.sqrt(dx * dx + dy * dy);
+      var angle = void 0;
+
+      // Get the angle depending on the reference framework
+      if (this.center) {
+        dx = this.x - lightSource.x;
+        dy = this.y - lightSource.y;
+        angle = Math.atan2(dy, dx);
+      } else {
+        angle = Math.atan2(dy, dx);
+      }
 
       // Shape props
-      var angle = Math.atan2(dy, dx);
       var radius = this.scaledR;
 
       // Shadow props
@@ -434,7 +443,6 @@ var Planet = function (_Particle) {
   }, {
     key: "createGradient",
     value: function createGradient() {
-      console.log("Gradient...");
       var grad = this.ctx.createRadialGradient(this.scaledX, this.scaledY, this.scaledR / 4, this.scaledX, this.scaledY, this.scaledR);
       grad.addColorStop(0, "#FF7");
       grad.addColorStop(0.6, "#FF4");
