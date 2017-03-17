@@ -60,7 +60,6 @@ export default class Planet extends Particle {
 
   drawPlanet(lightSource) {
     let x, y;
-
     switch (this.center) {
       case false:
         x = this.scaledX;
@@ -81,13 +80,23 @@ export default class Planet extends Particle {
   }
 
   drawShadow(lightSource) {
+
     // Get distance from source
     let dx = this.scaledX - lightSource.scaledX;
     let dy = this.scaledY - lightSource.scaledY;
     let dist = Math.sqrt(dx * dx + dy * dy);
+    let angle;
+
+    // Get the angle depending on the reference framework
+    if (this.center) {
+      dx = this.x - lightSource.x;
+      dy = this.y - lightSource.y;
+      angle = Math.atan2(dy, dx);
+    } else {
+      angle = Math.atan2(dy, dx);
+    }
 
     // Shape props
-    let angle = Math.atan2(dy, dx);
     let radius = this.scaledR;
 
     // Shadow props
@@ -99,7 +108,6 @@ export default class Planet extends Particle {
     // Calculate shadow-circle's coordinates
     let x = lightSource.x + Math.cos(angle) * (dist - shadowRadius + radius * 0.58);
     let y = lightSource.y + Math.sin(angle) * (dist - shadowRadius + radius * 0.58);
-
 
     // Shadow setup
     this.ctx.save();
@@ -124,7 +132,6 @@ export default class Planet extends Particle {
   }
 
   createGradient() {
-    console.log("Gradient...")
     let grad = this.ctx.createRadialGradient(this.scaledX, this.scaledY, this.scaledR/4, this.scaledX, this.scaledY, this.scaledR);
     grad.addColorStop(0,"#FF7");
     grad.addColorStop(0.6,"#FF4");
