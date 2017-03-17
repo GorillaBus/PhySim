@@ -35,7 +35,7 @@ window.onload = () => {
         speed: 0,
         color: "yellow",
         type: "sun",
-        center: true
+        center: false
     };
 
     let planetsSetup = [{
@@ -52,16 +52,16 @@ window.onload = () => {
         y: center.y,
         speed: 1.2,
         direction: -Math.PI / 2,
-        color: '#FF3500',
+        color: 'CornflowerBlue',
         mass: 11,
         type: "planet",
-        center: false
+        center: true
     },{
         x: center.x - 230,
         y: center.y,
         speed: 1,
         direction: -Math.PI / 2,
-        color: '#30AD1F',
+        color: 'DarkGoldenRod',
         mass: 18,
         type: "planet",
         center: false
@@ -70,7 +70,7 @@ window.onload = () => {
         y: center.y,
         speed: 0.9,
         direction: -Math.PI / 2,
-        color: '#F0C65A',
+        color: 'maroon',
         mass: 27,
         type: "planet",
         center: false
@@ -88,7 +88,7 @@ window.onload = () => {
         y: center.y,
         speed: 0.8,
         direction: -Math.PI / 2,
-        color: '#3582AF',
+        color: 'DarkOliveGreen',
         mass: 173,
         type: "planet",
         center: false
@@ -97,7 +97,7 @@ window.onload = () => {
         y: center.y,
         speed: 0.8,
         direction: Math.PI / 2,
-        color: '#C951A9',
+        color: 'DarkGray',
         mass: 43,
         type: "planet",
         center: false
@@ -121,7 +121,6 @@ window.onload = () => {
     let ctxX;
     let ctxY;
     let centerObject;
-
 
     // Frame drawing function
     function update() {
