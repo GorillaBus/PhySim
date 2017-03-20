@@ -55,7 +55,7 @@ window.onload = () => {
         color: 'CornflowerBlue',
         mass: 11,
         type: "planet",
-        center: true
+        center: false
     },{
         x: center.x - 230,
         y: center.y,
@@ -73,7 +73,7 @@ window.onload = () => {
         color: 'maroon',
         mass: 27,
         type: "planet",
-        center: false
+        center: true
     },{
         x: center.x + 292,
         y: center.y,
@@ -115,6 +115,11 @@ window.onload = () => {
     // Demo player
     player.setUpdateFn(update);
     player.play();
+
+
+    //update();
+
+    //test();
 
 
     // Reference framework
@@ -184,48 +189,75 @@ window.onload = () => {
         return planets;
     }
 
-
     function test() {
       let canvas2 = document.createElement("canvas");
-      canvas2.width = 300;
-      canvas2.height = 300;
-
       let ctx2 = canvas2.getContext("2d");
-      ctx2.fillStyle = "white";
-      ctx2.arc(150, 150, 150, 0, Math.PI * 2, true);
+
+      // External shape props
+      let x = 200;
+      let y = world.center.y;
+      let radius = 150;
+
+      // Internal shape props
+      let intPosX = radius;
+      let intPosY = radius;
+      canvas2.width = radius*12;
+      canvas2.height = radius*12;
+
+      // Distance and angle to the light source
+      let dx = x - world.center.x;
+      let dy = y - world.center.y;
+      let angle = Math.atan2(dy, dx);
+
+
+      // Shadow shape props
+      let sRadius = radius * 2;
+      let shadowLineWidth = radius;
+      // let sX = intPosX + sRadius - (shadowLineWidth/2);
+      // let sY = intPosY;
+      let sX = radius;
+      let sY = radius;
+
+
+      // Draw external shape mask
+      ctx2.fillStyle = "rgba(0,0,0,0)";
+      ctx2.arc(intPosX, intPosY, radius, 0, Math.PI * 2, true);
       ctx2.fill();
 
-      ctx.drawImage(canvas2, 200, 200)
+
+      // Create shadow shape
+      ctx2.save();
+
+      //clip range by planet area.
+      //ctx2.clip();
+
+      // Draw shadow
+      ctx2.beginPath();
+      ctx2.lineWidth = shadowLineWidth;
+      ctx2.strokeStyle = 'rgba(0,0,0,1)';
+      ctx2.arc(sX, sY, sRadius, 0, Math.PI*2);
+      ctx2.stroke();
+      ctx2.stroke();
+
+      ctx2.restore();
+
+
+
+
+
+
+
+
+      ctx.fillStyle = "green";
+      ctx.arc(x, y, radius, 0, Math.PI * 2, true);
+      ctx.fill();
+
+      ctx.save();
+      ctx.drawImage(canvas2, x - radius, y - radius);
+      ctx.restore();
     }
 
-    function createShadow(p, lightSource, shadowImageSafeEdge, shadowBlur){
-      shadowImageSafeEdge = shadowImageSafeEdge || 2;
-      shadowBlur = shadowBlur || 0.8;
 
-      let r = p.radius;
-      let s = shadowImageSafeEdge;
-      let planetShadow = document.createElement("canvas");
-      planetShadow.width = planetShadow.height = (r * s + s * 2) * SCALE; // a little room to stop hard edge if zooming
-      let shadowCtx = planetShadow.shadowCtx = planetShadow.getContext("2d");
-      shadowCtx.shadowBlur = r * shadowBlur  ;
-      shadowCtx.shadowOffsetX = shadowCtx.shadowOffsetY = 0;
-      shadowCtx.lineWidth = (r * 2 - r * (1 - shadowBlur / 2)) * SCALE;
-      shadowCtx.strokeStyle = shadowCtx.shadowColor = "rgba(0,0,0,1)";
-      shadowCtx.beginPath();
-      shadowCtx.arc(-r * SCALE, r * SCALE, (0 + r * 2 + r * (shadowBlur /0.95) + s) * SCALE, 0, Math.PI * 2);
-      shadowCtx.stroke();
-      shadowCtx.stroke();
-      shadowCtx.stroke();
-
-      shadowCtx.shadowColor = "rgba(0,0,0,0)";
-      shadowCtx.globalCompositeOperation = "destination-in";
-      shadowCtx.beginPath();
-      shadowCtx.arc((r + s) * SCALE, (r + s) * SCALE, r * SCALE, 0, Math.PI * 2);  // sun will be along x axis
-      shadowCtx.fill();
-
-      shadowCtx.globalCompositeOperation = "source-over";
-      return planetShadow;
-    }
 
 
     /** Events **/
