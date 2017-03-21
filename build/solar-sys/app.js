@@ -45,7 +45,7 @@ window.onload = function () {
         speed: 0,
         color: "yellow",
         type: "sun",
-        center: false
+        center: true
     };
 
     var planetsSetup = [{
@@ -65,7 +65,7 @@ window.onload = function () {
         color: 'CornflowerBlue',
         mass: 11,
         type: "planet",
-        center: true
+        center: false
     }, {
         x: center.x - 230,
         y: center.y,
@@ -191,48 +191,6 @@ window.onload = function () {
         return planets;
     }
 
-    function test() {
-        var canvas2 = document.createElement("canvas");
-        canvas2.width = 300;
-        canvas2.height = 300;
-
-        var ctx2 = canvas2.getContext("2d");
-        ctx2.fillStyle = "white";
-        ctx2.arc(150, 150, 150, 0, Math.PI * 2, true);
-        ctx2.fill();
-
-        ctx.drawImage(canvas2, 200, 200);
-    }
-
-    function createShadow(p, lightSource, shadowImageSafeEdge, shadowBlur) {
-        shadowImageSafeEdge = shadowImageSafeEdge || 2;
-        shadowBlur = shadowBlur || 0.8;
-
-        var r = p.radius;
-        var s = shadowImageSafeEdge;
-        var planetShadow = document.createElement("canvas");
-        planetShadow.width = planetShadow.height = (r * s + s * 2) * SCALE; // a little room to stop hard edge if zooming
-        var shadowCtx = planetShadow.shadowCtx = planetShadow.getContext("2d");
-        shadowCtx.shadowBlur = r * shadowBlur;
-        shadowCtx.shadowOffsetX = shadowCtx.shadowOffsetY = 0;
-        shadowCtx.lineWidth = (r * 2 - r * (1 - shadowBlur / 2)) * SCALE;
-        shadowCtx.strokeStyle = shadowCtx.shadowColor = "rgba(0,0,0,1)";
-        shadowCtx.beginPath();
-        shadowCtx.arc(-r * SCALE, r * SCALE, (0 + r * 2 + r * (shadowBlur / 0.95) + s) * SCALE, 0, Math.PI * 2);
-        shadowCtx.stroke();
-        shadowCtx.stroke();
-        shadowCtx.stroke();
-
-        shadowCtx.shadowColor = "rgba(0,0,0,0)";
-        shadowCtx.globalCompositeOperation = "destination-in";
-        shadowCtx.beginPath();
-        shadowCtx.arc((r + s) * SCALE, (r + s) * SCALE, r * SCALE, 0, Math.PI * 2); // sun will be along x axis
-        shadowCtx.fill();
-
-        shadowCtx.globalCompositeOperation = "source-over";
-        return planetShadow;
-    }
-
     /** Events **/
 
     // Animation control: KeyDown
@@ -355,7 +313,6 @@ var Planet = function (_Particle) {
     value: function drawSun() {
       if (this.world.scale != this.world.lastScale) {
         this.grad = this.createGradient();
-        this.world.update();
       }
 
       this.ctx.fillStyle = this.grad;
@@ -390,30 +347,29 @@ var Planet = function (_Particle) {
     key: "drawShadow",
     value: function drawShadow(lightSource) {
 
-      // Get distance from source
-      var dx = this.scaledX - lightSource.scaledX;
-      var dy = this.scaledY - lightSource.scaledY;
-      var dist = Math.sqrt(dx * dx + dy * dy);
-      var angle = void 0;
-
-      // Get the angle depending on the reference framework
-      if (this.center) {
-        dx = this.x - lightSource.x;
-        dy = this.y - lightSource.y;
-        angle = Math.atan2(dy, dx);
-      } else {
-        angle = Math.atan2(dy, dx);
-      }
-
-      // Shape props
-      var radius = this.scaledR;
-
       // Shadow props
+      var radius = this.scaledR;
       var sX = void 0,
           sY = void 0;
       var shadowRadius = radius * 6.4;
       var shadowLineWidth = radius * 1.1;
       var shadowBlur = shadowRadius * 0.04;
+
+      // Get the angle & distance depending on the reference framework
+      var dx = void 0,
+          dy = void 0;
+      var dist = 0;
+      if (this.center) {
+        dx = this.x - lightSource.x;
+        dy = this.y - lightSource.y;
+      } else {
+        dx = this.scaledX - lightSource.scaledX;
+        dy = this.scaledY - lightSource.scaledY;
+        dist = Math.sqrt(dx * dx + dy * dy);
+      }
+
+      // Get distance from source
+      var angle = Math.atan2(dy, dx);
 
       // Calculate shadow-circle's coordinates
       var x = lightSource.x + Math.cos(angle) * (dist - shadowRadius + radius * 0.58);
