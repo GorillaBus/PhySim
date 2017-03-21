@@ -1,6 +1,10 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
+var _Star = require('./lib/Star');
+
+var _Star2 = _interopRequireDefault(_Star);
+
 var _Planet = require('./lib/Planet');
 
 var _Planet2 = _interopRequireDefault(_Planet);
@@ -28,11 +32,12 @@ window.onload = function () {
         height: height,
         center: center,
         scale: 1,
-        lastScale: 1,
+        lastScale: 0,
         trans_x: 0,
         trans_y: 0,
+        needsUpdate: false,
         update: function update() {
-            this.lastScale = this.scale;
+            this.needsUpdate = this.lastScale != this.scale;
         }
     };
 
@@ -43,8 +48,7 @@ window.onload = function () {
         y: center.y,
         mass: 300,
         speed: 0,
-        color: "yellow",
-        type: "sun",
+        color: "#D6D32D",
         center: true
     };
 
@@ -53,63 +57,56 @@ window.onload = function () {
         y: center.y,
         speed: 1.5,
         direction: Math.PI / 2,
-        color: '#46A543',
+        color: '#FA1616',
         mass: 4.5,
-        type: "planet",
         center: false
     }, {
         x: center.x - 170,
         y: center.y,
         speed: 1.2,
         direction: -Math.PI / 2,
-        color: 'CornflowerBlue',
+        color: '#4042A8',
         mass: 11,
-        type: "planet",
         center: false
     }, {
         x: center.x - 230,
         y: center.y,
         speed: 1,
         direction: -Math.PI / 2,
-        color: 'DarkGoldenRod',
+        color: '#47BFBD',
         mass: 18,
-        type: "planet",
         center: false
     }, {
         x: center.x - 290,
         y: center.y,
         speed: 0.9,
         direction: -Math.PI / 2,
-        color: 'maroon',
+        color: '#AB3A2B',
         mass: 27,
-        type: "planet",
-        center: true
+        center: false
     }, {
         x: center.x + 292,
         y: center.y,
         speed: 0.9,
         direction: Math.PI / 2,
-        color: '#9E51C9',
+        color: '#2B7523',
         mass: 27,
-        type: "planet",
         center: false
     }, {
         x: center.x - 460,
         y: center.y,
         speed: 0.8,
         direction: -Math.PI / 2,
-        color: 'DarkOliveGreen',
+        color: '#6C29A3',
         mass: 173,
-        type: "planet",
         center: false
     }, {
         x: center.x + 549,
         y: center.y,
         speed: 0.8,
         direction: Math.PI / 2,
-        color: 'DarkGray',
+        color: '#A7A2AB',
         mass: 43,
-        type: "planet",
         center: false
     }];
 
@@ -126,11 +123,6 @@ window.onload = function () {
     player.setUpdateFn(update);
     player.play();
 
-    //update();
-
-    //test();
-
-
     // Reference framework
     var ctxX = void 0;
     var ctxY = void 0;
@@ -138,7 +130,7 @@ window.onload = function () {
 
     // Frame drawing function
     function update() {
-        ctx.clearRect(-world.width, -world.height, world.width * 2, world.height * 2);
+        ctx.clearRect(0, 0, world.width, world.height);
 
         var totalPlanets = planets.length;
 
@@ -147,7 +139,7 @@ window.onload = function () {
             var p = planets[i];
             p.update();
 
-            if (p.type === "planet") {
+            if (p instanceof _Planet2.default) {
                 planets[i].gravitateTo(sun);
             }
 
@@ -177,12 +169,14 @@ window.onload = function () {
 
         // Draw center body
         centerObject.draw(sun);
+
+        world.update();
     }
 
     /** Helpers **/
 
     function createSun(config) {
-        return new _Planet2.default(config, world);
+        return new _Star2.default(config, world);
     }
 
     function createPlanets(config) {
@@ -194,64 +188,6 @@ window.onload = function () {
             planets.push(p);
         }
         return planets;
-    }
-
-    function test() {
-        var canvas2 = document.createElement("canvas");
-        var ctx2 = canvas2.getContext("2d");
-
-        // External shape props
-        var x = 200;
-        var y = world.center.y;
-        var radius = 150;
-
-        // Internal shape props
-        var intPosX = radius;
-        var intPosY = radius;
-        canvas2.width = radius * 12;
-        canvas2.height = radius * 12;
-
-        // Distance and angle to the light source
-        var dx = x - world.center.x;
-        var dy = y - world.center.y;
-        var angle = Math.atan2(dy, dx);
-
-        // Shadow shape props
-        var sRadius = radius * 2;
-        var shadowLineWidth = radius;
-        // let sX = intPosX + sRadius - (shadowLineWidth/2);
-        // let sY = intPosY;
-        var sX = radius;
-        var sY = radius;
-
-        // Draw external shape mask
-        ctx2.fillStyle = "rgba(0,0,0,0)";
-        ctx2.arc(intPosX, intPosY, radius, 0, Math.PI * 2, true);
-        ctx2.fill();
-
-        // Create shadow shape
-        ctx2.save();
-
-        //clip range by planet area.
-        //ctx2.clip();
-
-        // Draw shadow
-        ctx2.beginPath();
-        ctx2.lineWidth = shadowLineWidth;
-        ctx2.strokeStyle = 'rgba(0,0,0,1)';
-        ctx2.arc(sX, sY, sRadius, 0, Math.PI * 2);
-        ctx2.stroke();
-        ctx2.stroke();
-
-        ctx2.restore();
-
-        ctx.fillStyle = "green";
-        ctx.arc(x, y, radius, 0, Math.PI * 2, true);
-        ctx.fill();
-
-        ctx.save();
-        ctx.drawImage(canvas2, x - radius, y - radius);
-        ctx.restore();
     }
 
     /** Events **/
@@ -298,8 +234,8 @@ window.onload = function () {
     }
 };
 
-},{"../../src/lib/AnimationPlayer":4,"./lib/Planet":2}],2:[function(require,module,exports){
-"use strict";
+},{"../../src/lib/AnimationPlayer":6,"./lib/Planet":3,"./lib/Star":4}],2:[function(require,module,exports){
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -307,7 +243,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _Particle2 = require("../../../src/lib/Particle");
+var _Particle2 = require('../../../src/lib/Particle');
 
 var _Particle3 = _interopRequireDefault(_Particle2);
 
@@ -319,20 +255,19 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var Planet = function (_Particle) {
-  _inherits(Planet, _Particle);
+var CelestialBody = function (_Particle) {
+  _inherits(CelestialBody, _Particle);
 
-  function Planet(settings, world) {
-    _classCallCheck(this, Planet);
+  function CelestialBody(settings, world) {
+    _classCallCheck(this, CelestialBody);
 
-    var _this = _possibleConstructorReturn(this, (Planet.__proto__ || Object.getPrototypeOf(Planet)).call(this, settings));
+    var _this = _possibleConstructorReturn(this, (CelestialBody.__proto__ || Object.getPrototypeOf(CelestialBody)).call(this, settings));
 
     _this.world = world;
     _this.ctx = world.ctx;
 
-    _this.color = settings.color;
+    _this.color = _this.hexToRGB(settings.color);
     _this.radius = settings.mass * 0.2;
-    _this.type = settings.type;
     _this.center = settings.center;
 
     _this.scaledX = 0;
@@ -340,83 +275,30 @@ var Planet = function (_Particle) {
     _this.scaledR = 0;
 
     _this.reScale();
-
-    _this.grad = _this.type === "sun" ? _this.createGradient() : null;
     return _this;
   }
 
-  _createClass(Planet, [{
-    key: "reScale",
+  _createClass(CelestialBody, [{
+    key: 'reScale',
     value: function reScale() {
       this.scaledX = (this.x - this.world.center.x) * this.world.scale + this.world.center.x + this.world.trans_x;
       this.scaledY = (this.y - this.world.center.y) * this.world.scale + this.world.center.y + this.world.trans_y;
       this.scaledR = this.radius * this.world.scale;
     }
   }, {
-    key: "draw",
-    value: function draw(sun) {
-      this.reScale();
-
-      if (this.scaledR < 0) {
-        return;
-      }
-
-      switch (this.type) {
-        case "planet":
-          this.drawPlanet(sun);
-          break;
-
-        case "sun":
-          this.drawSun();
-          break;
-      }
-    }
+    key: 'draw',
+    value: function draw() {}
   }, {
-    key: "drawSun",
-    value: function drawSun() {
-      if (this.world.scale != this.world.lastScale) {
-        this.grad = this.createGradient();
-      }
-
-      this.ctx.fillStyle = this.grad;
-      this.ctx.beginPath();
-      this.ctx.arc(this.scaledX, this.scaledY, this.scaledR, 0, Math.PI * 2);
-      this.ctx.fill();
-    }
-  }, {
-    key: "drawPlanet",
-    value: function drawPlanet(lightSource) {
-      var x = void 0,
-          y = void 0;
-      switch (this.center) {
-        case false:
-          x = this.scaledX;
-          y = this.scaledY;
-          break;
-        case true:
-          x = this.world.center.x;
-          y = this.world.center.y;
-          break;
-      }
-
-      this.ctx.beginPath();
-      this.ctx.fillStyle = this.color;
-      this.ctx.arc(x, y, this.scaledR, 0, Math.PI * 2, false);
-      this.ctx.fill();
-
-      this.drawShadow(lightSource);
-    }
-  }, {
-    key: "drawShadow",
+    key: 'drawShadow',
     value: function drawShadow(lightSource) {
 
       // Shadow props
       var radius = this.scaledR;
       var sX = void 0,
           sY = void 0;
-      var shadowRadius = radius * 6.4;
-      var shadowLineWidth = radius * 1.1;
-      var shadowBlur = shadowRadius * 0.04;
+      var shadowRadius = radius * 2.7;
+      var shadowLineWidth = radius * 0.81;
+      var shadowBlur = shadowRadius * 0.6;
 
       // Get the angle & distance depending on the reference framework
       var dx = void 0,
@@ -435,8 +317,8 @@ var Planet = function (_Particle) {
       var angle = Math.atan2(dy, dx);
 
       // Calculate shadow-circle's coordinates
-      var x = lightSource.x + Math.cos(angle) * (dist - shadowRadius + radius * 0.58);
-      var y = lightSource.y + Math.sin(angle) * (dist - shadowRadius + radius * 0.58);
+      var x = lightSource.x + Math.cos(angle) * (dist - shadowRadius + radius * 1);
+      var y = lightSource.y + Math.sin(angle) * (dist - shadowRadius + radius * 1);
 
       // Shadow setup
       this.ctx.save();
@@ -456,28 +338,202 @@ var Planet = function (_Particle) {
       this.ctx.arc(x, y, shadowRadius, 0, Math.PI * 2);
       this.ctx.stroke();
       this.ctx.stroke();
+      this.ctx.stroke();
+      this.ctx.stroke();
+      this.ctx.stroke();
+      this.ctx.stroke();
 
       this.ctx.restore();
     }
   }, {
-    key: "createGradient",
+    key: 'createGradient',
     value: function createGradient() {
       var grad = this.ctx.createRadialGradient(this.scaledX, this.scaledY, this.scaledR / 4, this.scaledX, this.scaledY, this.scaledR);
-      grad.addColorStop(0, "#FF7");
-      grad.addColorStop(0.6, "#FF4");
-      grad.addColorStop(0.8, "#FF0");
-      grad.addColorStop(1, "#DC0");
+      // grad.addColorStop(0,"#FF7");
+      // grad.addColorStop(0.6,"#FF4");
+      // grad.addColorStop(0.8,"#FF0");
+      // grad.addColorStop(1,"#DC0");
+
+      var step1 = {
+        r: this.color.r + Math.floor((255 - this.color.r) * 0.26),
+        g: this.color.g + Math.floor((255 - this.color.g) * 0.26),
+        b: this.color.b + Math.floor((255 - this.color.b) * 0.26)
+      };
+
+      var step2 = {
+        r: this.color.r + +Math.floor((255 - this.color.r) * 0.17),
+        g: this.color.g + +Math.floor((255 - this.color.r) * 0.17),
+        b: this.color.b + +Math.floor((255 - this.color.r) * 0.17)
+      };
+
+      var step3 = {
+        r: this.color.r,
+        g: this.color.g,
+        b: this.color.b
+      };
+
+      grad.addColorStop(0.2, 'rgba(' + step1.r + ', ' + step1.g + ', ' + step1.b + ', 1)');
+      grad.addColorStop(0.8, 'rgba(' + step2.r + ', ' + step2.g + ', ' + step2.b + ', 1)');
+      grad.addColorStop(1, 'rgba(' + step3.r + ', ' + step3.g + ', ' + step3.b + ', 1)');
+
       return grad;
+    }
+  }, {
+    key: 'hexToRGB',
+    value: function hexToRGB(hex) {
+      var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null;
+    }
+  }]);
+
+  return CelestialBody;
+}(_Particle3.default);
+
+exports.default = CelestialBody;
+;
+
+},{"../../../src/lib/Particle":7}],3:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _CelestialBody2 = require('./CelestialBody');
+
+var _CelestialBody3 = _interopRequireDefault(_CelestialBody2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Planet = function (_CelestialBody) {
+  _inherits(Planet, _CelestialBody);
+
+  function Planet(settings, world) {
+    _classCallCheck(this, Planet);
+
+    var _this = _possibleConstructorReturn(this, (Planet.__proto__ || Object.getPrototypeOf(Planet)).call(this, settings, world));
+
+    _this.grad = _this.createGradient();
+    return _this;
+  }
+
+  _createClass(Planet, [{
+    key: 'draw',
+    value: function draw(lightSource) {
+      lightSource = lightSource || null;
+
+      this.reScale();
+
+      if (this.world.needsUpdate) {
+        this.grad = this.createGradient();
+      }
+
+      if (this.scaledR < 0) {
+        return;
+      }
+
+      var x = void 0,
+          y = void 0;
+      switch (this.center) {
+        case false:
+          x = this.scaledX;
+          y = this.scaledY;
+          break;
+        case true:
+          x = this.world.center.x;
+          y = this.world.center.y;
+          break;
+      }
+
+      this.ctx.beginPath();
+      this.ctx.fillStyle = this.grad;
+      this.ctx.arc(x, y, this.scaledR, 0, Math.PI * 2, false);
+      this.ctx.fill();
+
+      if (lightSource) {
+        this.drawShadow(lightSource);
+      }
     }
   }]);
 
   return Planet;
-}(_Particle3.default);
+}(_CelestialBody3.default);
 
 exports.default = Planet;
 ;
 
-},{"../../../src/lib/Particle":5}],3:[function(require,module,exports){
+},{"./CelestialBody":2}],4:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _CelestialBody2 = require('./CelestialBody');
+
+var _CelestialBody3 = _interopRequireDefault(_CelestialBody2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Planet = function (_CelestialBody) {
+  _inherits(Planet, _CelestialBody);
+
+  function Planet(settings, world) {
+    _classCallCheck(this, Planet);
+
+    var _this = _possibleConstructorReturn(this, (Planet.__proto__ || Object.getPrototypeOf(Planet)).call(this, settings, world));
+
+    _this.grad = _this.createGradient();
+    return _this;
+  }
+
+  _createClass(Planet, [{
+    key: 'draw',
+    value: function draw() {
+      this.reScale();
+
+      if (this.scaledR < 0) {
+        return;
+      }
+
+      if (this.world.needsUpdate) {
+        this.grad = this.createGradient();
+      }
+
+      this.ctx.fillStyle = this.grad;
+      this.ctx.beginPath();
+      this.ctx.arc(this.scaledX, this.scaledY, this.scaledR, 0, Math.PI * 2);
+      this.ctx.fill();
+    }
+  }]);
+
+  return Planet;
+}(_CelestialBody3.default);
+
+exports.default = Planet;
+;
+
+},{"./CelestialBody":2}],5:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -497,7 +553,7 @@ var FEATURE_TOGGLE = {
 
 exports.default = FEATURE_TOGGLE;
 
-},{}],4:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -585,7 +641,7 @@ var AnimationPlayer = function () {
 
 exports.default = AnimationPlayer;
 
-},{"../../src/feature-toggle":3}],5:[function(require,module,exports){
+},{"../../src/feature-toggle":5}],7:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -881,7 +937,7 @@ var Particle = function () {
 
 exports.default = Particle;
 
-},{"../../src/feature-toggle":3}]},{},[1])
+},{"../../src/feature-toggle":5}]},{},[1])
 
 
 //# sourceMappingURL=app.js.map
