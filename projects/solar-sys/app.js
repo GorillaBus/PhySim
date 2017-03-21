@@ -1,3 +1,4 @@
+import Star from './lib/Star';
 import Planet from './lib/Planet';
 import AnimationPlayer from '../../src/lib/AnimationPlayer';
 
@@ -18,11 +19,12 @@ window.onload = () => {
       height: height,
       center: center,
       scale: 1,
-      lastScale: 1,
+      lastScale: 0,
       trans_x: 0,
       trans_y: 0,
+      needsUpdate: false,
       update: function() {
-        this.lastScale = this.scale;
+        this.needsUpdate = this.lastScale != this.scale;
       }
     };
 
@@ -33,8 +35,7 @@ window.onload = () => {
         y: center.y,
         mass: 300,
         speed: 0,
-        color: "yellow",
-        type: "sun",
+        color: "#D6D32D",
         center: true
     };
 
@@ -43,63 +44,56 @@ window.onload = () => {
         y: center.y,
         speed: 1.5,
         direction: Math.PI / 2,
-        color: '#46A543',
+        color: '#FA1616',
         mass: 4.5,
-        type: "planet",
         center: false
      },{
         x: center.x - 170,
         y: center.y,
         speed: 1.2,
         direction: -Math.PI / 2,
-        color: 'CornflowerBlue',
+        color: '#4042A8',
         mass: 11,
-        type: "planet",
         center: false
     },{
         x: center.x - 230,
         y: center.y,
         speed: 1,
         direction: -Math.PI / 2,
-        color: 'DarkGoldenRod',
+        color: '#47BFBD',
         mass: 18,
-        type: "planet",
         center: false
     },{
         x: center.x - 290,
         y: center.y,
         speed: 0.9,
         direction: -Math.PI / 2,
-        color: 'maroon',
+        color: '#AB3A2B',
         mass: 27,
-        type: "planet",
         center: false
     },{
         x: center.x + 292,
         y: center.y,
         speed: 0.9,
         direction: Math.PI / 2,
-        color: '#9E51C9',
+        color: '#2B7523',
         mass: 27,
-        type: "planet",
         center: false
     },{
         x: center.x - 460,
         y: center.y,
         speed: 0.8,
         direction: -Math.PI / 2,
-        color: 'DarkOliveGreen',
+        color: '#6C29A3',
         mass: 173,
-        type: "planet",
         center: false
     },{
         x: center.x + 549,
         y: center.y,
         speed: 0.8,
         direction: Math.PI / 2,
-        color: 'DarkGray',
+        color: '#A7A2AB',
         mass: 43,
-        type: "planet",
         center: false
      }];
 
@@ -124,7 +118,7 @@ window.onload = () => {
 
     // Frame drawing function
     function update() {
-      ctx.clearRect(-world.width, -world.height, world.width*2, world.height*2);
+      ctx.clearRect(0, 0, world.width, world.height);
 
       let totalPlanets = planets.length;
 
@@ -133,7 +127,7 @@ window.onload = () => {
         let p = planets[i];
         p.update();
 
-        if (p.type === "planet") {
+        if (p instanceof Planet) {
           planets[i].gravitateTo(sun);
         }
 
@@ -164,13 +158,15 @@ window.onload = () => {
 
       // Draw center body
       centerObject.draw(sun);
+
+      world.update();
     }
 
 
     /** Helpers **/
 
     function createSun(config) {
-      return new Planet(config, world);
+      return new Star(config, world);
     }
 
     function createPlanets(config) {
