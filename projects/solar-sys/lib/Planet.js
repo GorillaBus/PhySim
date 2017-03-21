@@ -49,7 +49,6 @@ export default class Planet extends Particle {
   drawSun() {
     if (this.world.scale != this.world.lastScale) {
       this.grad = this.createGradient();
-      this.world.update();
     }
 
     this.ctx.fillStyle = this.grad;
@@ -81,33 +80,32 @@ export default class Planet extends Particle {
 
   drawShadow(lightSource) {
 
-    // Get distance from source
-    let dx = this.scaledX - lightSource.scaledX;
-    let dy = this.scaledY - lightSource.scaledY;
-    let dist = Math.sqrt(dx * dx + dy * dy);
-    let angle;
-
-    // Get the angle depending on the reference framework
-    if (this.center) {
-      dx = this.x - lightSource.x;
-      dy = this.y - lightSource.y;
-      angle = Math.atan2(dy, dx);
-    } else {
-      angle = Math.atan2(dy, dx);
-    }
-
-    // Shape props
-    let radius = this.scaledR;
-
     // Shadow props
+    let radius = this.scaledR;
     let sX, sY;
     let shadowRadius = radius * 6.4;
     let shadowLineWidth = radius * 1.1;
     let shadowBlur = shadowRadius * 0.04;
 
+    // Get the angle & distance depending on the reference framework
+    let dx, dy;
+    let dist = 0;
+    if (this.center) {
+      dx = this.x - lightSource.x;
+      dy = this.y - lightSource.y;
+    } else {
+      dx = this.scaledX - lightSource.scaledX;
+      dy = this.scaledY - lightSource.scaledY;
+      dist = Math.sqrt(dx * dx + dy * dy);
+    }
+
+    // Get distance from source
+    let angle = Math.atan2(dy, dx);
+
     // Calculate shadow-circle's coordinates
     let x = lightSource.x + Math.cos(angle) * (dist - shadowRadius + radius * 0.58);
     let y = lightSource.y + Math.sin(angle) * (dist - shadowRadius + radius * 0.58);
+
 
     // Shadow setup
     this.ctx.save();

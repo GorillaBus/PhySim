@@ -35,7 +35,7 @@ window.onload = () => {
         speed: 0,
         color: "yellow",
         type: "sun",
-        center: false
+        center: true
     };
 
     let planetsSetup = [{
@@ -73,7 +73,7 @@ window.onload = () => {
         color: 'maroon',
         mass: 27,
         type: "planet",
-        center: true
+        center: false
     },{
         x: center.x + 292,
         y: center.y,
@@ -115,11 +115,6 @@ window.onload = () => {
     // Demo player
     player.setUpdateFn(update);
     player.play();
-
-
-    //update();
-
-    //test();
 
 
     // Reference framework
@@ -188,75 +183,6 @@ window.onload = () => {
         }
         return planets;
     }
-
-    function test() {
-      let canvas2 = document.createElement("canvas");
-      let ctx2 = canvas2.getContext("2d");
-
-      // External shape props
-      let x = 200;
-      let y = world.center.y;
-      let radius = 150;
-
-      // Internal shape props
-      let intPosX = radius;
-      let intPosY = radius;
-      canvas2.width = radius*12;
-      canvas2.height = radius*12;
-
-      // Distance and angle to the light source
-      let dx = x - world.center.x;
-      let dy = y - world.center.y;
-      let angle = Math.atan2(dy, dx);
-
-
-      // Shadow shape props
-      let sRadius = radius * 2;
-      let shadowLineWidth = radius;
-      // let sX = intPosX + sRadius - (shadowLineWidth/2);
-      // let sY = intPosY;
-      let sX = radius;
-      let sY = radius;
-
-
-      // Draw external shape mask
-      ctx2.fillStyle = "rgba(0,0,0,0)";
-      ctx2.arc(intPosX, intPosY, radius, 0, Math.PI * 2, true);
-      ctx2.fill();
-
-
-      // Create shadow shape
-      ctx2.save();
-
-      //clip range by planet area.
-      //ctx2.clip();
-
-      // Draw shadow
-      ctx2.beginPath();
-      ctx2.lineWidth = shadowLineWidth;
-      ctx2.strokeStyle = 'rgba(0,0,0,1)';
-      ctx2.arc(sX, sY, sRadius, 0, Math.PI*2);
-      ctx2.stroke();
-      ctx2.stroke();
-
-      ctx2.restore();
-
-
-
-
-
-
-
-
-      ctx.fillStyle = "green";
-      ctx.arc(x, y, radius, 0, Math.PI * 2, true);
-      ctx.fill();
-
-      ctx.save();
-      ctx.drawImage(canvas2, x - radius, y - radius);
-      ctx.restore();
-    }
-
 
 
 
