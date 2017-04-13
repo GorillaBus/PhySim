@@ -2,6 +2,10 @@ import FEATURE_TOGGLE from '../../src/feature-toggle';
 
 export default class Particle {
 
+  /*
+   *   Pass 'boxBounce' as { w: <with>, h: <height> } to make particle bounce inside a box
+   *
+   **/
     constructor(settings) {
         this.x = settings.x || 0;
         this.y = settings.y || 0;
@@ -14,10 +18,7 @@ export default class Particle {
         this.springs = [];
         this.gravitations = [];
 
-        this.shape = settings.shape || "circle";
-        this.mapperRegions = settings.mapperRegions || {};
         this.color = settings.color || "#000000";
-        this.points = settings.points || [];
         this.boxBounce = settings.boxBounce || false;
     }
 
