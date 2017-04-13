@@ -1,8 +1,7 @@
-
-import AnimationPlayer from '../../src/lib/AnimationPlayer';
-import Particle from '../../src/lib/Particle';
 import Utils from '../../src/lib/Utils';
-import ParticleManager from '../../src/lib/ParticleManager';
+import AnimationPlayer from '../../src/lib/AnimationPlayer';
+import Particle from './lib/ParticleExt';
+import ParticleManager from './lib/ParticleManager';
 
 window.onload = () => {
     const canvas = document.getElementById("canvas");
@@ -25,7 +24,7 @@ window.onload = () => {
         y: Utils.randomRange(0, height-30),
         direction: Math.random() * Math.PI * 2,
         speed: 0,
-        mass: Utils.randomRange(1, 22),
+        mass: Utils.randomRange(0.1, 3),
         boxBounce: { w: width, h: height }
       });
 
@@ -42,6 +41,9 @@ window.onload = () => {
       mapper: {
         collision: {
           regionSize: 100
+        },
+        gravity: {
+          regionSize: 400
         }
       }
     }, ctx);

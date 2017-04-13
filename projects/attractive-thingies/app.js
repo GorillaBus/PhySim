@@ -18,47 +18,32 @@ window.onload = () => {
     let player = new AnimationPlayer();
 
     // Create dust
-    // let dust = new Array(30);
-    // for (let i=0;i<dust.length;i++){
-    //   let position = {
-    //     x: Utils.randomRange(0, width),
-    //     y: Utils.randomRange(0, height)
-    //   };
-    //   let initMass = 1;
-    //
-    //   dust[i] = new Dust(ctx, position, initMass);
-    // }
+    let dust = new Array(30);
+    for (let i=0;i<dust.length;i++){
+      let position = {
+        x: Utils.randomRange(0, width),
+        y: Utils.randomRange(0, height)
+      };
+      let initMass = 1;
 
-    // Create dust
-    let position1 = {
-      x: 100,
-      y: center.y,
-      length: 3
-    };
-    let initMass1 = 41;
-    let position2 = {
-      x: width - 100,
-      y: center.y-15,
-      length: -2
-    };
-    let initMass2 = 12;
-    let d1 = new Dust(ctx, position1, initMass1);
-    let d2 = new Dust(ctx, position2, initMass2);
-    let dust = [d1, d2];
+      dust[i] = new Dust(ctx, position, initMass);
+    }
 
-    // let direction = dust[1].location.substract(dust[0].location);
-    // direction.normalize();
-    // direction.multiplyBy(20);
-    // dust[0].applyForce(direction);
+
+    let direction = dust[1].location.substract(dust[0].location);
+    direction.normalize();
+    direction.multiplyBy(20);
+    dust[0].applyForce(direction);
+
+    let flag = false;
 
     // Demo player setup
     player.setUpdateFn(update);
     player.play();
-let flag = false;
+
     // Frame drawing function
     function update() {
         ctx.clearRect(0,0, width, height);
-
 
         for (let i=0; i<dust.length; i++) {
            dust[i].update();
@@ -97,7 +82,7 @@ let flag = false;
           }
 
           // Update
-          //d1.checkEdges(width, height);
+          d1.checkEdges(width, height);
 
           // Draw
           d1.draw();

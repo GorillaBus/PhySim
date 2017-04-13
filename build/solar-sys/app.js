@@ -548,7 +548,7 @@ Object.defineProperty(exports, "__esModule", {
  */
 
 var FEATURE_TOGGLE = {
-  FPS_CONTROL: false // FPS controll for AnimationPlayer class
+  FPS_CONTROL: true // FPS controll for AnimationPlayer class
 };
 
 exports.default = FEATURE_TOGGLE;
@@ -659,6 +659,11 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Particle = function () {
+
+    /*
+     *   Pass 'boxBounce' as { w: <with>, h: <height> } to make particle bounce inside a box
+     *
+     **/
     function Particle(settings) {
         _classCallCheck(this, Particle);
 
@@ -673,10 +678,7 @@ var Particle = function () {
         this.springs = [];
         this.gravitations = [];
 
-        this.shape = settings.shape || "circle";
-        this.mapperRegions = settings.mapperRegions || {};
         this.color = settings.color || "#000000";
-        this.points = settings.points || [];
         this.boxBounce = settings.boxBounce || false;
     }
 
@@ -808,23 +810,29 @@ var Particle = function () {
 
     }, {
         key: "gravitateTo",
-        value: function gravitateTo(p) {
+        value: function gravitateTo(p, gravityFactor) {
+            gravityFactor = gravityFactor || 0.04;
+
+            var radiusSum = this.radius + p.radius;
+            var massFactor = this.mass * p.mass;
+
             var dx = p.x - this.x;
             var dy = p.y - this.y;
             var distSQ = dx * dx + dy * dy;
             var dist = Math.sqrt(distSQ);
-            var force = p.mass / distSQ; // Force = mass / square of the distance
-            /*
-            cos * hypotenuse = opposite side || cos = opposite side / hypotenuse
-            sin * hypotenuse = adjacent side || sin = adjacent side / hypotenuse
-             That being said, we can optimize this:
-            let angle = this.angleTo(p);
-            let ax = Math.cos(angle) * force;
-            let ay = Math.sin(angle) * force;
-             And save three trigo functions
-            */
-            var ax = dx / dist * force;
-            var ay = dy / dist * force;
+            var surfaceDist = dist - radiusSum;
+
+            // Cancel gravitation once objects collide
+            // TODO: Verify if we can save the Math.sqrt() comparing squares
+            if (dist < radiusSum + 5) {
+                return;
+            }
+
+            //let force = (p.mass) / distSQ; // Force = mass / square of the distance
+            var force = gravityFactor * massFactor / (surfaceDist * surfaceDist);
+
+            var ax = dx / surfaceDist * force;
+            var ay = dy / surfaceDist * force;
 
             this.vx += ax;
             this.vy += ay;

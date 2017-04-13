@@ -36,74 +36,59 @@ window.onload = function () {
   var player = new _AnimationPlayer2.default();
 
   // Create dust
-  // let dust = new Array(30);
-  // for (let i=0;i<dust.length;i++){
-  //   let position = {
-  //     x: Utils.randomRange(0, width),
-  //     y: Utils.randomRange(0, height)
-  //   };
-  //   let initMass = 1;
-  //
-  //   dust[i] = new Dust(ctx, position, initMass);
-  // }
+  var dust = new Array(30);
+  for (var i = 0; i < dust.length; i++) {
+    var position = {
+      x: _Utils2.default.randomRange(0, width),
+      y: _Utils2.default.randomRange(0, height)
+    };
+    var initMass = 1;
 
-  // Create dust
-  var position1 = {
-    x: 100,
-    y: center.y,
-    length: 3
-  };
-  var initMass1 = 41;
-  var position2 = {
-    x: width - 100,
-    y: center.y - 15,
-    length: -2
-  };
-  var initMass2 = 12;
-  var d1 = new _Dust2.default(ctx, position1, initMass1);
-  var d2 = new _Dust2.default(ctx, position2, initMass2);
-  var dust = [d1, d2];
+    dust[i] = new _Dust2.default(ctx, position, initMass);
+  }
 
-  // let direction = dust[1].location.substract(dust[0].location);
-  // direction.normalize();
-  // direction.multiplyBy(20);
-  // dust[0].applyForce(direction);
+  var direction = dust[1].location.substract(dust[0].location);
+  direction.normalize();
+  direction.multiplyBy(20);
+  dust[0].applyForce(direction);
+
+  var flag = false;
 
   // Demo player setup
   player.setUpdateFn(update);
   player.play();
-  var flag = false;
+
   // Frame drawing function
   function update() {
     ctx.clearRect(0, 0, width, height);
 
-    for (var i = 0; i < dust.length; i++) {
-      dust[i].update();
+    for (var _i = 0; _i < dust.length; _i++) {
+      dust[_i].update();
     }
 
-    for (var _i = 0; _i < dust.length; _i++) {
-      var _d = dust[_i];
+    for (var _i2 = 0; _i2 < dust.length; _i2++) {
+      var d1 = dust[_i2];
       var absorbed = false;
 
       // Interaction
       for (var x = 0; x < dust.length; x++) {
-        var _d2 = dust[x];
+        var d2 = dust[x];
 
-        if (_d.id === _d2.id) {
+        if (d1.id === d2.id) {
           continue;
         }
 
-        if (_d.collides(_d2) && !flag) {
-          var recoil = _d.collideElastic(_d2);
+        if (d1.collides(d2) && !flag) {
+          var recoil = d1.collideElastic(d2);
           flag = true;
           if (recoil) {
 
-            if (_d.mass > _d2.mass) {
-              _d.absorb(_d2);
+            if (d1.mass > d2.mass) {
+              d1.absorb(d2);
               dust.splice(x, 1);
             } else {
-              _d2.absorb(_d);
-              dust.splice(_i, 1);
+              d2.absorb(d1);
+              dust.splice(_i2, 1);
             }
 
             absorbed = true;
@@ -113,10 +98,10 @@ window.onload = function () {
       }
 
       // Update
-      //d1.checkEdges(width, height);
+      d1.checkEdges(width, height);
 
       // Draw
-      _d.draw();
+      d1.draw();
     }
   }
 
@@ -379,7 +364,7 @@ Object.defineProperty(exports, "__esModule", {
  */
 
 var FEATURE_TOGGLE = {
-  FPS_CONTROL: false // FPS controll for AnimationPlayer class
+  FPS_CONTROL: true // FPS controll for AnimationPlayer class
 };
 
 exports.default = FEATURE_TOGGLE;
@@ -488,15 +473,14 @@ var Monitor = function () {
     _classCallCheck(this, Monitor);
 
     this.HTMLObject = this.createWrapper();
-    this.outputs = [];
+    this.outputs = {};
   }
 
   _createClass(Monitor, [{
     key: "out",
     value: function out(t, v) {
-      t = t - 1;
       if (!this.outputs[t]) {
-        console.warn("Monitor > no output #" + t);
+        console.warn("Monitor > no output '" + t + "'");
         return false;
       }
       this.outputs[t].innerHTML = v;
@@ -504,11 +488,12 @@ var Monitor = function () {
   }, {
     key: "newOutput",
     value: function newOutput(title) {
+      title = this.sanitize(title);
       var e = this.createOutput(title);
       var v = e.getElementsByTagName("SPAN")[0];
-      this.outputs.push(v);
+      this.outputs[title] = v;
       this.HTMLObject.appendChild(e);
-      return this.outputs.length;
+      return Object.keys(this.outputs).length;
     }
   }, {
     key: "createWrapper",
@@ -521,8 +506,6 @@ var Monitor = function () {
   }, {
     key: "createOutput",
     value: function createOutput(title) {
-      title = this.sanitize(title);
-
       var e = document.createElement("DIV");
       e.setAttribute("class", "monitor");
       e.setAttribute("id", title);
@@ -647,7 +630,7 @@ var Mover = function () {
 exports.default = Mover;
 
 },{"./Vector":8}],7:[function(require,module,exports){
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -655,7 +638,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _featureToggle = require('../../src/feature-toggle');
+var _featureToggle = require("../../src/feature-toggle");
 
 var _featureToggle2 = _interopRequireDefault(_featureToggle);
 
@@ -666,10 +649,60 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var Utils = function () {
   function Utils() {
     _classCallCheck(this, Utils);
+
+    this.cache = {};
   }
 
   _createClass(Utils, [{
-    key: 'montecarlo',
+    key: "cacheStore",
+    value: function cacheStore(caller, key, value) {
+      if (!this.cache.hasOwnProperty(caller)) {
+        this.cache[caller] = {};
+      }
+      this.cache[caller][key] = value;
+    }
+  }, {
+    key: "cacheRetrieve",
+    value: function cacheRetrieve(caller, key) {
+      var fnCache = this.cache[caller] || [];
+      var value = fnCache[key] || false;
+      return value;
+    }
+
+    /*
+     *  Get 'n' points from a circular shaped 'Particle' object
+     */
+
+  }, {
+    key: "getCirclePoints",
+    value: function getCirclePoints(p, n, radius) {
+      n = n || 8;
+      radius = radius || p.radius || 0;
+
+      var angle = -1;
+      var angleStep = Math.PI * 2 / n;
+      var points = [];
+
+      for (var i = 0; i < n; i++) {
+        var cData = this.cacheRetrieve("getCirclePoints", angle);
+        var cos = cData.cos || Math.cos(angle);
+        var sin = cData.sin || Math.sin(angle);
+        var pt = {
+          x: p.x + cos * p.radius,
+          y: p.y + sin * p.radius
+        };
+        points.push(pt);
+        if (!cData) {
+          this.cacheStore("getCirclePoints", angle, { cos: cos, sin: sin });
+        }
+        angle += angleStep;
+      }
+
+      // Add the center point
+      return points;
+    }
+  }, {
+    key: "montecarlo",
     value: function montecarlo() {
       while (true) {
         var r1 = Math.random();
@@ -681,12 +714,12 @@ var Utils = function () {
       }
     }
   }, {
-    key: 'lerp',
+    key: "lerp",
     value: function lerp(norm, min, max) {
       return (max - min) * norm + min;
     }
   }, {
-    key: 'quadraticBezier',
+    key: "quadraticBezier",
     value: function quadraticBezier(p0, p1, p2, t, pFinal) {
       pFinal = pFinal || {};
       pFinal.x = Math.pow(1 - t, 2) * p0.x + (1 - t) * 2 * t * p1.x + t * t * p2.x;
@@ -694,7 +727,7 @@ var Utils = function () {
       return pFinal;
     }
   }, {
-    key: 'cubicBezier',
+    key: "cubicBezier",
     value: function cubicBezier(p0, p1, p2, p3, t, pFinal) {
       pFinal = pFinal || {};
       pFinal.x = Math.pow(1 - t, 3) * p0.x + Math.pow(1 - t, 2) * 3 * t * p1.x + (1 - t) * 3 * t * t * p2.x + t * t * t * p3.x;
@@ -702,14 +735,14 @@ var Utils = function () {
       return pFinal;
     }
   }, {
-    key: 'distance',
+    key: "distance",
     value: function distance(p0, p1) {
       var dx = p0.x - p1.x;
       var dy = p0.y - p1.y;
       return Math.sqrt(dx * dx + dy * dy);
     }
   }, {
-    key: 'distanceXY',
+    key: "distanceXY",
     value: function distanceXY(x0, y0, x1, y1) {
       var dx = x1 - x0;
       var dy = y1 - y0;
@@ -719,7 +752,7 @@ var Utils = function () {
     // TODO: Check if and why we need to parseInt() the result
 
   }, {
-    key: 'mapRange',
+    key: "mapRange",
     value: function mapRange(value, low1, high1, low2, high2) {
       return result = low2 + (high2 - low2) * (value - low1) / (high1 - low1);
       var result = low2 + (high2 - low2) * (value - low1) / (high1 - low1);
@@ -729,37 +762,37 @@ var Utils = function () {
       return result;
     }
   }, {
-    key: 'inRange',
+    key: "inRange",
     value: function inRange(value, min, max) {
       return value >= Math.min(min, max) && value <= Math.max(min, max);
     }
   }, {
-    key: 'rangeIntersect',
+    key: "rangeIntersect",
     value: function rangeIntersect(min0, max0, min1, max1) {
       return Math.max(min0, max0) >= Math.min(min1, max1) && Math.min(min0, max0) <= Math.max(min1, max1);
     }
   }, {
-    key: 'randomRange',
+    key: "randomRange",
     value: function randomRange(min, max) {
       return min + Math.random() * (max - min);
     }
   }, {
-    key: 'circleCollision',
+    key: "circleCollision",
     value: function circleCollision(c0, c1) {
       return this.distance(c0, c1) <= c0.radius + c1.radius;
     }
   }, {
-    key: 'rectangleCollision',
+    key: "rectangleCollision",
     value: function rectangleCollision(r0, r1) {
       return this.rangeIntersect(r0.x, r0.x + r0.width, r1.x, r1.x + r1.width) && this.rangeIntersect(r0.y, r0.y + r0.height, r1.y, r1.y + r1.height);
     }
   }, {
-    key: 'circlePointCollision',
+    key: "circlePointCollision",
     value: function circlePointCollision(px, py, circle) {
       return this.distanceXY(px, py, circle.x, circle.y) < circle.radius;
     }
   }, {
-    key: 'rectanglePointCollision',
+    key: "rectanglePointCollision",
     value: function rectanglePointCollision(px, py, rect) {
       return this.inRange(px, rect.x, rect.x + rect.width) && this.inRange(py, rect.y, rect.y + rect.height);
     }

@@ -305,7 +305,7 @@ var AnimationPlayer = function () {
 exports.default = AnimationPlayer;
 
 },{"../../src/feature-toggle":2}],4:[function(require,module,exports){
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
     value: true
@@ -313,7 +313,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _featureToggle = require('../../src/feature-toggle');
+var _featureToggle = require("../../src/feature-toggle");
 
 var _featureToggle2 = _interopRequireDefault(_featureToggle);
 
@@ -322,6 +322,11 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Particle = function () {
+
+    /*
+     *   Pass 'boxBounce' as { w: <with>, h: <height> } to make particle bounce inside a box
+     *
+     **/
     function Particle(settings) {
         _classCallCheck(this, Particle);
 
@@ -331,10 +336,13 @@ var Particle = function () {
         this.vy = Math.sin(settings.direction) * settings.speed || 0;
         this.gravity = settings.gravity || 0;
         this.mass = settings.mass || 1;
-        this.radius = settings.radius || 1;
+        this.radius = settings.radius || settings.mass * 0.87;
         this.friction = settings.friction || 1;
         this.springs = [];
         this.gravitations = [];
+
+        this.color = settings.color || "#000000";
+        this.boxBounce = settings.boxBounce || false;
     }
 
     /*
@@ -343,7 +351,7 @@ var Particle = function () {
 
 
     _createClass(Particle, [{
-        key: 'update',
+        key: "update",
         value: function update() {
             this.handleSprings();
             this.handleGravitations();
@@ -352,6 +360,10 @@ var Particle = function () {
             this.vy *= this.friction;
             this.x += this.vx;
             this.y += this.vy;
+
+            if (this.boxBounce) {
+                this.checkBorders(this.boxBounce.w, this.boxBounce.h);
+            }
         }
 
         /*
@@ -359,7 +371,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'getSpeed',
+        key: "getSpeed",
         value: function getSpeed() {
             return Math.sqrt(this.vx * this.vx + this.vy * this.vy);
         }
@@ -369,7 +381,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'setSpeed',
+        key: "setSpeed",
         value: function setSpeed(speed) {
             var heading = this.getHeading();
             this.vx = Math.cos(heading) * speed;
@@ -381,7 +393,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'getHeading',
+        key: "getHeading",
         value: function getHeading() {
             return Math.atan2(this.vy, this.vx);
         }
@@ -391,7 +403,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'setHeading',
+        key: "setHeading",
         value: function setHeading(heading) {
             var speed = this.getSpeed();
             this.vx = Math.cos(heading) * speed;
@@ -403,10 +415,34 @@ var Particle = function () {
          */
 
     }, {
-        key: 'accelerate',
+        key: "accelerate",
         value: function accelerate(x, y) {
             this.vx += x;
             this.vy += y;
+        }
+
+        /*
+        *  Bounce if the particle hits the box (i.e. screen) borders
+        */
+
+    }, {
+        key: "checkBorders",
+        value: function checkBorders(width, height) {
+            if (this.x + this.radius >= width) {
+                this.x = width - this.radius;
+                this.vx *= -1;
+            } else if (this.x - this.radius <= 0) {
+                this.x = this.radius;
+                this.vx *= -1;
+            }
+
+            if (this.y + this.radius >= height) {
+                this.y = height - this.radius;
+                this.vy *= -1;
+            } else if (this.y - this.radius <= 0) {
+                this.y = this.radius;
+                this.vy *= -1;
+            }
         }
 
         /*
@@ -414,7 +450,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'angleTo',
+        key: "angleTo",
         value: function angleTo(p2) {
             return Math.atan2(p2.y - this.y, p2.x - this.x);
         }
@@ -424,7 +460,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'distanceTo',
+        key: "distanceTo",
         value: function distanceTo(p) {
             var dx = p.x - this.x;
             var dy = p.y - this.y;
@@ -436,24 +472,30 @@ var Particle = function () {
          */
 
     }, {
-        key: 'gravitateTo',
-        value: function gravitateTo(p) {
+        key: "gravitateTo",
+        value: function gravitateTo(p, gravityFactor) {
+            gravityFactor = gravityFactor || 0.04;
+
+            var radiusSum = this.radius + p.radius;
+            var massFactor = this.mass * p.mass;
+
             var dx = p.x - this.x;
             var dy = p.y - this.y;
             var distSQ = dx * dx + dy * dy;
             var dist = Math.sqrt(distSQ);
-            var force = p.mass / distSQ; // Force = mass / square of the distance
-            /*
-            cos * hypotenuse = opposite side || cos = opposite side / hypotenuse
-            sin * hypotenuse = adjacent side || sin = adjacent side / hypotenuse
-             That being said, we can optimize this:
-            let angle = this.angleTo(p);
-            let ax = Math.cos(angle) * force;
-            let ay = Math.sin(angle) * force;
-             And save three trigo functions
-            */
-            var ax = dx / dist * force;
-            var ay = dy / dist * force;
+            var surfaceDist = dist - radiusSum;
+
+            // Cancel gravitation once objects collide
+            // TODO: Verify if we can save the Math.sqrt() comparing squares
+            if (dist < radiusSum + 5) {
+                return;
+            }
+
+            //let force = (p.mass) / distSQ; // Force = mass / square of the distance
+            var force = gravityFactor * massFactor / (surfaceDist * surfaceDist);
+
+            var ax = dx / surfaceDist * force;
+            var ay = dy / surfaceDist * force;
 
             this.vx += ax;
             this.vy += ay;
@@ -464,7 +506,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'addGravitation',
+        key: "addGravitation",
         value: function addGravitation(p) {
             this.removeGravitation(p);
             this.gravitations.push(p);
@@ -475,7 +517,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'removeGravitation',
+        key: "removeGravitation",
         value: function removeGravitation(p) {
             var length = this.gravitations.length;
             for (var i = 0; i < length; i++) {
@@ -491,7 +533,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'handleGravitations',
+        key: "handleGravitations",
         value: function handleGravitations() {
             var length = this.gravitations.length;
             for (var i = 0; i < length; i++) {
@@ -504,7 +546,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'springTo',
+        key: "springTo",
         value: function springTo(point, k, length) {
             var dx = point.x - this.x;
             var dy = point.y - this.y;
@@ -520,7 +562,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'addSpring',
+        key: "addSpring",
         value: function addSpring(point, k, length) {
             this.removeSpring(point);
             this.springs.push({
@@ -535,7 +577,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'removeSpring',
+        key: "removeSpring",
         value: function removeSpring(point) {
             var length = this.springs.length;
             for (var i = 0; i < length; i++) {
@@ -551,7 +593,7 @@ var Particle = function () {
          */
 
     }, {
-        key: 'handleSprings',
+        key: "handleSprings",
         value: function handleSprings() {
             var length = this.springs.length;
             for (var i = 0; i < length; i++) {

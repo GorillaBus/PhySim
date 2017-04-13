@@ -21,7 +21,7 @@ window.onload = function () {
 
   var fl = 900;
   var points = [];
-  var centerZ = 1500;
+  var centerZ = 1000;
   var needsUpdate = true;
 
   points[0] = { x: -500, y: -500, z: 500 };
