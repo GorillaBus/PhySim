@@ -1,4 +1,4 @@
-import Utils from './Utils';
+import Utils from '../../../src/lib/Utils';
 
 export default class Mapper {
 

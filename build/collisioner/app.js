@@ -1,19 +1,19 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
-var _AnimationPlayer = require('../../src/lib/AnimationPlayer');
-
-var _AnimationPlayer2 = _interopRequireDefault(_AnimationPlayer);
-
-var _Particle = require('../../src/lib/Particle');
-
-var _Particle2 = _interopRequireDefault(_Particle);
-
 var _Utils = require('../../src/lib/Utils');
 
 var _Utils2 = _interopRequireDefault(_Utils);
 
-var _ParticleManager = require('../../src/lib/ParticleManager');
+var _AnimationPlayer = require('../../src/lib/AnimationPlayer');
+
+var _AnimationPlayer2 = _interopRequireDefault(_AnimationPlayer);
+
+var _ParticleExt = require('./lib/ParticleExt');
+
+var _ParticleExt2 = _interopRequireDefault(_ParticleExt);
+
+var _ParticleManager = require('./lib/ParticleManager');
 
 var _ParticleManager2 = _interopRequireDefault(_ParticleManager);
 
@@ -35,12 +35,12 @@ window.onload = function () {
   // Create particles
   var particles = new Array(500);
   for (var i = 0; i < particles.length; i++) {
-    particles[i] = new _Particle2.default({
+    particles[i] = new _ParticleExt2.default({
       x: _Utils2.default.randomRange(0, width - 30),
       y: _Utils2.default.randomRange(0, height - 30),
       direction: Math.random() * Math.PI * 2,
       speed: 0,
-      mass: _Utils2.default.randomRange(1, 22),
+      mass: _Utils2.default.randomRange(0.1, 3),
       boxBounce: { w: width, h: height }
     });
 
@@ -57,6 +57,9 @@ window.onload = function () {
     mapper: {
       collision: {
         regionSize: 100
+      },
+      gravity: {
+        regionSize: 400
       }
     }
   }, ctx);
@@ -111,115 +114,7 @@ window.onload = function () {
   });
 };
 
-},{"../../src/lib/AnimationPlayer":3,"../../src/lib/Particle":7,"../../src/lib/ParticleManager":8,"../../src/lib/Utils":9}],2:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-/*
- *  Feature Toggling
- *
- *  Activete/Hide features that are in process of development or under testing
- *  Once a feature is accepted to be includded must be removed from the
- *  feature toggle scheme
- */
-
-var FEATURE_TOGGLE = {
-  FPS_CONTROL: true // FPS controll for AnimationPlayer class
-};
-
-exports.default = FEATURE_TOGGLE;
-
-},{}],3:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _featureToggle = require("../../src/feature-toggle");
-
-var _featureToggle2 = _interopRequireDefault(_featureToggle);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var AnimationPlayer = function () {
-    function AnimationPlayer(settings) {
-        _classCallCheck(this, AnimationPlayer);
-
-        settings = settings || {};
-
-        this.window = settings.windowElement || window;
-        this.requestId = null;
-        this.playing = false;
-
-        // FPS control
-        if (_featureToggle2.default.FPS_CONTROL) {
-            this.fps = settings.fps || 90;
-            this.now;
-            this.lastTime = Date.now();
-            this.interval = 1000 / this.fps;
-            this.delta;
-        }
-    }
-
-    _createClass(AnimationPlayer, [{
-        key: "play",
-        value: function play() {
-            this.playing = true;
-            this.updateFn();
-        }
-    }, {
-        key: "stop",
-        value: function stop() {
-            if (!this.playing) {
-                return false;
-            }
-            this.window.cancelAnimationFrame(this.requestId);
-            this.playing = false;
-            this.requestId = null;
-        }
-    }, {
-        key: "setUpdateFn",
-        value: function setUpdateFn(updateFn) {
-            var _this = this;
-
-            this.updateFn = function () {
-                _this.requestId = _this.window.requestAnimationFrame(_this.updateFn);
-
-                // FPS control
-                if (_featureToggle2.default.FPS_CONTROL) {
-                    _this.now = Date.now();
-                    _this.delta = _this.now - _this.lastTime;
-
-                    if (_this.delta > _this.interval) {
-                        _this.lastTime = _this.now - _this.delta % _this.interval;
-                        updateFn();
-                    }
-                    return;
-                }
-
-                updateFn();
-            };
-        }
-    }, {
-        key: "updateFn",
-        value: function updateFn() {
-            console.warn("Player update function has not been set.");
-        }
-    }]);
-
-    return AnimationPlayer;
-}();
-
-exports.default = AnimationPlayer;
-
-},{"../../src/feature-toggle":2}],4:[function(require,module,exports){
+},{"../../src/lib/AnimationPlayer":8,"../../src/lib/Utils":10,"./lib/ParticleExt":5,"./lib/ParticleManager":6}],2:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -267,7 +162,7 @@ var Collide = function () {
 
 exports.default = Collide;
 
-},{}],5:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -350,7 +245,7 @@ var Collisioner = function () {
 
 exports.default = Collisioner;
 
-},{}],6:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -359,7 +254,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _Utils = require('./Utils');
+var _Utils = require('../../../src/lib/Utils');
 
 var _Utils2 = _interopRequireDefault(_Utils);
 
@@ -598,303 +493,51 @@ var Mapper = function () {
 
 exports.default = Mapper;
 
-},{"./Utils":9}],7:[function(require,module,exports){
-"use strict";
+},{"../../../src/lib/Utils":10}],5:[function(require,module,exports){
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _featureToggle = require("../../src/feature-toggle");
+var _featureToggle = require('../../../src/feature-toggle');
 
 var _featureToggle2 = _interopRequireDefault(_featureToggle);
+
+var _Particle2 = require('../../../src/lib/Particle');
+
+var _Particle3 = _interopRequireDefault(_Particle2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Particle = function () {
-    function Particle(settings) {
-        _classCallCheck(this, Particle);
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-        this.x = settings.x || 0;
-        this.y = settings.y || 0;
-        this.vx = Math.cos(settings.direction) * settings.speed || 0;
-        this.vy = Math.sin(settings.direction) * settings.speed || 0;
-        this.gravity = settings.gravity || 0;
-        this.mass = settings.mass || 1;
-        this.radius = settings.radius || settings.mass * 0.87;
-        this.friction = settings.friction || 1;
-        this.springs = [];
-        this.gravitations = [];
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-        this.shape = settings.shape || "circle";
-        this.mapperRegions = settings.mapperRegions || {};
-        this.color = settings.color || "#000000";
-        this.points = settings.points || [];
-        this.boxBounce = settings.boxBounce || false;
-    }
+var ParticleExt = function (_Particle) {
+  _inherits(ParticleExt, _Particle);
 
-    /*
-     *  Updates the state of the particle
-     */
+  function ParticleExt(settings) {
+    _classCallCheck(this, ParticleExt);
 
+    var _this = _possibleConstructorReturn(this, (ParticleExt.__proto__ || Object.getPrototypeOf(ParticleExt)).call(this, settings));
 
-    _createClass(Particle, [{
-        key: "update",
-        value: function update() {
-            this.handleSprings();
-            this.handleGravitations();
-            this.vy += this.gravity;
-            this.vx *= this.friction;
-            this.vy *= this.friction;
-            this.x += this.vx;
-            this.y += this.vy;
+    _this.shape = settings.shape || "circle";
+    _this.mapperRegions = settings.mapperRegions || {};
+    _this.color = settings.color || "#000000";
+    _this.points = settings.points || [];
+    _this.boxBounce = settings.boxBounce || false;
+    return _this;
+  }
 
-            if (this.boxBounce) {
-                this.checkBorders(this.boxBounce.w, this.boxBounce.h);
-            }
-        }
+  return ParticleExt;
+}(_Particle3.default);
 
-        /*
-         *  Gets the length of the velocity vector, which equals to the hypotenuse
-         */
+exports.default = ParticleExt;
 
-    }, {
-        key: "getSpeed",
-        value: function getSpeed() {
-            return Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-        }
-
-        /*
-         *  Using the actual Velocity vector's angle, sets a new length for it
-         */
-
-    }, {
-        key: "setSpeed",
-        value: function setSpeed(speed) {
-            var heading = this.getHeading();
-            this.vx = Math.cos(heading) * speed;
-            this.vy = Math.sin(heading) * speed;
-        }
-
-        /*
-         *  Gets the angle direction of the velocity vector
-         */
-
-    }, {
-        key: "getHeading",
-        value: function getHeading() {
-            return Math.atan2(this.vy, this.vx);
-        }
-
-        /*
-         *  Changes the Velocity vector's angle and recalculate coordinates
-         */
-
-    }, {
-        key: "setHeading",
-        value: function setHeading(heading) {
-            var speed = this.getSpeed();
-            this.vx = Math.cos(heading) * speed;
-            this.vy = Math.sin(heading) * speed;
-        }
-
-        /*
-         *  Sums to the Velocity vector x and y values
-         */
-
-    }, {
-        key: "accelerate",
-        value: function accelerate(x, y) {
-            this.vx += x;
-            this.vy += y;
-        }
-
-        /*
-        *  Bounce if the particle hits the box (i.e. screen) borders
-        */
-
-    }, {
-        key: "checkBorders",
-        value: function checkBorders(width, height) {
-            if (this.x + this.radius >= width) {
-                this.x = width - this.radius;
-                this.vx *= -1;
-            } else if (this.x - this.radius <= 0) {
-                this.x = this.radius;
-                this.vx *= -1;
-            }
-
-            if (this.y + this.radius >= height) {
-                this.y = height - this.radius;
-                this.vy *= -1;
-            } else if (this.y - this.radius <= 0) {
-                this.y = this.radius;
-                this.vy *= -1;
-            }
-        }
-
-        /*
-         *  Calculates the angle between this particle and 'p2'
-         */
-
-    }, {
-        key: "angleTo",
-        value: function angleTo(p2) {
-            return Math.atan2(p2.y - this.y, p2.x - this.x);
-        }
-
-        /*
-         *  Calculates the distance to a given particle
-         */
-
-    }, {
-        key: "distanceTo",
-        value: function distanceTo(p) {
-            var dx = p.x - this.x;
-            var dy = p.y - this.y;
-            return Math.sqrt(dx * dx + dy * dy);
-        }
-
-        /*
-         *  Calculates and applies a gravitation vector to a given particle
-         */
-
-    }, {
-        key: "gravitateTo",
-        value: function gravitateTo(p) {
-            var dx = p.x - this.x;
-            var dy = p.y - this.y;
-            var distSQ = dx * dx + dy * dy;
-            var dist = Math.sqrt(distSQ);
-            var force = p.mass / distSQ; // Force = mass / square of the distance
-            /*
-            cos * hypotenuse = opposite side || cos = opposite side / hypotenuse
-            sin * hypotenuse = adjacent side || sin = adjacent side / hypotenuse
-             That being said, we can optimize this:
-            let angle = this.angleTo(p);
-            let ax = Math.cos(angle) * force;
-            let ay = Math.sin(angle) * force;
-             And save three trigo functions
-            */
-            var ax = dx / dist * force;
-            var ay = dy / dist * force;
-
-            this.vx += ax;
-            this.vy += ay;
-        }
-
-        /*
-         *  Registers a particle to gravitate to
-         */
-
-    }, {
-        key: "addGravitation",
-        value: function addGravitation(p) {
-            this.removeGravitation(p);
-            this.gravitations.push(p);
-        }
-
-        /*
-         *  Unregisters a gravitation particle
-         */
-
-    }, {
-        key: "removeGravitation",
-        value: function removeGravitation(p) {
-            var length = this.gravitations.length;
-            for (var i = 0; i < length; i++) {
-                if (this.gravitations[i] === p) {
-                    this.gravitations.slice(i, 1);
-                    return true;
-                }
-            }
-        }
-
-        /*
-         *  Gravitates to each registered gravitation particle
-         */
-
-    }, {
-        key: "handleGravitations",
-        value: function handleGravitations() {
-            var length = this.gravitations.length;
-            for (var i = 0; i < length; i++) {
-                this.gravitateTo(this.gravitations[i]);
-            }
-        }
-
-        /*
-         *  Calculates and applies a spring vector to a given point
-         */
-
-    }, {
-        key: "springTo",
-        value: function springTo(point, k, length) {
-            var dx = point.x - this.x;
-            var dy = point.y - this.y;
-            var distance = Math.sqrt(dx * dx + dy * dy);
-            var force = (distance - length || 0) * k;
-            // Instead of getting cos / sin of angle, divide sides by hypotenuse
-            this.vx += dx / distance * force;
-            this.vy += dy / distance * force;
-        }
-
-        /*
-         *  Registers a new spring point
-         */
-
-    }, {
-        key: "addSpring",
-        value: function addSpring(point, k, length) {
-            this.removeSpring(point);
-            this.springs.push({
-                point: point,
-                k: k,
-                length: length || 0
-            });
-        }
-
-        /*
-         *  Unregisters a spring point
-         */
-
-    }, {
-        key: "removeSpring",
-        value: function removeSpring(point) {
-            var length = this.springs.length;
-            for (var i = 0; i < length; i++) {
-                if (this.springs[i].point === point) {
-                    this.springs.splice(i, 1);
-                    return;
-                }
-            }
-        }
-
-        /*
-         *  Springs to each registered spring point
-         */
-
-    }, {
-        key: "handleSprings",
-        value: function handleSprings() {
-            var length = this.springs.length;
-            for (var i = 0; i < length; i++) {
-                var spring = this.springs[i];
-                this.springTo(spring.point, spring.k, spring.length);
-            }
-        }
-    }]);
-
-    return Particle;
-}();
-
-exports.default = Particle;
-
-},{"../../src/feature-toggle":2}],8:[function(require,module,exports){
+},{"../../../src/feature-toggle":7,"../../../src/lib/Particle":9}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1099,7 +742,419 @@ var ParticleManager = function () {
 
 exports.default = ParticleManager;
 
-},{"./Collide":4,"./Collisioner":5,"./Mapper":6}],9:[function(require,module,exports){
+},{"./Collide":2,"./Collisioner":3,"./Mapper":4}],7:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/*
+ *  Feature Toggling
+ *
+ *  Activete/Hide features that are in process of development or under testing
+ *  Once a feature is accepted to be includded must be removed from the
+ *  feature toggle scheme
+ */
+
+var FEATURE_TOGGLE = {
+  FPS_CONTROL: true // FPS controll for AnimationPlayer class
+};
+
+exports.default = FEATURE_TOGGLE;
+
+},{}],8:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _featureToggle = require("../../src/feature-toggle");
+
+var _featureToggle2 = _interopRequireDefault(_featureToggle);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var AnimationPlayer = function () {
+    function AnimationPlayer(settings) {
+        _classCallCheck(this, AnimationPlayer);
+
+        settings = settings || {};
+
+        this.window = settings.windowElement || window;
+        this.requestId = null;
+        this.playing = false;
+
+        // FPS control
+        if (_featureToggle2.default.FPS_CONTROL) {
+            this.fps = settings.fps || 90;
+            this.now;
+            this.lastTime = Date.now();
+            this.interval = 1000 / this.fps;
+            this.delta;
+        }
+    }
+
+    _createClass(AnimationPlayer, [{
+        key: "play",
+        value: function play() {
+            this.playing = true;
+            this.updateFn();
+        }
+    }, {
+        key: "stop",
+        value: function stop() {
+            if (!this.playing) {
+                return false;
+            }
+            this.window.cancelAnimationFrame(this.requestId);
+            this.playing = false;
+            this.requestId = null;
+        }
+    }, {
+        key: "setUpdateFn",
+        value: function setUpdateFn(updateFn) {
+            var _this = this;
+
+            this.updateFn = function () {
+                _this.requestId = _this.window.requestAnimationFrame(_this.updateFn);
+
+                // FPS control
+                if (_featureToggle2.default.FPS_CONTROL) {
+                    _this.now = Date.now();
+                    _this.delta = _this.now - _this.lastTime;
+
+                    if (_this.delta > _this.interval) {
+                        _this.lastTime = _this.now - _this.delta % _this.interval;
+                        updateFn();
+                    }
+                    return;
+                }
+
+                updateFn();
+            };
+        }
+    }, {
+        key: "updateFn",
+        value: function updateFn() {
+            console.warn("Player update function has not been set.");
+        }
+    }]);
+
+    return AnimationPlayer;
+}();
+
+exports.default = AnimationPlayer;
+
+},{"../../src/feature-toggle":7}],9:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _featureToggle = require("../../src/feature-toggle");
+
+var _featureToggle2 = _interopRequireDefault(_featureToggle);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Particle = function () {
+
+    /*
+     *   Pass 'boxBounce' as { w: <with>, h: <height> } to make particle bounce inside a box
+     *
+     **/
+    function Particle(settings) {
+        _classCallCheck(this, Particle);
+
+        this.x = settings.x || 0;
+        this.y = settings.y || 0;
+        this.vx = Math.cos(settings.direction) * settings.speed || 0;
+        this.vy = Math.sin(settings.direction) * settings.speed || 0;
+        this.gravity = settings.gravity || 0;
+        this.mass = settings.mass || 1;
+        this.radius = settings.radius || settings.mass * 0.87;
+        this.friction = settings.friction || 1;
+        this.springs = [];
+        this.gravitations = [];
+
+        this.color = settings.color || "#000000";
+        this.boxBounce = settings.boxBounce || false;
+    }
+
+    /*
+     *  Updates the state of the particle
+     */
+
+
+    _createClass(Particle, [{
+        key: "update",
+        value: function update() {
+            this.handleSprings();
+            this.handleGravitations();
+            this.vy += this.gravity;
+            this.vx *= this.friction;
+            this.vy *= this.friction;
+            this.x += this.vx;
+            this.y += this.vy;
+
+            if (this.boxBounce) {
+                this.checkBorders(this.boxBounce.w, this.boxBounce.h);
+            }
+        }
+
+        /*
+         *  Gets the length of the velocity vector, which equals to the hypotenuse
+         */
+
+    }, {
+        key: "getSpeed",
+        value: function getSpeed() {
+            return Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        }
+
+        /*
+         *  Using the actual Velocity vector's angle, sets a new length for it
+         */
+
+    }, {
+        key: "setSpeed",
+        value: function setSpeed(speed) {
+            var heading = this.getHeading();
+            this.vx = Math.cos(heading) * speed;
+            this.vy = Math.sin(heading) * speed;
+        }
+
+        /*
+         *  Gets the angle direction of the velocity vector
+         */
+
+    }, {
+        key: "getHeading",
+        value: function getHeading() {
+            return Math.atan2(this.vy, this.vx);
+        }
+
+        /*
+         *  Changes the Velocity vector's angle and recalculate coordinates
+         */
+
+    }, {
+        key: "setHeading",
+        value: function setHeading(heading) {
+            var speed = this.getSpeed();
+            this.vx = Math.cos(heading) * speed;
+            this.vy = Math.sin(heading) * speed;
+        }
+
+        /*
+         *  Sums to the Velocity vector x and y values
+         */
+
+    }, {
+        key: "accelerate",
+        value: function accelerate(x, y) {
+            this.vx += x;
+            this.vy += y;
+        }
+
+        /*
+        *  Bounce if the particle hits the box (i.e. screen) borders
+        */
+
+    }, {
+        key: "checkBorders",
+        value: function checkBorders(width, height) {
+            if (this.x + this.radius >= width) {
+                this.x = width - this.radius;
+                this.vx *= -1;
+            } else if (this.x - this.radius <= 0) {
+                this.x = this.radius;
+                this.vx *= -1;
+            }
+
+            if (this.y + this.radius >= height) {
+                this.y = height - this.radius;
+                this.vy *= -1;
+            } else if (this.y - this.radius <= 0) {
+                this.y = this.radius;
+                this.vy *= -1;
+            }
+        }
+
+        /*
+         *  Calculates the angle between this particle and 'p2'
+         */
+
+    }, {
+        key: "angleTo",
+        value: function angleTo(p2) {
+            return Math.atan2(p2.y - this.y, p2.x - this.x);
+        }
+
+        /*
+         *  Calculates the distance to a given particle
+         */
+
+    }, {
+        key: "distanceTo",
+        value: function distanceTo(p) {
+            var dx = p.x - this.x;
+            var dy = p.y - this.y;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        /*
+         *  Calculates and applies a gravitation vector to a given particle
+         */
+
+    }, {
+        key: "gravitateTo",
+        value: function gravitateTo(p, gravityFactor) {
+            gravityFactor = gravityFactor || 0.04;
+
+            var radiusSum = this.radius + p.radius;
+            var massFactor = this.mass * p.mass;
+
+            var dx = p.x - this.x;
+            var dy = p.y - this.y;
+            var distSQ = dx * dx + dy * dy;
+            var dist = Math.sqrt(distSQ);
+            var surfaceDist = dist - radiusSum;
+
+            // Cancel gravitation once objects collide
+            // TODO: Verify if we can save the Math.sqrt() comparing squares
+            if (dist < radiusSum + 5) {
+                return;
+            }
+
+            //let force = (p.mass) / distSQ; // Force = mass / square of the distance
+            var force = gravityFactor * massFactor / (surfaceDist * surfaceDist);
+
+            var ax = dx / surfaceDist * force;
+            var ay = dy / surfaceDist * force;
+
+            this.vx += ax;
+            this.vy += ay;
+        }
+
+        /*
+         *  Registers a particle to gravitate to
+         */
+
+    }, {
+        key: "addGravitation",
+        value: function addGravitation(p) {
+            this.removeGravitation(p);
+            this.gravitations.push(p);
+        }
+
+        /*
+         *  Unregisters a gravitation particle
+         */
+
+    }, {
+        key: "removeGravitation",
+        value: function removeGravitation(p) {
+            var length = this.gravitations.length;
+            for (var i = 0; i < length; i++) {
+                if (this.gravitations[i] === p) {
+                    this.gravitations.slice(i, 1);
+                    return true;
+                }
+            }
+        }
+
+        /*
+         *  Gravitates to each registered gravitation particle
+         */
+
+    }, {
+        key: "handleGravitations",
+        value: function handleGravitations() {
+            var length = this.gravitations.length;
+            for (var i = 0; i < length; i++) {
+                this.gravitateTo(this.gravitations[i]);
+            }
+        }
+
+        /*
+         *  Calculates and applies a spring vector to a given point
+         */
+
+    }, {
+        key: "springTo",
+        value: function springTo(point, k, length) {
+            var dx = point.x - this.x;
+            var dy = point.y - this.y;
+            var distance = Math.sqrt(dx * dx + dy * dy);
+            var force = (distance - length || 0) * k;
+            // Instead of getting cos / sin of angle, divide sides by hypotenuse
+            this.vx += dx / distance * force;
+            this.vy += dy / distance * force;
+        }
+
+        /*
+         *  Registers a new spring point
+         */
+
+    }, {
+        key: "addSpring",
+        value: function addSpring(point, k, length) {
+            this.removeSpring(point);
+            this.springs.push({
+                point: point,
+                k: k,
+                length: length || 0
+            });
+        }
+
+        /*
+         *  Unregisters a spring point
+         */
+
+    }, {
+        key: "removeSpring",
+        value: function removeSpring(point) {
+            var length = this.springs.length;
+            for (var i = 0; i < length; i++) {
+                if (this.springs[i].point === point) {
+                    this.springs.splice(i, 1);
+                    return;
+                }
+            }
+        }
+
+        /*
+         *  Springs to each registered spring point
+         */
+
+    }, {
+        key: "handleSprings",
+        value: function handleSprings() {
+            var length = this.springs.length;
+            for (var i = 0; i < length; i++) {
+                var spring = this.springs[i];
+                this.springTo(spring.point, spring.k, spring.length);
+            }
+        }
+    }]);
+
+    return Particle;
+}();
+
+exports.default = Particle;
+
+},{"../../src/feature-toggle":7}],10:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1275,7 +1330,7 @@ var instance = new Utils();
 
 exports.default = instance;
 
-},{"../../src/feature-toggle":2}]},{},[1])
+},{"../../src/feature-toggle":7}]},{},[1])
 
 
 //# sourceMappingURL=app.js.map
