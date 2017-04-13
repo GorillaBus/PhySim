@@ -119,29 +119,33 @@ export default class Particle {
     /*
      *  Calculates and applies a gravitation vector to a given particle
      */
-    gravitateTo(p) {
-        let dx = p.x - this.x;
-        let dy = p.y - this.y;
-        let distSQ = (dx * dx) + (dy * dy);
-        let dist = Math.sqrt(distSQ);
-        let force = (p.mass) / distSQ; // Force = mass / square of the distance
-        /*
-        cos * hypotenuse = opposite side || cos = opposite side / hypotenuse
-        sin * hypotenuse = adjacent side || sin = adjacent side / hypotenuse
+     gravitateTo(p, gravityFactor) {
+         gravityFactor = gravityFactor || 0.04;
 
-        That being said, we can optimize this:
-        let angle = this.angleTo(p);
-        let ax = Math.cos(angle) * force;
-        let ay = Math.sin(angle) * force;
+         let radiusSum = this.radius + p.radius;
+         let massFactor = this.mass * p.mass;
 
-        And save three trigo functions
-        */
-        let ax = (dx / dist) * force;
-        let ay = (dy / dist) * force;
+         let dx = p.x - this.x;
+         let dy = p.y - this.y;
+         let distSQ = (dx * dx) + (dy * dy);
+         let dist = Math.sqrt(distSQ);
+         let surfaceDist = dist - radiusSum;
 
-        this.vx += ax;
-        this.vy += ay;
-    }
+         // Cancel gravitation once objects collide
+         // TODO: Verify if we can save the Math.sqrt() comparing squares
+         if (dist < radiusSum + 5) {
+           return;
+         }
+
+         //let force = (p.mass) / distSQ; // Force = mass / square of the distance
+         let force = gravityFactor * massFactor / (surfaceDist * surfaceDist);
+
+         let ax = (dx / surfaceDist) * force;
+         let ay = (dy / surfaceDist) * force;
+
+         this.vx += ax;
+         this.vy += ay;
+     }
 
     /*
      *  Registers a particle to gravitate to
