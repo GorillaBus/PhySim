@@ -28,74 +28,85 @@ window.onload = () => {
       }
     };
 
-    let player = new AnimationPlayer();
+    let player = new AnimationPlayer({ fps: 25 });
 
     let sunSetup = {
         x: center.x,
         y: center.y,
-        mass: 300,
+        mass: 500,
         speed: 0,
         color: "#D6D32D",
         center: true
     };
 
     let planetsSetup = [{
-        x: center.x + 104,
+        x: center.x + 504,
+        y: center.y,
+        speed: 1.428,
+        direction: Math.PI / 2,
+        color: '#FA1616',
+        mass: 25.5,
+        center: false
+     },{
+        x: center.x + 220,
+        y: center.y,
+        speed: 2.41876606819402505,
+        direction: Math.PI / 2,
+        color: '#808231',
+        mass: 10,
+        center: false
+    },{
+        x: center.x - 380,
+        y: center.y,
+        speed: 1.159,
+        direction: -Math.PI / 2,
+        color: '#4042A8',
+        mass: 10,
+        center: false
+    },{
+        x: center.x - 480,
+        y: center.y,
+        speed: 1.567,
+        direction: -Math.PI / 2,
+        color: '#47BFBD',
+        mass: 28,
+        center: false
+    },{
+        x: center.x - 620,
+        y: center.y,
+        speed: 2,
+        direction: -Math.PI / 2,
+        color: '#AB3A2B',
+        mass: 68,
+        center: false
+    },{
+        x: center.x + 2292,
+        y: center.y,
+        speed: 1.6,
+        direction: Math.PI / 2,
+        color: '#2B7523',
+        mass: 227,
+        center: false
+    },{
+        x: center.x + 960,
         y: center.y,
         speed: 1.5,
         direction: Math.PI / 2,
-        color: '#FA1616',
-        mass: 4.5,
-        center: false
-     },{
-        x: center.x - 170,
-        y: center.y,
-        speed: 1.2,
-        direction: -Math.PI / 2,
-        color: '#4042A8',
-        mass: 11,
-        center: false
-    },{
-        x: center.x - 230,
-        y: center.y,
-        speed: 1,
-        direction: -Math.PI / 2,
-        color: '#47BFBD',
-        mass: 18,
-        center: false
-    },{
-        x: center.x - 290,
-        y: center.y,
-        speed: 0.9,
-        direction: -Math.PI / 2,
-        color: '#AB3A2B',
-        mass: 27,
-        center: false
-    },{
-        x: center.x + 292,
-        y: center.y,
-        speed: 0.9,
-        direction: Math.PI / 2,
-        color: '#2B7523',
-        mass: 27,
-        center: false
-    },{
-        x: center.x - 460,
-        y: center.y,
-        speed: 0.8,
-        direction: -Math.PI / 2,
         color: '#6C29A3',
-        mass: 173,
+        mass: 73,
         center: false
     },{
-        x: center.x + 549,
+        x: center.x + 1849,
         y: center.y,
-        speed: 0.8,
+        speed: 1.53,
         direction: Math.PI / 2,
         color: '#A7A2AB',
-        mass: 43,
+        mass: 183,
         center: false
-     }];
+     }
+
+   ];
+
 
     // Setup planets
     let planets = createPlanets(planetsSetup);
@@ -175,6 +186,9 @@ window.onload = () => {
 
         for (let i=0; i<total; i++) {
           let p = new Planet(config[i], world);
+          if (config[i].debugOrbit) {
+            p.debugOrbit = true;
+          }
           planets.push(p);
         }
         return planets;

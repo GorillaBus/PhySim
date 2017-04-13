@@ -31,7 +31,7 @@ window.onload = function () {
         width: width,
         height: height,
         center: center,
-        scale: 1,
+        scale: 0.5,
         lastScale: 0,
         trans_x: 0,
         trans_y: 0,
@@ -41,72 +41,80 @@ window.onload = function () {
         }
     };
 
-    var player = new _AnimationPlayer2.default();
+    var player = new _AnimationPlayer2.default({ fps: 25 });
 
     var sunSetup = {
         x: center.x,
         y: center.y,
-        mass: 300,
+        mass: 500,
         speed: 0,
         color: "#D6D32D",
         center: true
     };
 
     var planetsSetup = [{
-        x: center.x + 104,
+        x: center.x + 504,
+        y: center.y,
+        speed: 1.428,
+        direction: Math.PI / 2,
+        color: '#FA1616',
+        mass: 25.5,
+        center: false
+    }, {
+        x: center.x + 220,
+        y: center.y,
+        speed: 2.41876606819402505,
+        direction: Math.PI / 2,
+        color: '#808231',
+        mass: 10,
+        center: false
+    }, {
+        x: center.x - 380,
+        y: center.y,
+        speed: 1.159,
+        direction: -Math.PI / 2,
+        color: '#4042A8',
+        mass: 10,
+        center: false
+    }, {
+        x: center.x - 480,
+        y: center.y,
+        speed: 1.567,
+        direction: -Math.PI / 2,
+        color: '#47BFBD',
+        mass: 28,
+        center: false
+    }, {
+        x: center.x - 620,
+        y: center.y,
+        speed: 2,
+        direction: -Math.PI / 2,
+        color: '#AB3A2B',
+        mass: 68,
+        center: false
+    }, {
+        x: center.x + 2292,
+        y: center.y,
+        speed: 1.6,
+        direction: Math.PI / 2,
+        color: '#2B7523',
+        mass: 227,
+        center: false
+    }, {
+        x: center.x + 960,
         y: center.y,
         speed: 1.5,
         direction: Math.PI / 2,
-        color: '#FA1616',
-        mass: 4.5,
-        center: false
-    }, {
-        x: center.x - 170,
-        y: center.y,
-        speed: 1.2,
-        direction: -Math.PI / 2,
-        color: '#4042A8',
-        mass: 11,
-        center: false
-    }, {
-        x: center.x - 230,
-        y: center.y,
-        speed: 1,
-        direction: -Math.PI / 2,
-        color: '#47BFBD',
-        mass: 18,
-        center: false
-    }, {
-        x: center.x - 290,
-        y: center.y,
-        speed: 0.9,
-        direction: -Math.PI / 2,
-        color: '#AB3A2B',
-        mass: 27,
-        center: false
-    }, {
-        x: center.x + 292,
-        y: center.y,
-        speed: 0.9,
-        direction: Math.PI / 2,
-        color: '#2B7523',
-        mass: 27,
-        center: false
-    }, {
-        x: center.x - 460,
-        y: center.y,
-        speed: 0.8,
-        direction: -Math.PI / 2,
         color: '#6C29A3',
-        mass: 173,
+        mass: 73,
         center: false
     }, {
-        x: center.x + 549,
+        x: center.x + 1849,
         y: center.y,
-        speed: 0.8,
+        speed: 1.53,
         direction: Math.PI / 2,
         color: '#A7A2AB',
-        mass: 43,
+        mass: 183,
         center: false
     }];
 
@@ -185,6 +193,9 @@ window.onload = function () {
 
         for (var i = 0; i < total; i++) {
             var p = new _Planet2.default(config[i], world);
+            if (config[i].debugOrbit) {
+                p.debugOrbit = true;
+            }
             planets.push(p);
         }
         return planets;
@@ -397,7 +408,7 @@ exports.default = CelestialBody;
 ;
 
 },{"../../../src/lib/Particle":7}],3:[function(require,module,exports){
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -405,7 +416,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _CelestialBody2 = require('./CelestialBody');
+var _CelestialBody2 = require("./CelestialBody");
 
 var _CelestialBody3 = _interopRequireDefault(_CelestialBody2);
 
@@ -430,9 +441,10 @@ var Planet = function (_CelestialBody) {
   }
 
   _createClass(Planet, [{
-    key: 'draw',
-    value: function draw(lightSource) {
+    key: "draw",
+    value: function draw(lightSource, drawShadow) {
       lightSource = lightSource || null;
+      drawShadow = drawShadow == false ? false : true;
 
       this.reScale();
 
@@ -462,8 +474,30 @@ var Planet = function (_CelestialBody) {
       this.ctx.arc(x, y, this.scaledR, 0, Math.PI * 2, false);
       this.ctx.fill();
 
-      if (lightSource) {
+      if (lightSource && drawShadow) {
         this.drawShadow(lightSource);
+      }
+
+      // Debug draw orbit
+      if (this.debugOrbit && !this.center) {
+
+        // Show orbit prediction
+        var predict = new Planet({
+          x: this.x,
+          y: this.y,
+          mass: this.mass,
+          direction: this.getHeading(),
+          speed: this.getSpeed(),
+          color: "#ffffff",
+          center: false
+        }, this.world);
+
+        for (var pr = 0; pr <= 2000; pr++) {
+
+          predict.update();
+          predict.gravitateTo(lightSource);
+          predict.draw(lightSource, false);
+        }
       }
     }
   }]);
