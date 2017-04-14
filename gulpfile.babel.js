@@ -97,13 +97,9 @@ function copyfiles(project) {
     }
   }
 
-  // if (fs.existsSync('./projects/'+ project +'/index.html')){
-  //
-  // };
-
   // Copy common index file unless there is a local one
   if (!fs.existsSync('./projects/'+ project +'/index.html')){
-    gulp.src('./src/default.html')
+    gulp.src('./src/boilerplate/default.html')
     //.pipe(replace(/%(.{3})%/g, '$1foo'))
     .pipe(replace('%title%', project.charAt(0).toUpperCase() + project.slice(1)))
     .pipe(replace('%local_css%', localCSS))
@@ -123,6 +119,13 @@ function copyfiles(project) {
   // Copy resources and local stylesheets
   gulp.src('./projects/'+ project +'/**/*.{jpg,png,gif,svg,css}')
   .pipe(gulp.dest('./build/'+ project +'/'));
+
+
+  // If there are vendor libraries, copy them
+  if (fs.existsSync(paths.project + project + '/vendor')) {
+    gulp.src('./projects/'+ project +'/vendor/*.js')
+    .pipe(gulp.dest('./build/'+ project +'/vendor'));
+  }
 }
 
 
@@ -133,7 +136,7 @@ function createProject() {
     console.error(">> Project directory '", project, "' already exists.");
     return;
   }
-  gulp.src(['src/boilerplate/**/*', '!src/boilerplate/**/*.gitignore'], {
+  gulp.src(['src/boilerplate/**/*', '!src/boilerplate/**/*.gitignore',  '!src/boilerplate/default.html'], {
     base: 'src/boilerplate'
   })
   .pipe(gulp.dest(paths.project + project));
