@@ -38,30 +38,4 @@ window.onload = () => {
         ctx.stroke();
     }
 
-    // Animation control: KeyDown
-    document.body.addEventListener("keydown", (e) => {
-        //console.log("Key pressed: ", e.keyCode);
-        switch (e.keyCode) {
-            case 27:                        // Esc
-              if (player.playing) {
-                  player.stop();
-                  console.log("> Scene stopped");
-              } else {
-                  player.play();
-                  console.log("> Playing scene");
-              }
-            break;
-
-            case 13:
-              player.stop();
-              player.play();
-              player.stop();
-              console.log("> Step forward");
-            break;
-
-            default:
-              break;
-        }
-    });
-
 };
