@@ -1,6 +1,7 @@
 import FEATURE_TOGGLE from '../../src/feature-toggle';
 
 class Utils {
+
   constructor() {
     this.cache = {};
   }
@@ -128,6 +129,20 @@ class Utils {
   rectanglePointCollision(px, py, rect) {
     return  this.inRange(px, rect.x, rect.x + rect.width) &&
     this.inRange(py, rect.y, rect.y + rect.height);
+  }
+
+  uniqueID() {
+    function s4() {
+      return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
+    }
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+      s4() + '-' + s4() + s4() + s4();
+  }
+
+  randomColor() {
+    return "#000000".replace(/0/g,function(){return (~~(Math.random()*16)).toString(16);});
   }
 }
 
