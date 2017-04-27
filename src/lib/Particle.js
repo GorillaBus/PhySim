@@ -18,7 +18,7 @@ export default class Particle {
         this.springs = [];
         this.gravitations = [];
 
-        this.color = settings.color || "#000000";
+        this.color = settings.color || 'rgba(0,0,0,0.6)';
         this.boxBounce = settings.boxBounce || false;
     }
 
