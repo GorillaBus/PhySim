@@ -28,7 +28,7 @@ window.onload = () => {
       }
     };
 
-    let player = new AnimationPlayer({ fps: 25 });
+    let player = new AnimationPlayer({ fps: 60 });
 
     let sunSetup = {
         x: center.x,
@@ -36,7 +36,7 @@ window.onload = () => {
         mass: 500,
         speed: 0,
         color: "#D6D32D",
-        center: true
+        center: false
     };
 
     let planetsSetup = [{
@@ -78,7 +78,7 @@ window.onload = () => {
         direction: -Math.PI / 2,
         color: '#AB3A2B',
         mass: 68,
-        center: false
+        center: true
     },{
         x: center.x + 2292,
         y: center.y,
