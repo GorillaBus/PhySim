@@ -141,7 +141,7 @@ export default class ParticleManager {
             continue;
           }
 
-          let collision = this.collisioner.circleCollision(p0, p1);
+          let collision = p0.collisionCheck(p1);
 
           // Reslve collision
           if (collision) {
