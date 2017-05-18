@@ -9,10 +9,6 @@ var _AnimationPlayer = require('../../src/lib/AnimationPlayer');
 
 var _AnimationPlayer2 = _interopRequireDefault(_AnimationPlayer);
 
-var _ParticleExt = require('./lib/ParticleExt');
-
-var _ParticleExt2 = _interopRequireDefault(_ParticleExt);
-
 var _ParticleManager = require('./lib/ParticleManager');
 
 var _ParticleManager2 = _interopRequireDefault(_ParticleManager);
@@ -20,6 +16,7 @@ var _ParticleManager2 = _interopRequireDefault(_ParticleManager);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 window.onload = function () {
+
   var canvas = document.getElementById("canvas");
   var ctx = canvas.getContext("2d");
   var width = window.innerWidth;
@@ -29,43 +26,45 @@ window.onload = function () {
   canvas.height = height;
   canvas.width = width;
 
-  var player = new _AnimationPlayer2.default({ fps: 30 });
-  var greaterRad = 0;
+  // World settings
+  var G = 0.4;
+  var world = {
+    G: G
+  };
 
-  // Create particles
-  var particles = new Array(500);
-  for (var i = 0; i < particles.length; i++) {
-    particles[i] = new _ParticleExt2.default({
-      x: _Utils2.default.randomRange(0, width - 30),
-      y: _Utils2.default.randomRange(0, height - 30),
-      direction: Math.random() * Math.PI * 2,
-      speed: 0,
-      mass: _Utils2.default.randomRange(0.1, 3),
+  var player = new _AnimationPlayer2.default({ fps: 60 });
+
+  // Create particle fixtures
+  var particlesFixtures = new Array(2000);
+
+  for (var i = 0; i < particlesFixtures.length; i++) {
+    var p = {
+      x: _Utils2.default.randomRange(50, width - 50),
+      y: _Utils2.default.randomRange(50, height - 50),
+      mass: _Utils2.default.randomRange(1, 3),
+      // direction: Utils.randomRange(-1, 1),
+      // speed: Utils.randomRange(0.5, 1),
       boxBounce: { w: width, h: height }
-    });
+    };
 
-    var p = particles[i];
-    p.id = uuid();
-
-    if (p.radius > greaterRad) {
-      greaterRad = p.radius;
-    }
+    particlesFixtures[i] = p;
   }
-  var regionSize = greaterRad * 4;
+
+  var regionSize = 15 * 4;
   var pmanager = new _ParticleManager2.default({
     regionDraw: false,
     mapper: {
       collision: {
-        regionSize: 100
+        regionSize: regionSize
       },
       gravity: {
-        regionSize: 400
+        regionSize: 500
       }
     }
-  }, ctx);
+  }, world, ctx);
 
-  // Inject particles into the Mapper
-  pmanager.injectParticles(particles);
+  // Add particlesFixtures into the Mapper
+  pmanager.addParticles(particlesFixtures);
 
   // Demo player setup
   player.setUpdateFn(update);
@@ -74,47 +73,18 @@ window.onload = function () {
   // Frame drawing function
   function update() {
 
-    // Global update
+    // Update particle's state
     pmanager.update();
+
+    // Clear full screen
+    ctx.clearRect(0, 0, width, height);
 
     // Global draw
     pmanager.draw();
   }
-
-  function uuid() {
-    function s4() {
-      return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-    }
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-  }
-
-  // Animation control: KeyDown
-  document.body.addEventListener("keydown", function (e) {
-    //console.log("Key pressed: ", e.keyCode);
-    switch (e.keyCode) {
-      case 27:
-        // Esc
-        if (player.playing) {
-          player.stop();
-          console.log("> Scene stopped");
-        } else {
-          player.play();
-          console.log("> Playing scene");
-        }
-        break;
-      case 13:
-        player.stop();
-        player.play();
-        player.stop();
-        console.log("> Step forward");
-        break;
-      default:
-        break;
-    }
-  });
 };
 
-},{"../../src/lib/AnimationPlayer":8,"../../src/lib/Utils":10,"./lib/ParticleExt":5,"./lib/ParticleManager":6}],2:[function(require,module,exports){
+},{"../../src/lib/AnimationPlayer":8,"../../src/lib/Utils":10,"./lib/ParticleManager":6}],2:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -500,6 +470,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 var _featureToggle = require('../../../src/feature-toggle');
 
 var _featureToggle2 = _interopRequireDefault(_featureToggle);
@@ -524,13 +496,21 @@ var ParticleExt = function (_Particle) {
 
     var _this = _possibleConstructorReturn(this, (ParticleExt.__proto__ || Object.getPrototypeOf(ParticleExt)).call(this, settings));
 
-    _this.shape = settings.shape || "circle";
     _this.mapperRegions = settings.mapperRegions || {};
-    _this.color = settings.color || "#000000";
     _this.points = settings.points || [];
-    _this.boxBounce = settings.boxBounce || false;
     return _this;
   }
+
+  _createClass(ParticleExt, [{
+    key: 'draw',
+    value: function draw(ctx) {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+      ctx.fillStyle = this.color;
+      ctx.fill();
+      ctx.closePath();
+    }
+  }]);
 
   return ParticleExt;
 }(_Particle3.default);
@@ -545,6 +525,14 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _Utils = require('../../../src/lib/Utils');
+
+var _Utils2 = _interopRequireDefault(_Utils);
+
+var _ParticleExt = require('./ParticleExt');
+
+var _ParticleExt2 = _interopRequireDefault(_ParticleExt);
 
 var _Mapper = require('./Mapper');
 
@@ -563,28 +551,38 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var ParticleManager = function () {
-  function ParticleManager(settings, ctx) {
+  function ParticleManager(settings, world, ctx) {
     _classCallCheck(this, ParticleManager);
 
+    this.world = world;
     this.ctx = ctx;
     this.mapper = new _Mapper2.default(settings.mapper);
     this.collisioner = new _Collisioner2.default();
     this.collide = new _Collide2.default();
     this.regionDraw = settings.regionDraw || false;
-    this.particles = settings.particles || [];
-    this.boxWidth = settings.boxWidth || window.innerWidth;
-    this.boxHeight = settings.boxHeight || window.innerHeight - 4;
+    this.particles = [];
+    this.greaterRadius = 0;
   }
 
   /*
-   *  Update loop
-   */
+  *  Update loop - general
+  */
 
 
   _createClass(ParticleManager, [{
     key: 'update',
     value: function update() {
+      this.updateParticles();
+      this.interact();
+    }
 
+    /*
+    *  Update particle's state and force regions
+    */
+
+  }, {
+    key: 'updateParticles',
+    value: function updateParticles() {
       for (var i = 0; i < this.particles.length; i++) {
         var p = this.particles[i];
 
@@ -597,17 +595,32 @@ var ParticleManager = function () {
     }
 
     /*
-     *  Draw loop
-     */
+    *  Force interaction loop
+    */
+
+  }, {
+    key: 'interact',
+    value: function interact() {
+      for (var i = 0; i < this.particles.length; i++) {
+        var p0 = this.particles[i];
+
+        // Check collisions with particles from the same region
+        this.handleCollisions(p0);
+
+        // Apply gravity force to neighbour particles
+        this.handleAttraction(p0);
+      }
+    }
+
+    /*
+    *  Draw loop
+    */
 
   }, {
     key: 'draw',
     value: function draw() {
 
-      // Clear full screen
-      this.ctx.clearRect(0, 0, this.boxWidth, this.boxHeight);
-
-      // Draw map regions (debugging)
+      // Draw mapper regions (debugging)
       if (this.regionDraw) {
         this.drawMappgerRegions();
       }
@@ -616,22 +629,30 @@ var ParticleManager = function () {
       for (var i = 0; i < this.particles.length; i++) {
         var p0 = this.particles[i];
 
-        // Check collisions with particles from the same region
-        this.handleCollisions(p0);
-        this.handleAttraction(p0);
-        this.drawParticle(p0);
+        // Draw particle
+        p0.draw(this.ctx);
       }
     }
 
     /*
-     *  Add particles to the system - if total length is > 150000 or so, check:
-     *  -- http://stackoverflow.com/questions/1374126/how-to-extend-an-existing-javascript-array-with-another-array-without-creating/17368101#17368101
-     */
+    *  Add particles to the system - if total length is > 150000 or so, check:
+    */
 
   }, {
-    key: 'injectParticles',
-    value: function injectParticles(particles) {
-      Array.prototype.push.apply(this.particles, particles);
+    key: 'addParticles',
+    value: function addParticles(settings) {
+
+      for (var i = 0; i < settings.length; i++) {
+        var particle = new _ParticleExt2.default(settings[i]);
+
+        particle.id = _Utils2.default.uniqueID();
+
+        if (particle.radius > this.greaterRadius) {
+          this.greaterRadius = particle.radius;
+        }
+
+        this.particles.push(particle);
+      }
     }
   }, {
     key: 'handleAttraction',
@@ -653,15 +674,15 @@ var ParticleManager = function () {
               continue;
             }
 
-            p0.gravitateTo(p1);
+            p0.gravitateTo(p1, this.world.G);
           }
         }
       }
     }
 
     /*
-     *  Check and resolve collisions within a particle's mapper region
-     */
+    *  Check and resolve collisions within a particle's mapper region
+    */
 
   }, {
     key: 'handleCollisions',
@@ -695,22 +716,8 @@ var ParticleManager = function () {
     }
 
     /*
-     *  Draw a single particle
-     */
-
-  }, {
-    key: 'drawParticle',
-    value: function drawParticle(p) {
-      this.ctx.beginPath();
-      this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2, false);
-      this.ctx.fillStyle = p.color || '#000000';
-      this.ctx.fill();
-      this.ctx.closePath();
-    }
-
-    /*
-     *  Draw Mappger Regions (for debugging)
-     */
+    *  Draw Mappger Regions (for debugging)
+    */
 
   }, {
     key: 'drawMappgerRegions',
@@ -742,7 +749,7 @@ var ParticleManager = function () {
 
 exports.default = ParticleManager;
 
-},{"./Collide":2,"./Collisioner":3,"./Mapper":4}],7:[function(require,module,exports){
+},{"../../../src/lib/Utils":10,"./Collide":2,"./Collisioner":3,"./Mapper":4,"./ParticleExt":5}],7:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -766,7 +773,7 @@ exports.default = FEATURE_TOGGLE;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -780,78 +787,112 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var AnimationPlayer = function () {
-    function AnimationPlayer(settings) {
-        _classCallCheck(this, AnimationPlayer);
+  function AnimationPlayer(settings) {
+    _classCallCheck(this, AnimationPlayer);
 
-        settings = settings || {};
+    settings = settings || {};
 
-        this.window = settings.windowElement || window;
-        this.requestId = null;
-        this.playing = false;
+    this.window = settings.windowElement || window;
+    this.requestId = null;
+    this.playing = false;
+
+    // FPS control
+    if (_featureToggle2.default.FPS_CONTROL) {
+      this.fps = settings.fps || 90;
+      this.now;
+      this.lastTime = Date.now();
+      this.interval = 1000 / this.fps;
+      this.delta;
+    }
+
+    this.registerEvents();
+  }
+
+  _createClass(AnimationPlayer, [{
+    key: "registerEvents",
+    value: function registerEvents() {
+      var _this = this;
+
+      // Animation control: KeyDown
+      document.body.addEventListener("keydown", function (e) {
+        //console.log("Key pressed: ", e.keyCode);
+        switch (e.keyCode) {
+          case 27:
+            // Esc
+            if (_this.playing) {
+              _this.stop();
+              console.log("> Scene stopped");
+            } else {
+              _this.play();
+              console.log("> Playing scene");
+            }
+            break;
+
+          case 13:
+            _this.stop();
+            _this.play();
+            _this.stop();
+            console.log("> Step forward");
+            break;
+
+          default:
+            break;
+        }
+      });
+    }
+  }, {
+    key: "play",
+    value: function play() {
+      this.playing = true;
+      this.updateFn();
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      if (!this.playing) {
+        return false;
+      }
+      this.window.cancelAnimationFrame(this.requestId);
+      this.playing = false;
+      this.requestId = null;
+    }
+  }, {
+    key: "setUpdateFn",
+    value: function setUpdateFn(updateFn) {
+      var _this2 = this;
+
+      this.updateFn = function () {
+        _this2.requestId = _this2.window.requestAnimationFrame(_this2.updateFn);
 
         // FPS control
         if (_featureToggle2.default.FPS_CONTROL) {
-            this.fps = settings.fps || 90;
-            this.now;
-            this.lastTime = Date.now();
-            this.interval = 1000 / this.fps;
-            this.delta;
+          _this2.now = Date.now();
+          _this2.delta = _this2.now - _this2.lastTime;
+
+          if (_this2.delta > _this2.interval) {
+            _this2.lastTime = _this2.now - _this2.delta % _this2.interval;
+            updateFn();
+          }
+          return;
         }
+
+        updateFn();
+      };
     }
+  }, {
+    key: "updateFn",
+    value: function updateFn() {
+      console.warn("Player update function has not been set.");
+    }
+  }]);
 
-    _createClass(AnimationPlayer, [{
-        key: "play",
-        value: function play() {
-            this.playing = true;
-            this.updateFn();
-        }
-    }, {
-        key: "stop",
-        value: function stop() {
-            if (!this.playing) {
-                return false;
-            }
-            this.window.cancelAnimationFrame(this.requestId);
-            this.playing = false;
-            this.requestId = null;
-        }
-    }, {
-        key: "setUpdateFn",
-        value: function setUpdateFn(updateFn) {
-            var _this = this;
-
-            this.updateFn = function () {
-                _this.requestId = _this.window.requestAnimationFrame(_this.updateFn);
-
-                // FPS control
-                if (_featureToggle2.default.FPS_CONTROL) {
-                    _this.now = Date.now();
-                    _this.delta = _this.now - _this.lastTime;
-
-                    if (_this.delta > _this.interval) {
-                        _this.lastTime = _this.now - _this.delta % _this.interval;
-                        updateFn();
-                    }
-                    return;
-                }
-
-                updateFn();
-            };
-        }
-    }, {
-        key: "updateFn",
-        value: function updateFn() {
-            console.warn("Player update function has not been set.");
-        }
-    }]);
-
-    return AnimationPlayer;
+  return AnimationPlayer;
 }();
 
 exports.default = AnimationPlayer;
 
 },{"../../src/feature-toggle":7}],9:[function(require,module,exports){
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
     value: true
@@ -859,7 +900,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _featureToggle = require("../../src/feature-toggle");
+var _featureToggle = require('../../src/feature-toggle');
 
 var _featureToggle2 = _interopRequireDefault(_featureToggle);
 
@@ -887,7 +928,7 @@ var Particle = function () {
         this.springs = [];
         this.gravitations = [];
 
-        this.color = settings.color || "#000000";
+        this.color = settings.color || 'rgba(0,0,0,0.6)';
         this.boxBounce = settings.boxBounce || false;
     }
 
@@ -897,7 +938,7 @@ var Particle = function () {
 
 
     _createClass(Particle, [{
-        key: "update",
+        key: 'update',
         value: function update() {
             this.handleSprings();
             this.handleGravitations();
@@ -917,7 +958,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "getSpeed",
+        key: 'getSpeed',
         value: function getSpeed() {
             return Math.sqrt(this.vx * this.vx + this.vy * this.vy);
         }
@@ -927,7 +968,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "setSpeed",
+        key: 'setSpeed',
         value: function setSpeed(speed) {
             var heading = this.getHeading();
             this.vx = Math.cos(heading) * speed;
@@ -939,7 +980,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "getHeading",
+        key: 'getHeading',
         value: function getHeading() {
             return Math.atan2(this.vy, this.vx);
         }
@@ -949,7 +990,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "setHeading",
+        key: 'setHeading',
         value: function setHeading(heading) {
             var speed = this.getSpeed();
             this.vx = Math.cos(heading) * speed;
@@ -961,7 +1002,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "accelerate",
+        key: 'accelerate',
         value: function accelerate(x, y) {
             this.vx += x;
             this.vy += y;
@@ -972,7 +1013,7 @@ var Particle = function () {
         */
 
     }, {
-        key: "checkBorders",
+        key: 'checkBorders',
         value: function checkBorders(width, height) {
             if (this.x + this.radius >= width) {
                 this.x = width - this.radius;
@@ -996,7 +1037,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "angleTo",
+        key: 'angleTo',
         value: function angleTo(p2) {
             return Math.atan2(p2.y - this.y, p2.x - this.x);
         }
@@ -1006,7 +1047,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "distanceTo",
+        key: 'distanceTo',
         value: function distanceTo(p) {
             var dx = p.x - this.x;
             var dy = p.y - this.y;
@@ -1018,7 +1059,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "gravitateTo",
+        key: 'gravitateTo',
         value: function gravitateTo(p, gravityFactor) {
             gravityFactor = gravityFactor || 0.04;
 
@@ -1052,7 +1093,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "addGravitation",
+        key: 'addGravitation',
         value: function addGravitation(p) {
             this.removeGravitation(p);
             this.gravitations.push(p);
@@ -1063,7 +1104,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "removeGravitation",
+        key: 'removeGravitation',
         value: function removeGravitation(p) {
             var length = this.gravitations.length;
             for (var i = 0; i < length; i++) {
@@ -1079,7 +1120,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "handleGravitations",
+        key: 'handleGravitations',
         value: function handleGravitations() {
             var length = this.gravitations.length;
             for (var i = 0; i < length; i++) {
@@ -1092,7 +1133,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "springTo",
+        key: 'springTo',
         value: function springTo(point, k, length) {
             var dx = point.x - this.x;
             var dy = point.y - this.y;
@@ -1108,7 +1149,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "addSpring",
+        key: 'addSpring',
         value: function addSpring(point, k, length) {
             this.removeSpring(point);
             this.springs.push({
@@ -1123,7 +1164,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "removeSpring",
+        key: 'removeSpring',
         value: function removeSpring(point) {
             var length = this.springs.length;
             for (var i = 0; i < length; i++) {
@@ -1139,7 +1180,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "handleSprings",
+        key: 'handleSprings',
         value: function handleSprings() {
             var length = this.springs.length;
             for (var i = 0; i < length; i++) {
@@ -1320,6 +1361,21 @@ var Utils = function () {
     key: "rectanglePointCollision",
     value: function rectanglePointCollision(px, py, rect) {
       return this.inRange(px, rect.x, rect.x + rect.width) && this.inRange(py, rect.y, rect.y + rect.height);
+    }
+  }, {
+    key: "uniqueID",
+    value: function uniqueID() {
+      function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+      }
+      return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    }
+  }, {
+    key: "randomColor",
+    value: function randomColor() {
+      return "#000000".replace(/0/g, function () {
+        return (~~(Math.random() * 16)).toString(16);
+      });
     }
   }]);
 

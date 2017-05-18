@@ -31,7 +31,7 @@ window.onload = function () {
         width: width,
         height: height,
         center: center,
-        scale: 0.5,
+        scale: 1,
         lastScale: 0,
         trans_x: 0,
         trans_y: 0,
@@ -41,7 +41,7 @@ window.onload = function () {
         }
     };
 
-    var player = new _AnimationPlayer2.default({ fps: 25 });
+    var player = new _AnimationPlayer2.default({ fps: 60 });
 
     var sunSetup = {
         x: center.x,
@@ -49,7 +49,7 @@ window.onload = function () {
         mass: 500,
         speed: 0,
         color: "#D6D32D",
-        center: true
+        center: false
     };
 
     var planetsSetup = [{
@@ -91,7 +91,7 @@ window.onload = function () {
         direction: -Math.PI / 2,
         color: '#AB3A2B',
         mass: 68,
-        center: false
+        center: true
     }, {
         x: center.x + 2292,
         y: center.y,
@@ -591,7 +591,7 @@ exports.default = FEATURE_TOGGLE;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -605,72 +605,106 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var AnimationPlayer = function () {
-    function AnimationPlayer(settings) {
-        _classCallCheck(this, AnimationPlayer);
+  function AnimationPlayer(settings) {
+    _classCallCheck(this, AnimationPlayer);
 
-        settings = settings || {};
+    settings = settings || {};
 
-        this.window = settings.windowElement || window;
-        this.requestId = null;
-        this.playing = false;
+    this.window = settings.windowElement || window;
+    this.requestId = null;
+    this.playing = false;
+
+    // FPS control
+    if (_featureToggle2.default.FPS_CONTROL) {
+      this.fps = settings.fps || 90;
+      this.now;
+      this.lastTime = Date.now();
+      this.interval = 1000 / this.fps;
+      this.delta;
+    }
+
+    this.registerEvents();
+  }
+
+  _createClass(AnimationPlayer, [{
+    key: "registerEvents",
+    value: function registerEvents() {
+      var _this = this;
+
+      // Animation control: KeyDown
+      document.body.addEventListener("keydown", function (e) {
+        //console.log("Key pressed: ", e.keyCode);
+        switch (e.keyCode) {
+          case 27:
+            // Esc
+            if (_this.playing) {
+              _this.stop();
+              console.log("> Scene stopped");
+            } else {
+              _this.play();
+              console.log("> Playing scene");
+            }
+            break;
+
+          case 13:
+            _this.stop();
+            _this.play();
+            _this.stop();
+            console.log("> Step forward");
+            break;
+
+          default:
+            break;
+        }
+      });
+    }
+  }, {
+    key: "play",
+    value: function play() {
+      this.playing = true;
+      this.updateFn();
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      if (!this.playing) {
+        return false;
+      }
+      this.window.cancelAnimationFrame(this.requestId);
+      this.playing = false;
+      this.requestId = null;
+    }
+  }, {
+    key: "setUpdateFn",
+    value: function setUpdateFn(updateFn) {
+      var _this2 = this;
+
+      this.updateFn = function () {
+        _this2.requestId = _this2.window.requestAnimationFrame(_this2.updateFn);
 
         // FPS control
         if (_featureToggle2.default.FPS_CONTROL) {
-            this.fps = settings.fps || 90;
-            this.now;
-            this.lastTime = Date.now();
-            this.interval = 1000 / this.fps;
-            this.delta;
+          _this2.now = Date.now();
+          _this2.delta = _this2.now - _this2.lastTime;
+
+          if (_this2.delta > _this2.interval) {
+            _this2.lastTime = _this2.now - _this2.delta % _this2.interval;
+            updateFn();
+          }
+          return;
         }
+
+        updateFn();
+      };
     }
+  }, {
+    key: "updateFn",
+    value: function updateFn() {
+      console.warn("Player update function has not been set.");
+    }
+  }]);
 
-    _createClass(AnimationPlayer, [{
-        key: "play",
-        value: function play() {
-            this.playing = true;
-            this.updateFn();
-        }
-    }, {
-        key: "stop",
-        value: function stop() {
-            if (!this.playing) {
-                return false;
-            }
-            this.window.cancelAnimationFrame(this.requestId);
-            this.playing = false;
-            this.requestId = null;
-        }
-    }, {
-        key: "setUpdateFn",
-        value: function setUpdateFn(updateFn) {
-            var _this = this;
-
-            this.updateFn = function () {
-                _this.requestId = _this.window.requestAnimationFrame(_this.updateFn);
-
-                // FPS control
-                if (_featureToggle2.default.FPS_CONTROL) {
-                    _this.now = Date.now();
-                    _this.delta = _this.now - _this.lastTime;
-
-                    if (_this.delta > _this.interval) {
-                        _this.lastTime = _this.now - _this.delta % _this.interval;
-                        updateFn();
-                    }
-                    return;
-                }
-
-                updateFn();
-            };
-        }
-    }, {
-        key: "updateFn",
-        value: function updateFn() {
-            console.warn("Player update function has not been set.");
-        }
-    }]);
-
-    return AnimationPlayer;
+  return AnimationPlayer;
 }();
 
 exports.default = AnimationPlayer;
