@@ -1,26 +1,34 @@
+import Utils from '../../../src/lib/Utils';
+import Particle from './ParticleExt';
 import Mapper from './Mapper';
 import Collisioner from './Collisioner';
 import Collide from './Collide';
 
 export default class ParticleManager {
 
-  constructor(settings, ctx) {
+  constructor(settings, world, ctx) {
+    this.world = world;
     this.ctx = ctx;
     this.mapper = new Mapper(settings.mapper);
     this.collisioner = new Collisioner();
     this.collide = new Collide();
     this.regionDraw = settings.regionDraw || false;
-    this.particles = settings.particles || [];
-    this.boxWidth = settings.boxWidth || window.innerWidth;
-    this.boxHeight = settings.boxHeight || window.innerHeight-4;
+    this.particles = [];
+    this.greaterRadius = 0;
   }
 
+  /*
+  *  Update loop - general
+  */
+  update() {
+    this.updateParticles();
+    this.interact();
+  }
 
   /*
-   *  Update loop
-   */
-  update() {
-
+  *  Update particle's state and force regions
+  */
+  updateParticles() {
     for (let i=0; i<this.particles.length; i++) {
       let p = this.particles[i];
 
@@ -32,15 +40,28 @@ export default class ParticleManager {
     }
   }
 
+
   /*
-   *  Draw loop
-   */
+  *  Force interaction loop
+  */
+  interact() {
+    for (let i=0; i<this.particles.length; i++) {
+      let p0 = this.particles[i];
+
+      // Check collisions with particles from the same region
+      this.handleCollisions(p0);
+
+      // Apply gravity force to neighbour particles
+      this.handleAttraction(p0);
+    }
+  }
+
+  /*
+  *  Draw loop
+  */
   draw() {
 
-    // Clear full screen
-    this.ctx.clearRect(0,0, this.boxWidth, this.boxHeight);
-
-    // Draw map regions (debugging)
+    // Draw mapper regions (debugging)
     if (this.regionDraw) {
       this.drawMappgerRegions();
     }
@@ -49,19 +70,27 @@ export default class ParticleManager {
     for (let i=0; i<this.particles.length; i++) {
       let p0 = this.particles[i];
 
-      // Check collisions with particles from the same region
-      this.handleCollisions(p0);
-      this.handleAttraction(p0);
-      this.drawParticle(p0);
+      // Draw particle
+      p0.draw(this.ctx);
     }
   }
 
   /*
-   *  Add particles to the system - if total length is > 150000 or so, check:
-   *  -- http://stackoverflow.com/questions/1374126/how-to-extend-an-existing-javascript-array-with-another-array-without-creating/17368101#17368101
-   */
-  injectParticles(particles) {
-    Array.prototype.push.apply(this.particles, particles);
+  *  Add particles to the system - if total length is > 150000 or so, check:
+  */
+  addParticles(settings) {
+
+    for (let i=0; i<settings.length; i++) {
+      let particle = new Particle(settings[i]);
+
+      particle.id = Utils.uniqueID();
+
+      if (particle.radius > this.greaterRadius) {
+        this.greaterRadius = particle.radius;
+      }
+
+      this.particles.push(particle);
+    }
   }
 
   handleAttraction(p0) {
@@ -82,7 +111,7 @@ export default class ParticleManager {
             continue;
           }
 
-          p0.gravitateTo(p1);
+          p0.gravitateTo(p1, this.world.G);
 
         }
       }
@@ -92,8 +121,8 @@ export default class ParticleManager {
 
 
   /*
-   *  Check and resolve collisions within a particle's mapper region
-   */
+  *  Check and resolve collisions within a particle's mapper region
+  */
   handleCollisions(p0) {
     // TODO: Is this really necesary?
     if (!p0.mapperRegions.hasOwnProperty('collision')) {
@@ -103,7 +132,7 @@ export default class ParticleManager {
     for (let i=0; i<p0.mapperRegions['collision'].length; i++) {
       let rLabel = p0.mapperRegions['collision'][i];
       let region = this.mapper.layers['collision'].regions[rLabel];
-      for (var r in region.particles) {
+      for (let r in region.particles) {
 
         if (region.particles.hasOwnProperty(r)) {
           let p1 = region.particles[r];
@@ -124,19 +153,8 @@ export default class ParticleManager {
   }
 
   /*
-   *  Draw a single particle
-   */
-  drawParticle(p) {
-    this.ctx.beginPath();
-    this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2, false);
-    this.ctx.fillStyle = p.color || '#000000';
-    this.ctx.fill();
-    this.ctx.closePath();
-  }
-
-  /*
-   *  Draw Mappger Regions (for debugging)
-   */
+  *  Draw Mappger Regions (for debugging)
+  */
   drawMappgerRegions() {
 
     // Draw layer regions

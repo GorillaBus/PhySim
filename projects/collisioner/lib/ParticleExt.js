@@ -6,11 +6,15 @@ export default class ParticleExt extends Particle {
     constructor(settings) {
       super(settings);
 
-      this.shape = settings.shape || "circle";
       this.mapperRegions = settings.mapperRegions || {};
-      this.color = settings.color || "#000000";
       this.points = settings.points || [];
-      this.boxBounce = settings.boxBounce || false;
     }
 
+    draw(ctx) {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+      ctx.fillStyle = this.color;
+      ctx.fill();
+      ctx.closePath();
+    }
 }
