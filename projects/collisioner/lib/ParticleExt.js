@@ -52,4 +52,21 @@ export default class ParticleExt extends Particle {
 
       return false;
     }
+
+    /*
+        2D Elastic collision handling
+    */
+    collisionHandle(p, collisionVector) {
+
+      // 2D-Elastic collision formula
+      let combinedMass = this.mass + p.mass;
+      let collisionWeight0 = 2 * p.mass / combinedMass;
+      let collisionWeight1 = 2 * this.mass / combinedMass;
+
+      // Adds the computed collision results to the velocities of this / p
+      this.vx += collisionWeight0 * collisionVector.x;
+      this.vy += collisionWeight0 * collisionVector.y;
+      p.vx -= collisionWeight1 * collisionVector.x;
+      p.vy -= collisionWeight1 * collisionVector.y;
+    }
 }

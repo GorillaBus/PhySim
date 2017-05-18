@@ -143,9 +143,9 @@ export default class ParticleManager {
 
           let collision = p0.collisionCheck(p1);
 
-          // Reslve collision
+          // Handle collision
           if (collision) {
-            this.collide.elastic2D(p0, p1, collision);
+            p0.collisionHandle(p1, collision);
           }
         }
       }
