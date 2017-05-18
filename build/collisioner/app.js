@@ -35,7 +35,7 @@ window.onload = function () {
   var player = new _AnimationPlayer2.default({ fps: 60 });
 
   // Create particle fixtures
-  var particlesFixtures = new Array(2000);
+  var particlesFixtures = new Array(100);
 
   for (var i = 0; i < particlesFixtures.length; i++) {
     var p = {
