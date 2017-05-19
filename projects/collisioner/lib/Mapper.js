@@ -8,22 +8,6 @@ export default class Mapper {
    */
   constructor(settings) {
     this.layers = {};
-
-    // GRAVITY layer
-    if (settings.hasOwnProperty('gravity')) {
-      this.layers.gravity = {
-        regionSize: settings.gravity.regionSize || 500,
-        regions: {}
-      };
-    }
-
-    // COLLISION layer
-    if (settings.hasOwnProperty('collision')) {
-      this.layers.collision = {
-        regionSize: settings.collision.regionSize || 100,
-        regions: {}
-      };
-    }
   }
 
   /*
@@ -151,9 +135,25 @@ export default class Mapper {
      return rData;
    }
 
+  /*
+   *  Create new Layer
+   */
+   createLayer(layerName, regionSize) {
+     if (this.layers.hasOwnProperty(layerName)) {
+       console.error("Mapper layer '"+ layerName +"' already exists");
+       return false;
+     }
+
+     this.layers[layerName] = {
+       regionSize: regionSize,
+       regions: {}
+     };
+
+     return this.layers[layerName];
+   }
 
   /*
-   *  Create a new region
+   *  Create a new Region inside a Layer
    */
   createRegion(layer, label, rData) {
     let layerObj = this.layers[layer];

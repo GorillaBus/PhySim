@@ -1,8 +1,6 @@
 import Utils from '../../../src/lib/Utils';
 import Particle from './ParticleExt';
 import Mapper from './Mapper';
-import Collisioner from './Collisioner';
-import Collide from './Collide';
 
 export default class ParticleManager {
 
@@ -10,8 +8,7 @@ export default class ParticleManager {
     this.world = world;
     this.ctx = ctx;
     this.mapper = new Mapper(settings.mapper);
-    this.collisioner = new Collisioner();
-    this.collide = new Collide();
+    this.interactionMaps = {};
     this.regionDraw = settings.regionDraw || false;
     this.particles = [];
     this.greaterRadius = 0;
@@ -26,7 +23,7 @@ export default class ParticleManager {
   }
 
   /*
-  *  Update particle's state and force regions
+  *  Update particle's state and interaction regions
   */
   updateParticles() {
     for (let i=0; i<this.particles.length; i++) {
@@ -42,17 +39,50 @@ export default class ParticleManager {
 
 
   /*
+   *  Creates a new mapper layer.
+   *  @interaction:   predefined interaction | callbackFn(a, b);
+   */
+  interactionMapCreate(name, size, interaction) {
+    let map = this.mapper.createLayer(name, size);
+    if (map) {
+      this.interactionMaps[name] = {
+        map: map,
+        interaction: interaction
+      }
+    }
+  }
+
+  /*
   *  Force interaction loop
   */
   interact() {
-    for (let i=0; i<this.particles.length; i++) {
-      let p0 = this.particles[i];
 
-      // Check collisions with particles from the same region
-      this.handleCollisions(p0);
+    // Iterate through maps: a 'map' is the reference to a Mapper layer
+    for (let mapName in this.interactionMaps) {
+      let map = this.interactionMaps[mapName].map;
+      let interactionMap = this.interactionMaps[mapName];
 
-      // Apply gravity force to neighbour particles
-      this.handleAttraction(p0);
+      // Iterate through map regions
+      for (let regionName in map.regions) {
+        let region = map.regions[regionName];
+
+        // Iterate through region particles
+        for (let p1ID in region.particles) {
+          let p1 = region.particles[p1ID];
+
+          // Make p1 interact with other region particles
+          for (let p2ID in region.particles) {
+            if (p1ID === p2ID) {
+              continue;
+            }
+
+            let p2 = region.particles[p2ID];
+
+            // Process interaction between particles p1 and p2
+            interactionMap.interaction(p1, p2);
+          }
+        }
+      }
     }
   }
 
@@ -119,38 +149,6 @@ export default class ParticleManager {
 
   }
 
-
-  /*
-  *  Check and resolve collisions within a particle's mapper region
-  */
-  handleCollisions(p0) {
-    // TODO: Is this really necesary?
-    if (!p0.mapperRegions.hasOwnProperty('collision')) {
-      return false;
-    }
-
-    for (let i=0; i<p0.mapperRegions['collision'].length; i++) {
-      let rLabel = p0.mapperRegions['collision'][i];
-      let region = this.mapper.layers['collision'].regions[rLabel];
-      for (let r in region.particles) {
-
-        if (region.particles.hasOwnProperty(r)) {
-          let p1 = region.particles[r];
-
-          if (p0.id === p1.id) {
-            continue;
-          }
-
-          let collision = p0.collisionCheck(p1);
-
-          // Handle collision
-          if (collision) {
-            p0.collisionHandle(p1, collision);
-          }
-        }
-      }
-    }
-  }
 
   /*
   *  Draw Mappger Regions (for debugging)
