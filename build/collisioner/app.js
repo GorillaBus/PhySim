@@ -35,33 +35,51 @@ window.onload = function () {
   var player = new _AnimationPlayer2.default({ fps: 60 });
 
   // Create particle fixtures
-  var particlesFixtures = new Array(100);
+  var particlesFixtures = new Array(500);
 
   for (var i = 0; i < particlesFixtures.length; i++) {
     var p = {
       x: _Utils2.default.randomRange(50, width - 50),
       y: _Utils2.default.randomRange(50, height - 50),
-      mass: _Utils2.default.randomRange(1, 3),
-      // direction: Utils.randomRange(-1, 1),
-      // speed: Utils.randomRange(0.5, 1),
+      mass: _Utils2.default.randomRange(3, 10),
+      direction: _Utils2.default.randomRange(-1, 1),
+      speed: _Utils2.default.randomRange(0.5, 1),
       boxBounce: { w: width, h: height }
     };
 
     particlesFixtures[i] = p;
   }
 
+  // particlesFixtures[0] = {
+  //   x: center.x-100,
+  //   y: center.y,
+  //   radius: 16,
+  //   // direction: Math.PI*2,
+  //   // speed: 10,
+  //   // color: "rgba(0, 255, 0, 0.5)",
+  //   boxBounce: { w: width, h: height }
+  // };
+  //
+  // particlesFixtures[1] = {
+  //   x: center.x+100,
+  //   y: center.y,
+  //   // radius: 16,
+  //   // direction: Math.PI,
+  //   boxBounce: { w: width, h: height }
+  // };
+
   var regionSize = 15 * 4;
   var pmanager = new _ParticleManager2.default({
-    regionDraw: false,
-    mapper: {
-      collision: {
-        regionSize: regionSize
-      },
-      gravity: {
-        regionSize: 500
-      }
-    }
+    regionDraw: false
   }, world, ctx);
+
+  // Create interaction maps
+  pmanager.addInteractionMap('collision', 300, function (a, b) {
+    var collision = a.collisionCheck(b);
+    if (collision) {
+      a.collisionHandle(b, collision);
+    }
+  });
 
   // Add particlesFixtures into the Mapper
   pmanager.addParticles(particlesFixtures);
@@ -85,137 +103,6 @@ window.onload = function () {
 };
 
 },{"../../src/lib/AnimationPlayer":8,"../../src/lib/Utils":10,"./lib/ParticleManager":6}],2:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Collide = function () {
-  function Collide() {
-    _classCallCheck(this, Collide);
-  }
-
-  _createClass(Collide, [{
-    key: "elastic2D",
-
-
-    /*
-     *  2D Elastic Collision
-     *
-     *  Formula used:
-     *  Final Vel 1 =  Velocity += (2 * mass2) / (mass1 + mass2)
-     *  Final Vel 2 =  Velocity -= (2 * mass1) / (mass1 + mass2)
-     *
-     */
-    value: function elastic2D(p0, p1, collisionV) {
-
-      // 2D-Elastic collision formula
-      var combinedMass = p0.mass + p1.mass;
-      var collisionWeight0 = 2 * p1.mass / combinedMass;
-      var collisionWeight1 = 2 * p0.mass / combinedMass;
-
-      // Adds the computed collision results to the velocities of p0 / p1
-      p0.vx += collisionWeight0 * collisionV.x;
-      p0.vy += collisionWeight0 * collisionV.y;
-      p1.vx -= collisionWeight1 * collisionV.x;
-      p1.vy -= collisionWeight1 * collisionV.y;
-    }
-  }]);
-
-  return Collide;
-}();
-
-exports.default = Collide;
-
-},{}],3:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Collisioner = function () {
-  function Collisioner() {
-    _classCallCheck(this, Collisioner);
-  }
-
-  /*
-   *  Get angle from p0's location to p1's location
-   */
-
-
-  _createClass(Collisioner, [{
-    key: "distance",
-    value: function distance(p0, p1) {
-      return p0.distanceTo(p1);
-    }
-
-    /*
-     *  Get angle from p0's location to p1's location
-     */
-
-  }, {
-    key: "angle",
-    value: function angle(p0, p1) {
-      return p0.angleTo(p1);
-    }
-
-    /*
-     *  Check for collision between two circular particles
-     */
-
-  }, {
-    key: "circleCollision",
-    value: function circleCollision(p0, p1) {
-      // Calculate the Distance Vector
-      var xDist = p0.x - p1.x;
-      var yDist = p0.y - p1.y;
-      var distSquared = xDist * xDist + yDist * yDist;
-      var radiusSquared = (p0.radius + p1.radius) * (p0.radius + p1.radius);
-
-      // Check collision: using squared distances, same result and saves one Math.sqrt()
-      if (distSquared < radiusSquared) {
-
-        // Calculate if particles are moving towards each other or away (after a previous collision)
-        var xVelocity = p1.vx - p0.vx;
-        var yVelocity = p1.vy - p0.vy;
-        var dotProduct = xDist * xVelocity + yDist * yVelocity;
-
-        // If particles are moving away (already collided) return
-        if (dotProduct <= 0) {
-          return false;
-        }
-
-        // Collision Vector: the speed difference projected over the Distance Vector
-        // This is the component for the speed difference for the collision
-        var collisionScale = dotProduct / distSquared;
-        var collision = {
-          x: xDist * collisionScale,
-          y: yDist * collisionScale
-        };
-
-        return collision;
-      }
-
-      return false;
-    }
-  }]);
-
-  return Collisioner;
-}();
-
-exports.default = Collisioner;
-
-},{}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -228,233 +115,113 @@ var _Utils = require('../../../src/lib/Utils');
 
 var _Utils2 = _interopRequireDefault(_Utils);
 
+var _MapperLayer = require('./MapperLayer');
+
+var _MapperLayer2 = _interopRequireDefault(_MapperLayer);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Mapper = function () {
-
-  /*
-   *  Each layer holds regions in which particles may subscribe to interact with other particles
-   *
-   */
-  function Mapper(settings) {
+  function Mapper() {
     _classCallCheck(this, Mapper);
 
-    this.layers = {};
-
-    // GRAVITY layer
-    if (settings.hasOwnProperty('gravity')) {
-      this.layers.gravity = {
-        regionSize: settings.gravity.regionSize || 500,
-        regions: {}
-      };
-    }
-
-    // COLLISION layer
-    if (settings.hasOwnProperty('collision')) {
-      this.layers.collision = {
-        regionSize: settings.collision.regionSize || 100,
-        regions: {}
-      };
-    }
+    this.layers = [];
+    this.layerIndex = {};
   }
 
-  /*
-   *  Subscribes particle 'p' to region 'rLabel'
-   */
-
-
   _createClass(Mapper, [{
-    key: 'subscribe',
-    value: function subscribe(p, layer, rLabel) {
-      this.layers[layer].regions[rLabel].particles[p.id] = p;
+    key: 'addLayer',
+    value: function addLayer(id, regionSize, interactionFn) {
+      var layer = new _MapperLayer2.default({
+        id: id,
+        regionSize: regionSize,
+        interactionFn: interactionFn
+      });
+
+      this.layers.push(layer);
+      this.layerIndex[id] = layer;
+
+      return this.layerIndex[id];
     }
-
-    /*
-     *  Unsubscribe particle 'p' from region 'rLabel'
-     */
-
   }, {
-    key: 'unsubscribe',
-    value: function unsubscribe(p, layer, rLabel) {
-      delete this.layers[layer].regions[rLabel].particles[p.id];
-    }
-
-    /*
-     *  Update map state
-     */
-
-  }, {
-    key: 'update',
-    value: function update(p) {
-
-      // Qualify particle in the mapper and get the layer => region data
-      var rData = this.qualifyParticle(p);
-
-      for (var layer in rData.layerRegionData) {
-        if (rData.layerRegionData.hasOwnProperty(layer)) {
-
-          if (!p.mapperRegions.hasOwnProperty(layer)) {
-            p.mapperRegions[layer] = [];
-          }
-
-          if (this.regionsCompare(layer, rData.layerRegionData, p.mapperRegions)) {
-            continue;
-          }
-
-          // Areas have changed: unsubscribe particle from any region
-          // TODO: Can we remove validation?
-          for (var i = 0; i < p.mapperRegions[layer].length; i++) {
-            this.unsubscribe(p, layer, p.mapperRegions[layer][i]);
-          }
-
-          // Create regions if they doesn't exist already
-          for (var reg in rData.layerRegionData[layer].regions) {
-
-            if (!this.layers[layer].regions.hasOwnProperty(reg)) {
-              this.createRegion(layer, reg, rData.layerRegionData[layer].regions[reg]);
-            }
-
-            // Insert particle into the region stack if it's not already inside
-            this.subscribe(p, layer, reg);
-          }
-
-          // Update particle regions register
-          p.mapperRegions[layer] = rData.ptLabels[layer].regions;
-        }
-      }
-    }
-
-    /*
-     *  Get particle's region data.
-     *  NOTE: For now we'll consider that every particle is circular
-     */
-
-  }, {
-    key: 'qualifyParticle',
-    value: function qualifyParticle(p) {
+    key: 'register',
+    value: function register(p) {
+      var mapperData = [];
+      var totalLayers = this.layers.length;
       var points = _Utils2.default.getCirclePoints(p);
-      var layers = {};
-      var layerRegionData = {};
+      var totalPoints = points.length;
 
-      for (var layer in this.layers) {
-        if (this.layers.hasOwnProperty(layer)) {
-          var tempRegions = [];
-          var regionLabels = [];
+      for (var x = 0; x < totalLayers; x++) {
+        var layer = this.layers[x];
+        var qualifiedRegions = [];
 
-          if (!layers.hasOwnProperty(layer)) {
-            // Holds the structure to update particle's subscribbed regions (array of region labels)
-            layers[layer] = {
-              regions: []
-            };
+        this.unregister(p);
 
-            // Holds the structure with data to identify region boundries
-            layerRegionData[layer] = {
-              regions: {}
-            };
-          }
+        for (var i = 0; i < totalPoints; i++) {
+          var regionData = this.qualifyPoint(points[i], layer.id);
+          var totalQualified = qualifiedRegions.length;
+          var exists = false;
 
-          for (var i = 0; i < points.length; i++) {
-            var ptRegion = this.qualilyPoint(points[i], layer);
-
-            if (regionLabels.indexOf(ptRegion.rLabel) === -1) {
-              regionLabels.push(ptRegion.rLabel);
-
-              layerRegionData[layer].regions[ptRegion.rLabel] = {
-                rX: ptRegion.rX,
-                rY: ptRegion.rY
-              };
+          for (var z = 0; z < totalQualified; z++) {
+            if (qualifiedRegions[z].id === regionData.id) {
+              exists = true;
+              continue;
             }
           }
 
-          layers[layer].regions = regionLabels;
-          //layerRegionData[layer].regions[] = tempRegions;
+          if (!exists) {
+            if (!layer.regionIndex.hasOwnProperty(regionData.id)) {
+              layer.addRegion(regionData);
+            }
+
+            var region = layer.regionIndex[regionData.id];
+            region.subscribe(p);
+            qualifiedRegions.push(region);
+          }
+        }
+
+        mapperData.push({
+          id: layer.id,
+          regions: qualifiedRegions
+        });
+      }
+
+      p.mapperData = mapperData;
+    }
+  }, {
+    key: 'unregister',
+    value: function unregister(p) {
+      var totalLayers = p.mapperData.length;
+      for (var i = 0; i < totalLayers; i++) {
+        var layerID = p.mapperData[i].id;
+        var totalRegions = p.mapperData[i].regions.length;
+        for (var r = 0; r < totalRegions; r++) {
+          p.mapperData[i].regions[r].unsubscribe(p);
         }
       }
 
-      // Save points on particle for debugging
-      if (!p.points.length) {
-        p.points = points;
-      }
-
-      return { ptLabels: layers, layerRegionData: layerRegionData };
+      this.reset(p);
     }
-
-    /*
-     *  Qualify a single point within a region
-     */
-
   }, {
-    key: 'qualilyPoint',
-    value: function qualilyPoint(p, layer) {
-      var regionSize = this.layers[layer].regionSize;
-
-      var rData = {
-        rX: p.x > regionSize ? Math.floor(Math.abs(p.x / regionSize)) : 0,
-        rY: p.y > regionSize ? Math.floor(Math.abs(p.y / regionSize)) : 0,
-        rLabel: ""
+    key: 'reset',
+    value: function reset(p) {
+      p.mapperData = [];
+    }
+  }, {
+    key: 'qualifyPoint',
+    value: function qualifyPoint(pt, layerId) {
+      var regionSize = this.layerIndex[layerId].regionSize;
+      var xComponent = pt.x > regionSize ? Math.floor(Math.abs(pt.x / regionSize)) : 0;
+      var yComponent = pt.y > regionSize ? Math.floor(Math.abs(pt.y / regionSize)) : 0;
+      var data = {
+        id: null,
+        x: xComponent * regionSize,
+        y: yComponent * regionSize
       };
-      rData.rLabel = rData.rX + "_" + rData.rY;
-
-      return rData;
-    }
-
-    /*
-     *  Create a new region
-     */
-
-  }, {
-    key: 'createRegion',
-    value: function createRegion(layer, label, rData) {
-      var layerObj = this.layers[layer];
-
-      // Pre-calculate region offset
-      var rOffsetX = rData.rX * layerObj.regionSize;
-      var rOffsetY = rData.rY * layerObj.regionSize;
-
-      layerObj.regions[label] = {
-        color: "#000000".replace(/0/g, function () {
-          return (~~(Math.random() * 16)).toString(16);
-        }),
-        particles: {},
-        beginsAtX: rOffsetX,
-        beginsAtY: rOffsetY,
-        endsAtX: rOffsetX + layerObj.regionSize,
-        endsAtY: rOffsetY + layerObj.regionSize
-      };
-    }
-
-    /*
-     *  Helper: Compares two region array structures, returns true when equal
-     */
-
-  }, {
-    key: 'regionsCompare',
-    value: function regionsCompare(layer, reg1, reg2) {
-
-      if (!reg2.hasOwnProperty(layer)) {
-        return false;
-      }
-
-      if (Object.keys(reg1[layer].regions).length !== reg2[layer].length) {
-        return false;
-      }
-
-      for (var region in reg1[layer].regions) {
-
-        if (!reg2[layer].indexOf(region) === -1) {
-          return false;
-        }
-
-        // for(let i = Object(reg1[label].regions).keys.length; i--;) {
-        //     if(reg1[label].regions[i] !== reg2[label].regions[i]) {
-        //       return false;
-        //     }
-        // }
-      }
-
-      return true;
+      data.id = xComponent + "_" + yComponent;
+      return data;
     }
   }]);
 
@@ -463,7 +230,132 @@ var Mapper = function () {
 
 exports.default = Mapper;
 
-},{"../../../src/lib/Utils":10}],5:[function(require,module,exports){
+},{"../../../src/lib/Utils":10,"./MapperLayer":3}],3:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _MapperRegion = require('./MapperRegion');
+
+var _MapperRegion2 = _interopRequireDefault(_MapperRegion);
+
+var _Utils = require('../../../src/lib/Utils');
+
+var _Utils2 = _interopRequireDefault(_Utils);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var MapperLayer = function () {
+  function MapperLayer(settings) {
+    _classCallCheck(this, MapperLayer);
+
+    this.id = settings.id;
+    this.regionSize = settings.regionSize;
+    this.regions = [];
+    this.regionIndex = {};
+    this.interaction = settings.interactionFn;
+    this.color = _Utils2.default.randomColor();
+  }
+
+  _createClass(MapperLayer, [{
+    key: 'addRegion',
+    value: function addRegion(regionData) {
+      var region = new _MapperRegion2.default({
+        id: regionData.id,
+        x: regionData.x,
+        y: regionData.y,
+        size: this.regionSize,
+        layer: this
+      });
+
+      this.regions.push(region);
+      this.regionIndex[regionData.id] = region;
+    }
+  }]);
+
+  return MapperLayer;
+}();
+
+exports.default = MapperLayer;
+
+},{"../../../src/lib/Utils":10,"./MapperRegion":4}],4:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var MapperRegion = function () {
+  function MapperRegion(settings) {
+    _classCallCheck(this, MapperRegion);
+
+    this.id = settings.id;
+    this.x = settings.x;
+    this.y = settings.y;
+    this.size = settings.size;
+    this.layer = settings.layer;
+    this.particles = [];
+    this.totalParticles = 0;
+    this.particleIndex = {};
+  }
+
+  _createClass(MapperRegion, [{
+    key: "subscribe",
+    value: function subscribe(p) {
+      this.particles.push(p.id);
+      this.particleIndex[p.id] = p;
+      this.totalParticles++;
+    }
+  }, {
+    key: "unsubscribe",
+    value: function unsubscribe(p) {
+      delete this.particleIndex[p.id];
+      var index = this.particles.indexOf(p.id);
+      this.particles.splice(index, 1);
+      this.totalParticles--;
+    }
+  }, {
+    key: "iterate",
+    value: function iterate() {
+      for (var i = 0; i < this.totalParticles; i++) {
+        var A = this.particleIndex[this.particles[i]];
+        for (var y = 0; y < this.totalParticles; y++) {
+          var B = this.particleIndex[this.particles[y]];
+          if (A.id !== B.id) {
+            this.layer.interaction(A, B);
+          }
+        }
+      }
+    }
+  }, {
+    key: "draw",
+    value: function draw(ctx) {
+      ctx.beginPath();
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.fillStyle = this.layer.color;
+      ctx.rect(this.x, this.y, this.layer.regionSize, this.layer.regionSize);
+      ctx.fill();
+      ctx.stroke();
+      ctx.closePath();
+    }
+  }]);
+
+  return MapperRegion;
+}();
+
+exports.default = MapperRegion;
+
+},{}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -496,7 +388,7 @@ var ParticleExt = function (_Particle) {
 
     var _this = _possibleConstructorReturn(this, (ParticleExt.__proto__ || Object.getPrototypeOf(ParticleExt)).call(this, settings));
 
-    _this.mapperRegions = settings.mapperRegions || {};
+    _this.mapperData = [];
     _this.points = settings.points || [];
     return _this;
   }
@@ -509,6 +401,64 @@ var ParticleExt = function (_Particle) {
       ctx.fillStyle = this.color;
       ctx.fill();
       ctx.closePath();
+    }
+
+    /*
+        Check for Circle-Circle collisions and return details
+    */
+
+  }, {
+    key: 'collisionCheck',
+    value: function collisionCheck(p) {
+
+      // Calculate the Distance Vector
+      var xDist = this.x - p.x;
+      var yDist = this.y - p.y;
+      var distSquared = xDist * xDist + yDist * yDist;
+      var radiusSquared = (this.radius + p.radius) * (this.radius + p.radius);
+
+      // Check collision: using squared distances, same result and saves one Math.sqrt()
+      if (distSquared < radiusSquared) {
+
+        // Calculate if particles are moving towards each other or away (after a previous collision)
+        var xVelocity = p.vx - this.vx;
+        var yVelocity = p.vy - this.vy;
+        var dotProduct = xDist * xVelocity + yDist * yVelocity;
+
+        // If particles are moving away (already collided) return
+        if (dotProduct > 0) {
+
+          var collisionScale = dotProduct / distSquared;
+          var collision = {
+            x: xDist * collisionScale,
+            y: yDist * collisionScale
+          };
+
+          return collision;
+        }
+      }
+
+      return false;
+    }
+
+    /*
+        2D Elastic collision handling
+    */
+
+  }, {
+    key: 'collisionHandle',
+    value: function collisionHandle(p, collisionVector) {
+
+      // 2D-Elastic collision formula
+      var combinedMass = this.mass + p.mass;
+      var collisionWeight0 = 2 * p.mass / combinedMass;
+      var collisionWeight1 = 2 * this.mass / combinedMass;
+
+      // Adds the computed collision results to the velocities of this / p
+      this.vx += collisionWeight0 * collisionVector.x;
+      this.vy += collisionWeight0 * collisionVector.y;
+      p.vx -= collisionWeight1 * collisionVector.x;
+      p.vy -= collisionWeight1 * collisionVector.y;
     }
   }]);
 
@@ -538,14 +488,6 @@ var _Mapper = require('./Mapper');
 
 var _Mapper2 = _interopRequireDefault(_Mapper);
 
-var _Collisioner = require('./Collisioner');
-
-var _Collisioner2 = _interopRequireDefault(_Collisioner);
-
-var _Collide = require('./Collide');
-
-var _Collide2 = _interopRequireDefault(_Collide);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -556,12 +498,10 @@ var ParticleManager = function () {
 
     this.world = world;
     this.ctx = ctx;
-    this.mapper = new _Mapper2.default(settings.mapper);
-    this.collisioner = new _Collisioner2.default();
-    this.collide = new _Collide2.default();
-    this.regionDraw = settings.regionDraw || false;
+    this.mapper = new _Mapper2.default();
+    this.interactionMaps = [];
     this.particles = [];
-    this.greaterRadius = 0;
+    this.DEBUG_MODE = true;
   }
 
   /*
@@ -573,25 +513,72 @@ var ParticleManager = function () {
     key: 'update',
     value: function update() {
       this.updateParticles();
-      this.interact();
+      this.runInteractions();
+    }
+  }, {
+    key: 'debugDrawRegions',
+    value: function debugDrawRegions(displayParticleCount) {
+      var totalLayers = this.mapper.layers.length;
+      for (var i = 0; i < totalLayers; i++) {
+        var layer = this.mapper.layers[i];
+        var totalRegions = layer.regions.length;
+        for (var x = 0; x < totalRegions; x++) {
+          var region = layer.regions[x];
+
+          // Skip empty regions
+          if (region.totalParticles > 0) {
+            region.draw(this.ctx);
+
+            if (displayParticleCount) {
+              var obj = void 0;
+              if (!(obj = document.getElementById(region.id))) {
+                obj = document.createElement("p");
+                obj.innerHTML = region.totalParticles;
+                obj.id = region.id;
+                obj.style.position = "absolute";
+                obj.style.left = region.x + 2 + "px";
+                obj.style.top = region.y - 5 + "px";
+                obj.style.fontSize = "0.5em";
+                obj.style.color = "#FFFFFF";
+
+                document.getElementsByTagName("BODY")[0].appendChild(obj);
+              }
+
+              obj.innerHTML = region.totalParticles;
+            }
+          }
+        }
+      }
     }
 
     /*
-    *  Update particle's state and force regions
+    *  Update particle's state and interaction regions
     */
 
   }, {
     key: 'updateParticles',
     value: function updateParticles() {
-      for (var i = 0; i < this.particles.length; i++) {
+      var totalParticles = this.particles.length;
+      for (var i = 0; i < totalParticles; i++) {
         var p = this.particles[i];
 
         // Update particle position
         p.update();
 
-        // Update region status
-        this.mapper.update(p);
+        // Qualify particle in the Mapper
+        this.mapper.register(p);
       }
+    }
+
+    /*
+     *  Creates a new mapper layer.
+     *  @interaction:   predefined interaction | callbackFn(a, b);
+     */
+
+  }, {
+    key: 'addInteractionMap',
+    value: function addInteractionMap(id, size, interactionFn) {
+      this.mapper.addLayer(id, size, interactionFn);
     }
 
     /*
@@ -599,16 +586,15 @@ var ParticleManager = function () {
     */
 
   }, {
-    key: 'interact',
-    value: function interact() {
-      for (var i = 0; i < this.particles.length; i++) {
-        var p0 = this.particles[i];
-
-        // Check collisions with particles from the same region
-        this.handleCollisions(p0);
-
-        // Apply gravity force to neighbour particles
-        this.handleAttraction(p0);
+    key: 'runInteractions',
+    value: function runInteractions() {
+      var totalInteractions = this.mapper.layers.length;
+      for (var i = 0; i < totalInteractions; i++) {
+        var map = this.mapper.layers[i];
+        var totalRegions = map.regions.length;
+        for (var x = 0; x < totalRegions; x++) {
+          map.regions[x].iterate(map.interaction);
+        }
       }
     }
 
@@ -621,8 +607,8 @@ var ParticleManager = function () {
     value: function draw() {
 
       // Draw mapper regions (debugging)
-      if (this.regionDraw) {
-        this.drawMappgerRegions();
+      if (this.DEBUG_MODE) {
+        this.debugDrawRegions(true);
       }
 
       // Draw particles
@@ -679,69 +665,6 @@ var ParticleManager = function () {
         }
       }
     }
-
-    /*
-    *  Check and resolve collisions within a particle's mapper region
-    */
-
-  }, {
-    key: 'handleCollisions',
-    value: function handleCollisions(p0) {
-      // TODO: Is this really necesary?
-      if (!p0.mapperRegions.hasOwnProperty('collision')) {
-        return false;
-      }
-
-      for (var i = 0; i < p0.mapperRegions['collision'].length; i++) {
-        var rLabel = p0.mapperRegions['collision'][i];
-        var region = this.mapper.layers['collision'].regions[rLabel];
-        for (var r in region.particles) {
-
-          if (region.particles.hasOwnProperty(r)) {
-            var p1 = region.particles[r];
-
-            if (p0.id === p1.id) {
-              continue;
-            }
-
-            var collision = this.collisioner.circleCollision(p0, p1);
-
-            // Reslve collision
-            if (collision) {
-              this.collide.elastic2D(p0, p1, collision);
-            }
-          }
-        }
-      }
-    }
-
-    /*
-    *  Draw Mappger Regions (for debugging)
-    */
-
-  }, {
-    key: 'drawMappgerRegions',
-    value: function drawMappgerRegions() {
-
-      // Draw layer regions
-      for (var layer in this.mapper.layers) {
-        if (this.mapper.layers.hasOwnProperty(layer)) {
-          var layerObj = this.mapper.layers[layer];
-
-          for (var r in layerObj.regions) {
-            if (layerObj.regions.hasOwnProperty(r)) {
-
-              var mRegion = layerObj.regions[r];
-              this.ctx.beginPath();
-              this.ctx.strokeStyle = mRegion.color;
-              this.ctx.rect(mRegion.beginsAtX, mRegion.beginsAtY, layerObj.regionSize - 2, layerObj.regionSize - 2);
-              this.ctx.stroke();
-              this.ctx.closePath();
-            }
-          }
-        }
-      }
-    }
   }]);
 
   return ParticleManager;
@@ -749,7 +672,7 @@ var ParticleManager = function () {
 
 exports.default = ParticleManager;
 
-},{"../../../src/lib/Utils":10,"./Collide":2,"./Collisioner":3,"./Mapper":4,"./ParticleExt":5}],7:[function(require,module,exports){
+},{"../../../src/lib/Utils":10,"./Mapper":2,"./ParticleExt":5}],7:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
