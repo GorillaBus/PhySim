@@ -25,16 +25,17 @@ window.onload = () => {
 
 
   // Create particle fixtures
-  let particlesFixtures = new Array(1000);
+  let particlesFixtures = new Array(500);
 
   for (let i=0; i<particlesFixtures.length; i++) {
     let p = {
         x: Utils.randomRange(50, width-50),
         y: Utils.randomRange(50, height-50),
-        mass: Utils.randomRange(1, 3),
+        mass: Utils.randomRange(3, 10),
         direction: Utils.randomRange(-1, 1),
         speed: Utils.randomRange(0.5, 1),
-        boxBounce: { w: width, h: height }
+        boxBounce: { w: width, h: height },
+        //color: Utils.randomColor()
     };
 
     particlesFixtures[i] = p;
@@ -44,17 +45,17 @@ window.onload = () => {
   //   x: center.x-100,
   //   y: center.y,
   //   radius: 16,
-  //   direction: Math.PI*2,
-  //   speed: 10,
-  //   color: "rgba(0, 255, 0, 0.5)",
+  //   // direction: Math.PI*2,
+  //   // speed: 10,
+  //   // color: "rgba(0, 255, 0, 0.5)",
   //   boxBounce: { w: width, h: height }
   // };
   //
   // particlesFixtures[1] = {
   //   x: center.x+100,
   //   y: center.y,
-  //   radius: 16,
-  //   direction: Math.PI,
+  //   // radius: 16,
+  //   // direction: Math.PI,
   //   boxBounce: { w: width, h: height }
   // };
 
@@ -66,7 +67,7 @@ window.onload = () => {
   ctx);
 
   // Create interaction maps
-  pmanager.interactionMapCreate('gravity', width, (a, b) => {
+  pmanager.addInteractionMap('collision', 300, (a, b) => {
     let collision = a.collisionCheck(b);
     if (collision) {
       a.collisionHandle(b, collision);

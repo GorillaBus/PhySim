@@ -6,7 +6,7 @@ export default class ParticleExt extends Particle {
     constructor(settings) {
       super(settings);
 
-      this.mapperRegions = settings.mapperRegions || {};
+      this.mapperData = [];
       this.points = settings.points || [];
     }
 

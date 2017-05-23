@@ -7,11 +7,10 @@ export default class ParticleManager {
   constructor(settings, world, ctx) {
     this.world = world;
     this.ctx = ctx;
-    this.mapper = new Mapper(settings.mapper);
-    this.interactionMaps = {};
-    this.regionDraw = settings.regionDraw || false;
+    this.mapper = new Mapper();
+    this.interactionMaps = [];
     this.particles = [];
-    this.greaterRadius = 0;
+    this.DEBUG_MODE = true;
   }
 
   /*
@@ -19,69 +18,77 @@ export default class ParticleManager {
   */
   update() {
     this.updateParticles();
-    this.interact();
+    this.runInteractions();
+  }
+
+  debugDrawRegions(displayParticleCount) {
+    let totalLayers = this.mapper.layers.length;
+    for (let i=0; i<totalLayers; i++) {
+      let layer = this.mapper.layers[i];
+      let totalRegions = layer.regions.length;
+      for (let x=0; x<totalRegions; x++) {
+        let region = layer.regions[x];
+
+        // Skip empty regions
+        if (region.totalParticles > 0) {
+          region.draw(this.ctx);
+
+          if (displayParticleCount) {
+            let obj;
+            if (!(obj = document.getElementById(region.id))) {
+              obj = document.createElement("p");
+              obj.innerHTML = region.totalParticles;
+              obj.id = region.id;
+              obj.style.position = "absolute";
+              obj.style.left = (region.x + 2) +"px";
+              obj.style.top = (region.y - 5) + "px";
+              obj.style.fontSize = "0.5em";
+              obj.style.color = "#FFFFFF";
+
+              document.getElementsByTagName("BODY")[0].appendChild(obj);
+            }
+
+            obj.innerHTML = region.totalParticles;
+          }
+        }
+      }
+    }
   }
 
   /*
   *  Update particle's state and interaction regions
   */
   updateParticles() {
-    for (let i=0; i<this.particles.length; i++) {
+    let totalParticles = this.particles.length;
+    for (let i=0; i<totalParticles; i++) {
       let p = this.particles[i];
 
       // Update particle position
       p.update();
 
-      // Update region status
-      this.mapper.update(p);
+      // Qualify particle in the Mapper
+      this.mapper.register(p);
     }
   }
-
 
   /*
    *  Creates a new mapper layer.
    *  @interaction:   predefined interaction | callbackFn(a, b);
    */
-  interactionMapCreate(name, size, interaction) {
-    let map = this.mapper.createLayer(name, size);
-    if (map) {
-      this.interactionMaps[name] = {
-        map: map,
-        interaction: interaction
-      }
-    }
+  addInteractionMap(id, size, interactionFn) {
+    this.mapper.addLayer(id, size, interactionFn);
   }
 
   /*
   *  Force interaction loop
   */
-  interact() {
-
-    // Iterate through maps: a 'map' is the reference to a Mapper layer
-    for (let mapName in this.interactionMaps) {
-      let map = this.interactionMaps[mapName].map;
-      let interactionMap = this.interactionMaps[mapName];
-
-      // Iterate through map regions
-      for (let regionName in map.regions) {
-        let region = map.regions[regionName];
-
-        // Iterate through region particles
-        for (let p1ID in region.particles) {
-          let p1 = region.particles[p1ID];
-
-          // Make p1 interact with other region particles
-          for (let p2ID in region.particles) {
-            if (p1ID === p2ID) {
-              continue;
-            }
-
-            let p2 = region.particles[p2ID];
-
-            // Process interaction between particles p1 and p2
-            interactionMap.interaction(p1, p2);
-          }
-        }
+  runInteractions() {
+    let totalInteractions = this.mapper.layers.length;
+    for (let i=0; i<totalInteractions; i++) {
+      let map = this.mapper.layers[i];
+      let totalRegions = map.regions.length;
+      for (let x=0; x<totalRegions; x++) {
+        map.regions[x].iterate(map.interaction);
       }
     }
   }
@@ -92,8 +99,8 @@ export default class ParticleManager {
   draw() {
 
     // Draw mapper regions (debugging)
-    if (this.regionDraw) {
-      this.drawMappgerRegions();
+    if (this.DEBUG_MODE) {
+      this.debugDrawRegions(true);
     }
 
     // Draw particles
@@ -146,34 +153,6 @@ export default class ParticleManager {
         }
       }
     }
-
   }
 
-
-  /*
-  *  Draw Mappger Regions (for debugging)
-  */
-  drawMappgerRegions() {
-
-    // Draw layer regions
-    for (let layer in this.mapper.layers) {
-      if (this.mapper.layers.hasOwnProperty(layer)) {
-        let layerObj = this.mapper.layers[layer];
-
-        for (let r in layerObj.regions) {
-          if (layerObj.regions.hasOwnProperty(r)) {
-
-            let mRegion = layerObj.regions[r];
-            this.ctx.beginPath();
-            this.ctx.strokeStyle = mRegion.color;
-            this.ctx.rect(mRegion.beginsAtX, mRegion.beginsAtY, layerObj.regionSize-2, layerObj.regionSize-2);
-            this.ctx.stroke();
-            this.ctx.closePath();
-          }
-        }
-
-      }
-    }
-
-  }
 }
