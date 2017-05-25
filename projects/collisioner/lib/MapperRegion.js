@@ -11,12 +11,18 @@ export default class MapperRegion {
     this.particleIndex = {};
   }
 
+  /*
+   *  Subscribes a Particle to the Region
+   */
   subscribe(p) {
     this.particles.push(p.id);
     this.particleIndex[p.id] = p;
     this.totalParticles++;
   }
 
+  /*
+   *  Unsubscribes a Particle from the Region
+   */
   unsubscribe(p) {
     delete this.particleIndex[p.id];
     let index = this.particles.indexOf(p.id);
@@ -24,6 +30,9 @@ export default class MapperRegion {
     this.totalParticles--;
   }
 
+  /*
+   *  Iterates through al particles running the interaction function
+   */
   interact() {
     for (let i=0; i<this.totalParticles; i++) {
       let A = this.particleIndex[this.particles[i]];
@@ -36,6 +45,9 @@ export default class MapperRegion {
     }
   }
 
+  /*
+   *  Draws the region on screen (debugging)
+   */
   draw(ctx) {
     ctx.beginPath();
     ctx.strokeStyle = "#FFFFFF";

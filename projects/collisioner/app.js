@@ -25,7 +25,7 @@ window.onload = () => {
 
 
   // Create particle fixtures
-  let particlesFixtures = new Array(500);
+  let particlesFixtures = new Array(1000);
 
   for (let i=0; i<particlesFixtures.length; i++) {
     let p = {
@@ -59,15 +59,11 @@ window.onload = () => {
   //   boxBounce: { w: width, h: height }
   // };
 
-  let regionSize = 15 * 4;
-  let pmanager = new ParticleManager({
-    regionDraw: false,
-  },
-  world,
-  ctx);
+  let regionSize = 20;
+  let pmanager = new ParticleManager({}, world, ctx);
 
   // Create interaction maps
-  pmanager.addInteractionMap('collision', 300, (a, b) => {
+  pmanager.addInteractionMap('collision', regionSize, (a, b) => {
     let collision = a.collisionCheck(b);
     if (collision) {
       a.collisionHandle(b, collision);

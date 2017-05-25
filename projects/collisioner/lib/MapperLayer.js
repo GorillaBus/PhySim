@@ -12,6 +12,9 @@ export default class MapperLayer {
     this.color = Utils.randomColor();
   }
 
+  /*
+   *  Creates a new Region in the Mapper
+   */
   addRegion(regionData) {
     let region = new Region({
       id: regionData.id,
@@ -25,6 +28,9 @@ export default class MapperLayer {
     this.regionIndex[regionData.id] = region;
   }
 
+  /*
+   *  Iterates all Layer Regions and fires it's interaction function
+   */
   iterate() {
     let totalRegions = this.regions.length;
     for (let x=0; x<totalRegions; x++) {

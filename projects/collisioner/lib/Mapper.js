@@ -8,6 +8,9 @@ export default class Mapper {
     this.layerIndex = {};
   }
 
+  /*
+   *  Creates a new Layer in the Mapper
+   */
   addLayer(id, regionSize, interactionFn) {
     let layer = new Layer({
       id: id,
@@ -21,6 +24,9 @@ export default class Mapper {
     return this.layerIndex[id];
   }
 
+  /*
+   *  Registers a particle in all the qualified regions of each Mapper Layer
+   */
   register(p) {
     let mapperData = [];
     let totalLayers = this.layers.length;
@@ -65,6 +71,9 @@ export default class Mapper {
     p.mapperData = mapperData;
   }
 
+  /*
+   *  Unsubscribe particle from every Layer/Region and reset particle's mapper data
+   */
   unregister(p) {
     let totalLayers = p.mapperData.length;
     for (let i=0; i<totalLayers; i++) {
@@ -78,10 +87,16 @@ export default class Mapper {
     this.reset(p);
   }
 
+  /*
+   *  Deletes all mapepr data from Particle
+   */
   reset(p) {
     p.mapperData = [];
   }
 
+  /*
+   *  Qualifies a single point into a Layer Region
+   */
   qualifyPoint(pt, layerId) {
     let regionSize = this.layerIndex[layerId].regionSize;
     let xComponent = pt.x > regionSize ? Math.floor(Math.abs(pt.x / regionSize)):0;

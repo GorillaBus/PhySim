@@ -10,22 +10,26 @@ export default class ParticleManager {
     this.mapper = new Mapper();
     this.interactionMaps = [];
     this.particles = [];
-    this.DEBUG_MODE = true;
+    this.DEBUG_MODE = settings.debug || false;
   }
 
   /*
-  *  Update loop - general
-  */
+   *  General Mapper update method
+   */
   update() {
     this.updateParticles();
     this.runInteractions();
   }
 
+  /*
+   *  Debugging: draws all regions and total particles on screen
+   */
   debugDrawRegions(displayParticleCount) {
     let totalLayers = this.mapper.layers.length;
     for (let i=0; i<totalLayers; i++) {
       let layer = this.mapper.layers[i];
       let totalRegions = layer.regions.length;
+
       for (let x=0; x<totalRegions; x++) {
         let region = layer.regions[x];
 
@@ -56,8 +60,8 @@ export default class ParticleManager {
   }
 
   /*
-  *  Update particle's state and interaction regions
-  */
+   *  Update particle's state
+   */
   updateParticles() {
     let totalParticles = this.particles.length;
     for (let i=0; i<totalParticles; i++) {
@@ -66,7 +70,7 @@ export default class ParticleManager {
       // Update particle position
       p.update();
 
-      // Qualify particle in the Mapper
+      // Register particle in the Mapper
       this.mapper.register(p);
     }
   }
@@ -80,8 +84,8 @@ export default class ParticleManager {
   }
 
   /*
-  *  Force interaction loop
-  */
+   *  Force interaction loop
+   */
   runInteractions() {
     let totalInteractions = this.mapper.layers.length;
     for (let i=0; i<totalInteractions; i++) {
@@ -90,64 +94,29 @@ export default class ParticleManager {
   }
 
   /*
-  *  Draw loop
-  */
+   *  Draw loop
+   */
   draw() {
-
     // Draw mapper regions (debugging)
     if (this.DEBUG_MODE) {
       this.debugDrawRegions(true);
     }
 
     // Draw particles
-    for (let i=0; i<this.particles.length; i++) {
-      let p0 = this.particles[i];
-
-      // Draw particle
-      p0.draw(this.ctx);
+    let totalParticles = this.particles.length;
+    for (let i=0; i<totalParticles; i++) {
+      this.particles[i].draw(this.ctx);
     }
   }
 
   /*
-  *  Add particles to the system - if total length is > 150000 or so, check:
-  */
+   *  Add particles to the system - if total length is > 150000 or so, check:
+   */
   addParticles(settings) {
-
     for (let i=0; i<settings.length; i++) {
       let particle = new Particle(settings[i]);
-
       particle.id = Utils.uniqueID();
-
-      if (particle.radius > this.greaterRadius) {
-        this.greaterRadius = particle.radius;
-      }
-
       this.particles.push(particle);
-    }
-  }
-
-  handleAttraction(p0) {
-    // TODO: Is this really necesary?
-    if (!p0.mapperRegions.hasOwnProperty('gravity')) {
-      return false;
-    }
-
-    for (let i=0; i<p0.mapperRegions['gravity'].length; i++) {
-      let rLabel = p0.mapperRegions['gravity'][i];
-      let region = this.mapper.layers['gravity'].regions[rLabel];
-      for (var r in region.particles) {
-
-        if (region.particles.hasOwnProperty(r)) {
-          let p1 = region.particles[r];
-
-          if (p0.id === p1.id) {
-            continue;
-          }
-
-          p0.gravitateTo(p1, this.world.G);
-
-        }
-      }
     }
   }
 
