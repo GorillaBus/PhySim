@@ -85,11 +85,7 @@ export default class ParticleManager {
   runInteractions() {
     let totalInteractions = this.mapper.layers.length;
     for (let i=0; i<totalInteractions; i++) {
-      let map = this.mapper.layers[i];
-      let totalRegions = map.regions.length;
-      for (let x=0; x<totalRegions; x++) {
-        map.regions[x].iterate(map.interaction);
-      }
+      this.mapper.layers[i].iterate();
     }
   }
 

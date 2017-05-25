@@ -24,7 +24,7 @@ export default class MapperRegion {
     this.totalParticles--;
   }
 
-  iterate() {
+  interact() {
     for (let i=0; i<this.totalParticles; i++) {
       let A = this.particleIndex[this.particles[i]];
       for (let y=0; y<this.totalParticles; y++) {

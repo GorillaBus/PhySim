@@ -25,4 +25,10 @@ export default class MapperLayer {
     this.regionIndex[regionData.id] = region;
   }
 
+  iterate() {
+    let totalRegions = this.regions.length;
+    for (let x=0; x<totalRegions; x++) {
+      this.regions[x].interact();
+    }
+  }
 }
