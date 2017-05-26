@@ -1,6 +1,7 @@
 import Utils from '../../src/lib/Utils';
 import AnimationPlayer from '../../src/lib/AnimationPlayer';
 import ParticleManager from './lib/ParticleManager';
+import Matter from './matter';
 
 window.onload = () => {
 
@@ -25,17 +26,23 @@ window.onload = () => {
 
 
   // Create particle fixtures
-  let particlesFixtures = new Array(1000);
+  let particlesFixtures = new Array(1200);
+  let matterTypes = Object.keys(Matter);
+  let totalMatterTypes = matterTypes.length;
 
   for (let i=0; i<particlesFixtures.length; i++) {
+
+    let randomMatter = Math.floor(Math.random() * totalMatterTypes) + 0;
+    let matterType = matterTypes[randomMatter];
+
     let p = {
         x: Utils.randomRange(50, width-50),
         y: Utils.randomRange(50, height-50),
-        mass: Utils.randomRange(3, 10),
+        mass: Utils.randomRange(1, 3),
         direction: Utils.randomRange(-1, 1),
         speed: Utils.randomRange(0.5, 1),
-        boxBounce: { w: width, h: height },
-        //color: Utils.randomColor()
+        matter: matterType,
+        boxBounce: { w: width, h: height }
     };
 
     particlesFixtures[i] = p;
@@ -59,7 +66,7 @@ window.onload = () => {
   //   boxBounce: { w: width, h: height }
   // };
 
-  let regionSize = 20;
+  let regionSize = 200;
   let pmanager = new ParticleManager({}, world, ctx);
 
   // Create interaction maps

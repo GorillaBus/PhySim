@@ -1,11 +1,16 @@
 import FEATURE_TOGGLE from '../../../src/feature-toggle';
 import Particle from '../../../src/lib/Particle';
+import Matter from '../matter.js';
+
 
 export default class ParticleExt extends Particle {
 
     constructor(settings) {
       super(settings);
 
+      this.matter = Matter[settings.matter] || Matter.neutral;
+      this.color = this.matter.color;
+      this.radius = this.mass / this.matter.density;
       this.mapperData = [];
       this.points = settings.points || [];
     }
@@ -22,7 +27,6 @@ export default class ParticleExt extends Particle {
         Check for Circle-Circle collisions and return details
     */
     collisionCheck(p) {
-
       // Calculate the Distance Vector
       let xDist = this.x - p.x;
       let yDist = this.y - p.y;
@@ -49,7 +53,6 @@ export default class ParticleExt extends Particle {
           return collision;
         }
       }
-
       return false;
     }
 
