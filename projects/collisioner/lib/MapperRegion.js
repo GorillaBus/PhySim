@@ -38,9 +38,10 @@ export default class MapperRegion {
       let A = this.particleIndex[this.particles[i]];
       for (let y=0; y<this.totalParticles; y++) {
         let B = this.particleIndex[this.particles[y]];
-        if (A.id !== B.id) {
-          this.layer.interaction(A, B);
+        if (A.id === B.id) {
+          continue;
         }
+        this.layer.interaction(A, B);
       }
     }
   }
