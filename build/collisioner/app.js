@@ -13,6 +13,10 @@ var _ParticleManager = require('./lib/ParticleManager');
 
 var _ParticleManager2 = _interopRequireDefault(_ParticleManager);
 
+var _matter = require('./matter');
+
+var _matter2 = _interopRequireDefault(_matter);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 window.onload = function () {
@@ -35,15 +39,22 @@ window.onload = function () {
   var player = new _AnimationPlayer2.default({ fps: 60 });
 
   // Create particle fixtures
-  var particlesFixtures = new Array(500);
+  var particlesFixtures = new Array(1200);
+  var matterTypes = Object.keys(_matter2.default);
+  var totalMatterTypes = matterTypes.length;
 
   for (var i = 0; i < particlesFixtures.length; i++) {
+
+    var randomMatter = Math.floor(Math.random() * totalMatterTypes) + 0;
+    var matterType = matterTypes[randomMatter];
+
     var p = {
       x: _Utils2.default.randomRange(50, width - 50),
       y: _Utils2.default.randomRange(50, height - 50),
-      mass: _Utils2.default.randomRange(3, 10),
+      mass: _Utils2.default.randomRange(1, 3),
       direction: _Utils2.default.randomRange(-1, 1),
       speed: _Utils2.default.randomRange(0.5, 1),
+      matter: matterType,
       boxBounce: { w: width, h: height }
     };
 
@@ -68,13 +79,11 @@ window.onload = function () {
   //   boxBounce: { w: width, h: height }
   // };
 
-  var regionSize = 15 * 4;
-  var pmanager = new _ParticleManager2.default({
-    regionDraw: false
-  }, world, ctx);
+  var regionSize = 200;
+  var pmanager = new _ParticleManager2.default({}, world, ctx);
 
   // Create interaction maps
-  pmanager.addInteractionMap('collision', 300, function (a, b) {
+  pmanager.addInteractionMap('collision', regionSize, function (a, b) {
     var collision = a.collisionCheck(b);
     if (collision) {
       a.collisionHandle(b, collision);
@@ -102,7 +111,7 @@ window.onload = function () {
   }
 };
 
-},{"../../src/lib/AnimationPlayer":8,"../../src/lib/Utils":10,"./lib/ParticleManager":6}],2:[function(require,module,exports){
+},{"../../src/lib/AnimationPlayer":9,"../../src/lib/Utils":11,"./lib/ParticleManager":6,"./matter":7}],2:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -131,6 +140,11 @@ var Mapper = function () {
     this.layerIndex = {};
   }
 
+  /*
+   *  Creates a new Layer in the Mapper
+   */
+
+
   _createClass(Mapper, [{
     key: 'addLayer',
     value: function addLayer(id, regionSize, interactionFn) {
@@ -145,6 +159,11 @@ var Mapper = function () {
 
       return this.layerIndex[id];
     }
+
+    /*
+     *  Registers a particle in all the qualified regions of each Mapper Layer
+     */
+
   }, {
     key: 'register',
     value: function register(p) {
@@ -190,6 +209,11 @@ var Mapper = function () {
 
       p.mapperData = mapperData;
     }
+
+    /*
+     *  Unsubscribe particle from every Layer/Region and reset particle's mapper data
+     */
+
   }, {
     key: 'unregister',
     value: function unregister(p) {
@@ -204,11 +228,21 @@ var Mapper = function () {
 
       this.reset(p);
     }
+
+    /*
+     *  Deletes all mapepr data from Particle
+     */
+
   }, {
     key: 'reset',
     value: function reset(p) {
       p.mapperData = [];
     }
+
+    /*
+     *  Qualifies a single point into a Layer Region
+     */
+
   }, {
     key: 'qualifyPoint',
     value: function qualifyPoint(pt, layerId) {
@@ -230,7 +264,7 @@ var Mapper = function () {
 
 exports.default = Mapper;
 
-},{"../../../src/lib/Utils":10,"./MapperLayer":3}],3:[function(require,module,exports){
+},{"../../../src/lib/Utils":11,"./MapperLayer":3}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -263,6 +297,11 @@ var MapperLayer = function () {
     this.color = _Utils2.default.randomColor();
   }
 
+  /*
+   *  Creates a new Region in the Mapper
+   */
+
+
   _createClass(MapperLayer, [{
     key: 'addRegion',
     value: function addRegion(regionData) {
@@ -277,6 +316,19 @@ var MapperLayer = function () {
       this.regions.push(region);
       this.regionIndex[regionData.id] = region;
     }
+
+    /*
+     *  Iterates all Layer Regions and fires it's interaction function
+     */
+
+  }, {
+    key: 'iterate',
+    value: function iterate() {
+      var totalRegions = this.regions.length;
+      for (var x = 0; x < totalRegions; x++) {
+        this.regions[x].interact();
+      }
+    }
   }]);
 
   return MapperLayer;
@@ -284,7 +336,7 @@ var MapperLayer = function () {
 
 exports.default = MapperLayer;
 
-},{"../../../src/lib/Utils":10,"./MapperRegion":4}],4:[function(require,module,exports){
+},{"../../../src/lib/Utils":11,"./MapperRegion":4}],4:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -309,6 +361,11 @@ var MapperRegion = function () {
     this.particleIndex = {};
   }
 
+  /*
+   *  Subscribes a Particle to the Region
+   */
+
+
   _createClass(MapperRegion, [{
     key: "subscribe",
     value: function subscribe(p) {
@@ -316,6 +373,11 @@ var MapperRegion = function () {
       this.particleIndex[p.id] = p;
       this.totalParticles++;
     }
+
+    /*
+     *  Unsubscribes a Particle from the Region
+     */
+
   }, {
     key: "unsubscribe",
     value: function unsubscribe(p) {
@@ -324,19 +386,30 @@ var MapperRegion = function () {
       this.particles.splice(index, 1);
       this.totalParticles--;
     }
+
+    /*
+     *  Iterates through al particles running the interaction function
+     */
+
   }, {
-    key: "iterate",
-    value: function iterate() {
+    key: "interact",
+    value: function interact() {
       for (var i = 0; i < this.totalParticles; i++) {
         var A = this.particleIndex[this.particles[i]];
         for (var y = 0; y < this.totalParticles; y++) {
           var B = this.particleIndex[this.particles[y]];
-          if (A.id !== B.id) {
-            this.layer.interaction(A, B);
+          if (A.id === B.id) {
+            continue;
           }
+          this.layer.interaction(A, B);
         }
       }
     }
+
+    /*
+     *  Draws the region on screen (debugging)
+     */
+
   }, {
     key: "draw",
     value: function draw(ctx) {
@@ -372,6 +445,10 @@ var _Particle2 = require('../../../src/lib/Particle');
 
 var _Particle3 = _interopRequireDefault(_Particle2);
 
+var _matter = require('../matter.js');
+
+var _matter2 = _interopRequireDefault(_matter);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -388,6 +465,9 @@ var ParticleExt = function (_Particle) {
 
     var _this = _possibleConstructorReturn(this, (ParticleExt.__proto__ || Object.getPrototypeOf(ParticleExt)).call(this, settings));
 
+    _this.matter = _matter2.default[settings.matter] || _matter2.default.neutral;
+    _this.color = _this.matter.color;
+    _this.radius = _this.mass / _this.matter.density;
     _this.mapperData = [];
     _this.points = settings.points || [];
     return _this;
@@ -410,7 +490,6 @@ var ParticleExt = function (_Particle) {
   }, {
     key: 'collisionCheck',
     value: function collisionCheck(p) {
-
       // Calculate the Distance Vector
       var xDist = this.x - p.x;
       var yDist = this.y - p.y;
@@ -437,7 +516,6 @@ var ParticleExt = function (_Particle) {
           return collision;
         }
       }
-
       return false;
     }
 
@@ -467,7 +545,7 @@ var ParticleExt = function (_Particle) {
 
 exports.default = ParticleExt;
 
-},{"../../../src/feature-toggle":7,"../../../src/lib/Particle":9}],6:[function(require,module,exports){
+},{"../../../src/feature-toggle":8,"../../../src/lib/Particle":10,"../matter.js":7}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -501,12 +579,12 @@ var ParticleManager = function () {
     this.mapper = new _Mapper2.default();
     this.interactionMaps = [];
     this.particles = [];
-    this.DEBUG_MODE = true;
+    this.DEBUG_MODE = settings.debug || false;
   }
 
   /*
-  *  Update loop - general
-  */
+   *  General Mapper update method
+   */
 
 
   _createClass(ParticleManager, [{
@@ -515,6 +593,11 @@ var ParticleManager = function () {
       this.updateParticles();
       this.runInteractions();
     }
+
+    /*
+     *  Debugging: draws all regions and total particles on screen
+     */
+
   }, {
     key: 'debugDrawRegions',
     value: function debugDrawRegions(displayParticleCount) {
@@ -522,6 +605,7 @@ var ParticleManager = function () {
       for (var i = 0; i < totalLayers; i++) {
         var layer = this.mapper.layers[i];
         var totalRegions = layer.regions.length;
+
         for (var x = 0; x < totalRegions; x++) {
           var region = layer.regions[x];
 
@@ -552,8 +636,8 @@ var ParticleManager = function () {
     }
 
     /*
-    *  Update particle's state and interaction regions
-    */
+     *  Update particle's state
+     */
 
   }, {
     key: 'updateParticles',
@@ -565,7 +649,7 @@ var ParticleManager = function () {
         // Update particle position
         p.update();
 
-        // Qualify particle in the Mapper
+        // Register particle in the Mapper
         this.mapper.register(p);
       }
     }
@@ -582,87 +666,48 @@ var ParticleManager = function () {
     }
 
     /*
-    *  Force interaction loop
-    */
+     *  Force interaction loop
+     */
 
   }, {
     key: 'runInteractions',
     value: function runInteractions() {
       var totalInteractions = this.mapper.layers.length;
       for (var i = 0; i < totalInteractions; i++) {
-        var map = this.mapper.layers[i];
-        var totalRegions = map.regions.length;
-        for (var x = 0; x < totalRegions; x++) {
-          map.regions[x].iterate(map.interaction);
-        }
+        this.mapper.layers[i].iterate();
       }
     }
 
     /*
-    *  Draw loop
-    */
+     *  Draw loop
+     */
 
   }, {
     key: 'draw',
     value: function draw() {
-
       // Draw mapper regions (debugging)
       if (this.DEBUG_MODE) {
         this.debugDrawRegions(true);
       }
 
       // Draw particles
-      for (var i = 0; i < this.particles.length; i++) {
-        var p0 = this.particles[i];
-
-        // Draw particle
-        p0.draw(this.ctx);
+      var totalParticles = this.particles.length;
+      for (var i = 0; i < totalParticles; i++) {
+        this.particles[i].draw(this.ctx);
       }
     }
 
     /*
-    *  Add particles to the system - if total length is > 150000 or so, check:
-    */
+     *  Add particles to the system - if total length is > 150000 or so, check:
+     */
 
   }, {
     key: 'addParticles',
     value: function addParticles(settings) {
-
       for (var i = 0; i < settings.length; i++) {
         var particle = new _ParticleExt2.default(settings[i]);
-
         particle.id = _Utils2.default.uniqueID();
-
-        if (particle.radius > this.greaterRadius) {
-          this.greaterRadius = particle.radius;
-        }
-
         this.particles.push(particle);
-      }
-    }
-  }, {
-    key: 'handleAttraction',
-    value: function handleAttraction(p0) {
-      // TODO: Is this really necesary?
-      if (!p0.mapperRegions.hasOwnProperty('gravity')) {
-        return false;
-      }
-
-      for (var i = 0; i < p0.mapperRegions['gravity'].length; i++) {
-        var rLabel = p0.mapperRegions['gravity'][i];
-        var region = this.mapper.layers['gravity'].regions[rLabel];
-        for (var r in region.particles) {
-
-          if (region.particles.hasOwnProperty(r)) {
-            var p1 = region.particles[r];
-
-            if (p0.id === p1.id) {
-              continue;
-            }
-
-            p0.gravitateTo(p1, this.world.G);
-          }
-        }
       }
     }
   }]);
@@ -672,7 +717,36 @@ var ParticleManager = function () {
 
 exports.default = ParticleManager;
 
-},{"../../../src/lib/Utils":10,"./Mapper":2,"./ParticleExt":5}],7:[function(require,module,exports){
+},{"../../../src/lib/Utils":11,"./Mapper":2,"./ParticleExt":5}],7:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = {
+  neutral: {
+    density: 1,
+    color: "rgba(0,0,0,0.6)"
+  },
+  iron: {
+    density: 1.7874,
+    color: "#434b4d"
+  },
+  sand: {
+    density: 1.1553,
+    color: "#c2b280"
+  },
+  water: {
+    density: 0.9997,
+    color: "#40a4df"
+  },
+  air: {
+    density: 0.1257,
+    color: "#73d8ed"
+  }
+};
+
+},{}],8:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -692,7 +766,7 @@ var FEATURE_TOGGLE = {
 
 exports.default = FEATURE_TOGGLE;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -814,7 +888,7 @@ var AnimationPlayer = function () {
 
 exports.default = AnimationPlayer;
 
-},{"../../src/feature-toggle":7}],9:[function(require,module,exports){
+},{"../../src/feature-toggle":8}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1118,7 +1192,7 @@ var Particle = function () {
 
 exports.default = Particle;
 
-},{"../../src/feature-toggle":7}],10:[function(require,module,exports){
+},{"../../src/feature-toggle":8}],11:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1309,7 +1383,7 @@ var instance = new Utils();
 
 exports.default = instance;
 
-},{"../../src/feature-toggle":7}]},{},[1])
+},{"../../src/feature-toggle":8}]},{},[1])
 
 
 //# sourceMappingURL=app.js.map
