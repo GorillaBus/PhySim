@@ -53,7 +53,7 @@ window.onload = function () {
       y: _Utils2.default.randomRange(50, height - 50),
       mass: _Utils2.default.randomRange(1, 3),
       direction: _Utils2.default.randomRange(-1, 1),
-      speed: _Utils2.default.randomRange(0.5, 1),
+      //speed: Utils.randomRange(0.5, 1),
       matter: matterType,
       boxBounce: { w: width, h: height }
     };
@@ -79,16 +79,16 @@ window.onload = function () {
   //   boxBounce: { w: width, h: height }
   // };
 
-  var regionSize = 200;
-  var pmanager = new _ParticleManager2.default({}, world, ctx);
+  var pmanager = new _ParticleManager2.default({
+    debug: false
+  }, world, ctx);
 
   // Create interaction maps
-  pmanager.addInteractionMap('collision', regionSize, function (a, b) {
-    var collision = a.collisionCheck(b);
-    if (collision) {
-      a.collisionHandle(b, collision);
-    }
-  });
+  // TODO: Check what happens with duplicated layers.
+  var collisionRegionSize = 200;
+  var gravityRegionSize = width / 4;
+  pmanager.addInteractionMap('collision', collisionRegionSize, 'collision');
+  pmanager.addInteractionMap('gravity', gravityRegionSize, 'gravity');
 
   // Add particlesFixtures into the Mapper
   pmanager.addParticles(particlesFixtures);
@@ -111,7 +111,25 @@ window.onload = function () {
   }
 };
 
-},{"../../src/lib/AnimationPlayer":9,"../../src/lib/Utils":11,"./lib/ParticleManager":6,"./matter":7}],2:[function(require,module,exports){
+},{"../../src/lib/AnimationPlayer":10,"../../src/lib/Utils":12,"./lib/ParticleManager":7,"./matter":8}],2:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = {
+  'gravity': function gravity(a, b) {
+    a.gravitateTo(b);
+  },
+  'collision': function collision(a, b) {
+    var collision = a.collisionCheck(b);
+    if (collision) {
+      a.collisionHandle(b, collision);
+    }
+  }
+};
+
+},{}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -119,6 +137,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _interactions = require('../interactions');
+
+var _interactions2 = _interopRequireDefault(_interactions);
 
 var _Utils = require('../../../src/lib/Utils');
 
@@ -148,6 +170,13 @@ var Mapper = function () {
   _createClass(Mapper, [{
     key: 'addLayer',
     value: function addLayer(id, regionSize, interactionFn) {
+
+      if (typeof interactionFn === 'string' && _interactions2.default.hasOwnProperty(interactionFn)) {
+        interactionFn = _interactions2.default[interactionFn];
+      } else {
+        console.warn('Mapper.addLayer: ' + interactionFn + ' is not a predefined Interaction');
+      }
+
       var layer = new _MapperLayer2.default({
         id: id,
         regionSize: regionSize,
@@ -264,7 +293,7 @@ var Mapper = function () {
 
 exports.default = Mapper;
 
-},{"../../../src/lib/Utils":11,"./MapperLayer":3}],3:[function(require,module,exports){
+},{"../../../src/lib/Utils":12,"../interactions":2,"./MapperLayer":4}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -336,7 +365,7 @@ var MapperLayer = function () {
 
 exports.default = MapperLayer;
 
-},{"../../../src/lib/Utils":11,"./MapperRegion":4}],4:[function(require,module,exports){
+},{"../../../src/lib/Utils":12,"./MapperRegion":5}],5:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -428,7 +457,7 @@ var MapperRegion = function () {
 
 exports.default = MapperRegion;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -545,7 +574,7 @@ var ParticleExt = function (_Particle) {
 
 exports.default = ParticleExt;
 
-},{"../../../src/feature-toggle":8,"../../../src/lib/Particle":10,"../matter.js":7}],6:[function(require,module,exports){
+},{"../../../src/feature-toggle":9,"../../../src/lib/Particle":11,"../matter.js":8}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -717,7 +746,7 @@ var ParticleManager = function () {
 
 exports.default = ParticleManager;
 
-},{"../../../src/lib/Utils":11,"./Mapper":2,"./ParticleExt":5}],7:[function(require,module,exports){
+},{"../../../src/lib/Utils":12,"./Mapper":3,"./ParticleExt":6}],8:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -746,7 +775,7 @@ exports.default = {
   }
 };
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -766,7 +795,7 @@ var FEATURE_TOGGLE = {
 
 exports.default = FEATURE_TOGGLE;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -888,7 +917,7 @@ var AnimationPlayer = function () {
 
 exports.default = AnimationPlayer;
 
-},{"../../src/feature-toggle":8}],10:[function(require,module,exports){
+},{"../../src/feature-toggle":9}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1192,7 +1221,7 @@ var Particle = function () {
 
 exports.default = Particle;
 
-},{"../../src/feature-toggle":8}],11:[function(require,module,exports){
+},{"../../src/feature-toggle":9}],12:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1383,7 +1412,7 @@ var instance = new Utils();
 
 exports.default = instance;
 
-},{"../../src/feature-toggle":8}]},{},[1])
+},{"../../src/feature-toggle":9}]},{},[1])
 
 
 //# sourceMappingURL=app.js.map
