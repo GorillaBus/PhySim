@@ -7,7 +7,7 @@ class Utils {
   }
 
   cacheStore(caller, key, value) {
-    if (!this.cache.hasOwnProperty(caller)) {
+    if (this.cache[caller] !== true) {
       this.cache[caller] = {};
     }
     this.cache[caller][key] = value;
