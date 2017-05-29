@@ -17,7 +17,7 @@ export default class Particle {
         this.friction = settings.friction || 1;
         this.springs = [];
         this.gravitations = [];
-
+        this.positionUpdated = false;
         this.color = settings.color || 'rgba(0,0,0,0.6)';
         this.boxBounce = settings.boxBounce || false;
     }
@@ -26,6 +26,10 @@ export default class Particle {
      *  Updates the state of the particle
      */
     update() {
+        let x = this.x;
+        let y = this.y;
+        this.positionUpdated = false;
+
         this.handleSprings();
         this.handleGravitations();
         this.vy += this.gravity;
@@ -36,6 +40,10 @@ export default class Particle {
 
         if (this.boxBounce) {
           this.checkBorders(this.boxBounce.w, this.boxBounce.h);
+        }
+
+        if (x !== this.x || y !== this.y) {
+          this.positionUpdated = true;
         }
     }
 

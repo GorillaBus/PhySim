@@ -51,18 +51,15 @@ window.onload = () => {
   // particlesFixtures[0] = {
   //   x: center.x-100,
   //   y: center.y,
-  //   radius: 16,
-  //   // direction: Math.PI*2,
-  //   // speed: 10,
-  //   // color: "rgba(0, 255, 0, 0.5)",
+  //   mass: 23,
+  //   color: "rgba(0, 255, 0, 0.5)",
   //   boxBounce: { w: width, h: height }
   // };
   //
   // particlesFixtures[1] = {
   //   x: center.x+100,
   //   y: center.y,
-  //   // radius: 16,
-  //   // direction: Math.PI,
+  //   mass: 23,
   //   boxBounce: { w: width, h: height }
   // };
 

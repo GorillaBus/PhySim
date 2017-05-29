@@ -13,6 +13,15 @@ export default class ParticleExt extends Particle {
       this.radius = this.mass / this.matter.density;
       this.mapperData = [];
       this.points = settings.points || [];
+      this.cache = {
+        // <id>: {
+        //   particle: <ref to particle>,
+        //   cached: {
+        //     <method1>: <value1>,
+        //     <method2>: <value2>
+        //   }
+        // }
+      };
     }
 
     draw(ctx) {
@@ -28,8 +37,9 @@ export default class ParticleExt extends Particle {
     */
     collisionCheck(p) {
       // Calculate the Distance Vector
-      let xDist = this.x - p.x;
-      let yDist = this.y - p.y;
+      let distUnSQ = this.distanceToUnsquared(p);
+      let xDist = distUnSQ.dx * -1;
+      let yDist = distUnSQ.dy * -1;
       let distSquared = xDist*xDist + yDist*yDist;
       let radiusSquared = (this.radius + p.radius) * (this.radius + p.radius);
 
@@ -71,5 +81,113 @@ export default class ParticleExt extends Particle {
       this.vy += collisionWeight0 * collisionVector.y;
       p.vx -= collisionWeight1 * collisionVector.x;
       p.vy -= collisionWeight1 * collisionVector.y;
+    }
+
+
+    /*
+     *  Calculates and applies a gravitation vector to a given particle
+     */
+     gravitateTo(p, gravityFactor) {
+         gravityFactor = gravityFactor || 0.04;
+
+         let radiusSum = this.radius + p.radius;
+         let massFactor = this.mass * p.mass;
+
+         let distUnSQ = this.distanceToUnsquared(p);
+         let xDist = distUnSQ.dx;
+         let yDist = distUnSQ.dy;
+
+        //  let xDist = p.x - this.x;
+        //  let yDist = p.y - this.y;
+
+         let distSQ = (xDist * xDist) + (yDist * yDist);
+         let dist = Math.sqrt(distSQ);
+         let surfaceDist = dist - radiusSum;
+
+         // Cancel gravitation once objects collide
+         // TODO: Verify if we can save the Math.sqrt() comparing squares
+         if (dist < radiusSum + 5) {
+           return;
+         }
+
+         //let force = (p.mass) / distSQ; // Force = mass / square of the distance
+         let force = gravityFactor * massFactor / (surfaceDist * surfaceDist);
+
+         let ax = (xDist / surfaceDist) * force;
+         let ay = (yDist / surfaceDist) * force;
+
+         this.vx += ax;
+         this.vy += ay;
+     }
+
+    /*
+     *  Calculates the distance to a given particle
+     */
+    distanceToUnsquared(p) {
+      let result;
+      if ((result = this.getCached(p.id, 'distanceToUnsquared'))) {
+        return result;
+      }
+      result = {
+        dx: p.x - this.x,
+        dy: p.y - this.y
+      };
+      this.setCached(p, 'distanceToUnsquared', result);
+      return result;
+    }
+
+    setCached(particle, method, value) {
+
+      let peerValue = value;
+      switch (method) {
+        case 'distanceToUnsquared':
+          peerValue *= -1;
+        break;
+      }
+
+      this.registerCache(particle, method, value);
+      particle.registerCache(this, method, peerValue);
+    }
+
+    getCached(particleId, method) {
+      if (this.isCached(particleId, method)) {
+        return this.cache[particleId].cached[method];
+      }
+      return false;
+    }
+
+    registerCache(p, method, value) {
+      if (typeof this.cache[p.id] === 'undefined') {
+        this.cache[p.id] = {
+          particle: p,
+          cached: {}
+        };
+      }
+      this.cache[p.id].cached[method] = value;
+    }
+
+    resetCache() {
+      this.cache = {};
+    }
+
+    delCached(particleId) {
+      delete this.cache[particleId];
+    }
+
+    isCached(particleId, method) {
+      let particleCached = typeof this.cache[particleId] !== 'undefined';
+      if (particleCached) {
+        let imCached = typeof this.cache[particleId].particle.cache[this.id] !== 'undefined';
+        if (imCached) {
+          let methodCached = typeof this.cache[particleId].cached[method] !== 'undefined';
+          if (methodCached) {
+            return true;
+          }
+        }
+        // If particleId is cached but self is not cached in particleId, then delete local cache
+        this.delCached(particleId);
+      }
+
+      return false;
     }
 }

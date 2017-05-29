@@ -70,6 +70,10 @@ export default class ParticleManager {
       // Update particle position
       p.update();
 
+      if (p.positionUpdated) {
+        p.resetCache();
+      }
+
       // Register particle in the Mapper
       this.mapper.register(p);
     }

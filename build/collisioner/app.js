@@ -64,18 +64,15 @@ window.onload = function () {
   // particlesFixtures[0] = {
   //   x: center.x-100,
   //   y: center.y,
-  //   radius: 16,
-  //   // direction: Math.PI*2,
-  //   // speed: 10,
-  //   // color: "rgba(0, 255, 0, 0.5)",
+  //   mass: 23,
+  //   color: "rgba(0, 255, 0, 0.5)",
   //   boxBounce: { w: width, h: height }
   // };
   //
   // particlesFixtures[1] = {
   //   x: center.x+100,
   //   y: center.y,
-  //   // radius: 16,
-  //   // direction: Math.PI,
+  //   mass: 23,
   //   boxBounce: { w: width, h: height }
   // };
 
@@ -499,6 +496,15 @@ var ParticleExt = function (_Particle) {
     _this.radius = _this.mass / _this.matter.density;
     _this.mapperData = [];
     _this.points = settings.points || [];
+    _this.cache = {
+      // <id>: {
+      //   particle: <ref to particle>,
+      //   cached: {
+      //     <method1>: <value1>,
+      //     <method2>: <value2>
+      //   }
+      // }
+    };
     return _this;
   }
 
@@ -520,8 +526,9 @@ var ParticleExt = function (_Particle) {
     key: 'collisionCheck',
     value: function collisionCheck(p) {
       // Calculate the Distance Vector
-      var xDist = this.x - p.x;
-      var yDist = this.y - p.y;
+      var distUnSQ = this.distanceToUnsquared(p);
+      var xDist = distUnSQ.dx * -1;
+      var yDist = distUnSQ.dy * -1;
       var distSquared = xDist * xDist + yDist * yDist;
       var radiusSquared = (this.radius + p.radius) * (this.radius + p.radius);
 
@@ -566,6 +573,125 @@ var ParticleExt = function (_Particle) {
       this.vy += collisionWeight0 * collisionVector.y;
       p.vx -= collisionWeight1 * collisionVector.x;
       p.vy -= collisionWeight1 * collisionVector.y;
+    }
+
+    /*
+     *  Calculates and applies a gravitation vector to a given particle
+     */
+
+  }, {
+    key: 'gravitateTo',
+    value: function gravitateTo(p, gravityFactor) {
+      gravityFactor = gravityFactor || 0.04;
+
+      var radiusSum = this.radius + p.radius;
+      var massFactor = this.mass * p.mass;
+
+      var distUnSQ = this.distanceToUnsquared(p);
+      var xDist = distUnSQ.dx;
+      var yDist = distUnSQ.dy;
+
+      //  let xDist = p.x - this.x;
+      //  let yDist = p.y - this.y;
+
+      var distSQ = xDist * xDist + yDist * yDist;
+      var dist = Math.sqrt(distSQ);
+      var surfaceDist = dist - radiusSum;
+
+      // Cancel gravitation once objects collide
+      // TODO: Verify if we can save the Math.sqrt() comparing squares
+      if (dist < radiusSum + 5) {
+        return;
+      }
+
+      //let force = (p.mass) / distSQ; // Force = mass / square of the distance
+      var force = gravityFactor * massFactor / (surfaceDist * surfaceDist);
+
+      var ax = xDist / surfaceDist * force;
+      var ay = yDist / surfaceDist * force;
+
+      this.vx += ax;
+      this.vy += ay;
+    }
+
+    /*
+     *  Calculates the distance to a given particle
+     */
+
+  }, {
+    key: 'distanceToUnsquared',
+    value: function distanceToUnsquared(p) {
+      var result = void 0;
+      if (result = this.getCached(p.id, 'distanceToUnsquared')) {
+        return result;
+      }
+      result = {
+        dx: p.x - this.x,
+        dy: p.y - this.y
+      };
+      this.setCached(p, 'distanceToUnsquared', result);
+      return result;
+    }
+  }, {
+    key: 'setCached',
+    value: function setCached(particle, method, value) {
+
+      var peerValue = value;
+      switch (method) {
+        case 'distanceToUnsquared':
+          peerValue *= -1;
+          break;
+      }
+
+      this.registerCache(particle, method, value);
+      particle.registerCache(this, method, peerValue);
+    }
+  }, {
+    key: 'getCached',
+    value: function getCached(particleId, method) {
+      if (this.isCached(particleId, method)) {
+        return this.cache[particleId].cached[method];
+      }
+      return false;
+    }
+  }, {
+    key: 'registerCache',
+    value: function registerCache(p, method, value) {
+      if (typeof this.cache[p.id] === 'undefined') {
+        this.cache[p.id] = {
+          particle: p,
+          cached: {}
+        };
+      }
+      this.cache[p.id].cached[method] = value;
+    }
+  }, {
+    key: 'resetCache',
+    value: function resetCache() {
+      this.cache = {};
+    }
+  }, {
+    key: 'delCached',
+    value: function delCached(particleId) {
+      delete this.cache[particleId];
+    }
+  }, {
+    key: 'isCached',
+    value: function isCached(particleId, method) {
+      var particleCached = typeof this.cache[particleId] !== 'undefined';
+      if (particleCached) {
+        var imCached = typeof this.cache[particleId].particle.cache[this.id] !== 'undefined';
+        if (imCached) {
+          var methodCached = typeof this.cache[particleId].cached[method] !== 'undefined';
+          if (methodCached) {
+            return true;
+          }
+        }
+        // If particleId is cached but self is not cached in particleId, then delete local cache
+        this.delCached(particleId);
+      }
+
+      return false;
     }
   }]);
 
@@ -677,6 +803,10 @@ var ParticleManager = function () {
 
         // Update particle position
         p.update();
+
+        if (p.positionUpdated) {
+          p.resetCache();
+        }
 
         // Register particle in the Mapper
         this.mapper.register(p);
@@ -953,7 +1083,7 @@ var Particle = function () {
         this.friction = settings.friction || 1;
         this.springs = [];
         this.gravitations = [];
-
+        this.positionUpdated = false;
         this.color = settings.color || 'rgba(0,0,0,0.6)';
         this.boxBounce = settings.boxBounce || false;
     }
@@ -966,6 +1096,10 @@ var Particle = function () {
     _createClass(Particle, [{
         key: 'update',
         value: function update() {
+            var x = this.x;
+            var y = this.y;
+            this.positionUpdated = false;
+
             this.handleSprings();
             this.handleGravitations();
             this.vy += this.gravity;
@@ -976,6 +1110,10 @@ var Particle = function () {
 
             if (this.boxBounce) {
                 this.checkBorders(this.boxBounce.w, this.boxBounce.h);
+            }
+
+            if (x !== this.x || y !== this.y) {
+                this.positionUpdated = true;
             }
         }
 
@@ -1248,7 +1386,7 @@ var Utils = function () {
   _createClass(Utils, [{
     key: "cacheStore",
     value: function cacheStore(caller, key, value) {
-      if (!this.cache.hasOwnProperty(caller)) {
+      if (this.cache[caller] !== true) {
         this.cache[caller] = {};
       }
       this.cache[caller][key] = value;
