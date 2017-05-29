@@ -40,7 +40,7 @@ window.onload = () => {
         y: Utils.randomRange(50, height-50),
         mass: Utils.randomRange(1, 3),
         direction: Utils.randomRange(-1, 1),
-        speed: Utils.randomRange(0.5, 1),
+        //speed: Utils.randomRange(0.5, 1),
         matter: matterType,
         boxBounce: { w: width, h: height }
     };
@@ -66,16 +66,16 @@ window.onload = () => {
   //   boxBounce: { w: width, h: height }
   // };
 
-  let regionSize = 200;
-  let pmanager = new ParticleManager({}, world, ctx);
+  let pmanager = new ParticleManager({
+    debug: false
+  }, world, ctx);
 
   // Create interaction maps
-  pmanager.addInteractionMap('collision', regionSize, (a, b) => {
-    let collision = a.collisionCheck(b);
-    if (collision) {
-      a.collisionHandle(b, collision);
-    }
-  });
+  // TODO: Check what happens with duplicated layers.
+  let collisionRegionSize = 200;
+  let gravityRegionSize = width/4;
+  pmanager.addInteractionMap('collision', collisionRegionSize, 'collision');
+  pmanager.addInteractionMap('gravity', gravityRegionSize, 'gravity');
 
   // Add particlesFixtures into the Mapper
   pmanager.addParticles(particlesFixtures);

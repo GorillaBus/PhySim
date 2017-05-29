@@ -1,3 +1,4 @@
+import Interactions from '../interactions';
 import Utils from '../../../src/lib/Utils';
 import Layer from './MapperLayer';
 
@@ -12,6 +13,13 @@ export default class Mapper {
    *  Creates a new Layer in the Mapper
    */
   addLayer(id, regionSize, interactionFn) {
+
+    if (typeof interactionFn === 'string' && Interactions.hasOwnProperty(interactionFn)) {
+      interactionFn = Interactions[interactionFn];
+    } else {
+      console.warn('Mapper.addLayer: '+ interactionFn +' is not a predefined Interaction');
+    }
+
     let layer = new Layer({
       id: id,
       regionSize: regionSize,
