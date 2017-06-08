@@ -1,22 +1,27 @@
 export default {
   neutral: {
     density: 1,
-    color: "rgba(0,0,0,0.6)"
+    color: "white",//"rgba(0,0,0,0.6)",
+    restitution: 1
   },
   iron: {
     density: 1.7874,
-    color: "#434b4d"
+    color: "#434b4d",
+    restitution: 0.85
   },
   sand: {
     density: 1.1553,
-    color: "#c2b280"
+    color: "#c2b280",
+    restitution: 0.87
   },
   water: {
     density: 0.9997,
-    color: "#40a4df"
+    color: "#40a4df",
+    restitution: 0.25
   },
   air: {
     density: 0.1257,
-    color: "#73d8ed"
+    color: "#73d8ed",
+    restitution: 0.05
   }
 }
