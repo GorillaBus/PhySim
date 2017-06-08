@@ -26,6 +26,8 @@ export default class ParticleManager {
    */
   debugDrawRegions(displayParticleCount) {
     let totalLayers = this.mapper.layers.length;
+    let body = document.getElementsByTagName("BODY")[0];
+
     for (let i=0; i<totalLayers; i++) {
       let layer = this.mapper.layers[i];
       let totalRegions = layer.regions.length;
@@ -38,7 +40,9 @@ export default class ParticleManager {
           region.draw(this.ctx);
 
           if (displayParticleCount) {
+            let docFragment = document.createDocumentFragment();
             let obj;
+
             if (!(obj = document.getElementById(region.id))) {
               obj = document.createElement("p");
               obj.innerHTML = region.totalParticles;
@@ -49,7 +53,8 @@ export default class ParticleManager {
               obj.style.fontSize = "0.5em";
               obj.style.color = "#FFFFFF";
 
-              document.getElementsByTagName("BODY")[0].appendChild(obj);
+              docFragment.appendChild(obj);
+              body.appendChild(docFragment);
             }
 
             obj.innerHTML = region.totalParticles;
