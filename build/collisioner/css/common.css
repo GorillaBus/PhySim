@@ -1,33 +1,9 @@
 HTML, BODY {
-  width:100%;
-  height:100%;
-  margin:0;
-}
-
-#monitorWrapper {
-  font-family: "Lucida Console", Monaco, monospace;
   width: 100%;
-  min-height:102px;
-  box-sizing: border-box;
-  background: rgba(0,0,0,0.2);
-  position:absolute;
-  top:0;
-  left:0;}
-
-.monitor {
-  display:inline-block;
-  border-radius:5px;
-  border: 1px solid rgba(0,0,0,0.6);
-  margin:15px 0 15px 15px;
-  padding: 10px;
+  height: 100%;
 }
 
-.monitor H3 {
-  padding:0;
-  margin: 0 0 5px 0;
-}
-
-.monitor SPAN {
-  display:inline-block;
-  min-width:190px;
+BODY {
+  margin: 0;
+  background-color: #000000;
 }

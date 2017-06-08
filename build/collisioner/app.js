@@ -31,7 +31,7 @@ window.onload = function () {
   canvas.width = width;
 
   // World settings
-  var G = 0.4;
+  var G = 9.8;
   var world = {
     G: G
   };
@@ -39,8 +39,10 @@ window.onload = function () {
   var player = new _AnimationPlayer2.default({ fps: 60 });
 
   // Create particle fixtures
-  var particlesFixtures = new Array(1200);
+  var particlesFixtures = new Array(500);
   var matterTypes = Object.keys(_matter2.default);
+  var neutralTypeIndex = matterTypes.indexOf('neutral');
+  matterTypes.splice(neutralTypeIndex, 1);
   var totalMatterTypes = matterTypes.length;
 
   for (var i = 0; i < particlesFixtures.length; i++) {
@@ -62,20 +64,22 @@ window.onload = function () {
   }
 
   // particlesFixtures[0] = {
-  //   x: center.x-100,
+  //   x: center.x-40,
   //   y: center.y,
-  //   radius: 16,
-  //   // direction: Math.PI*2,
-  //   // speed: 10,
-  //   // color: "rgba(0, 255, 0, 0.5)",
+  //   mass: 148,
+  //   matter: "iron",
+  //   direction: Math.PI*2,
+  //   //speed: 0.9,
   //   boxBounce: { w: width, h: height }
   // };
   //
   // particlesFixtures[1] = {
   //   x: center.x+100,
   //   y: center.y,
-  //   // radius: 16,
-  //   // direction: Math.PI,
+  //   mass: 3,
+  //   matter: "air",
+  //   direction: Math.PI,
+  //   //speed: 1.3,
   //   boxBounce: { w: width, h: height }
   // };
 
@@ -86,7 +90,7 @@ window.onload = function () {
   // Create interaction maps
   // TODO: Check what happens with duplicated layers.
   var collisionRegionSize = 200;
-  var gravityRegionSize = width / 4;
+  var gravityRegionSize = width;
   pmanager.addInteractionMap('collision', collisionRegionSize, 'collision');
   pmanager.addInteractionMap('gravity', gravityRegionSize, 'gravity');
 
@@ -513,30 +517,103 @@ var ParticleExt = function (_Particle) {
     }
 
     /*
+     *  Adds to the velocity vector dividing by the mass
+     */
+
+  }, {
+    key: 'applyForce',
+    value: function applyForce(f) {
+      this.vx += f.x / this.mass;
+      this.vy += f.y / this.mass;
+    }
+
+    /*
+     *  Calculates and applies a gravitation vector to a given particle
+     */
+
+  }, {
+    key: 'gravitateTo',
+    value: function gravitateTo(p, gravityFactor) {
+      gravityFactor = gravityFactor || 0.1;
+
+      var radiusSum = this.radius + p.radius;
+      var massFactor = this.mass * p.mass;
+
+      var dx = p.x - this.x;
+      var dy = p.y - this.y;
+      var distSQ = dx * dx + dy * dy;
+      var dist = Math.sqrt(distSQ);
+      var surfaceDist = dist - radiusSum;
+
+      // Cancel gravitation once objects collide
+      // TODO: Verify if we can save the Math.sqrt() comparing squares
+      if (dist < radiusSum) {
+        return;
+      }
+
+      var force = gravityFactor * massFactor / (dist * dist);
+
+      var gravityVector = {
+        x: dx / dist * force,
+        y: dy / dist * force
+      };
+
+      this.applyForce(gravityVector);
+    }
+
+    /*
         Check for Circle-Circle collisions and return details
     */
 
   }, {
     key: 'collisionCheck',
     value: function collisionCheck(p) {
-      // Calculate the Distance Vector
+      // Get the Distance vector (difference in position)
       var xDist = this.x - p.x;
       var yDist = this.y - p.y;
+
+      // We'll save a Math.sqrt() to verify distances like this:
       var distSquared = xDist * xDist + yDist * yDist;
       var radiusSquared = (this.radius + p.radius) * (this.radius + p.radius);
 
-      // Check collision: using squared distances, same result and saves one Math.sqrt()
+      // Collision check
       if (distSquared < radiusSquared) {
 
-        // Calculate if particles are moving towards each other or away (after a previous collision)
+        // Once collided, get the Displacement vector (difference in velocity)
         var xVelocity = p.vx - this.vx;
         var yVelocity = p.vy - this.vy;
+
+        // Project the Collision vector over the Distance vector
         var dotProduct = xDist * xVelocity + yDist * yVelocity;
 
-        // If particles are moving away (already collided) return
+        /*
+         *
+         *
+         *  Hi, welcome to this "Dot Product" implementation 101.
+         *
+         *    Dot Product will tell if both particles ara heading one to the other, and if they are
+         *    actually colliding or will collide in the future.
+         *
+         *    Think of it as if we where calculating the difference in Distance (or position) and
+         *    the difference in Speed (lenth) of both objects. To do this, we substract vector values.
+         *
+         *    When the difference in angles and speeds between the two moving objects are both:
+         *
+         *    Negative: NO collision; maybe exact oposite direction but still yet
+         *              too far to collide -at this time (maybe next tick)
+         *
+         *    Cero:     COLLISION; a perfect collision in direction, acceleration and time
+         *
+         *    Positive: COLLISION; exact direction; and the resulting force from the collision
+         *
+         *
+         */
         if (dotProduct > 0) {
 
+          // The resulting force from the collision (angle difference + velocity difference)
           var collisionScale = dotProduct / distSquared;
+
+          // // Collision Vector:
           var collision = {
             x: xDist * collisionScale,
             y: yDist * collisionScale
@@ -545,6 +622,7 @@ var ParticleExt = function (_Particle) {
           return collision;
         }
       }
+
       return false;
     }
 
@@ -558,8 +636,8 @@ var ParticleExt = function (_Particle) {
 
       // 2D-Elastic collision formula
       var combinedMass = this.mass + p.mass;
-      var collisionWeight0 = 2 * p.mass / combinedMass;
-      var collisionWeight1 = 2 * this.mass / combinedMass;
+      var collisionWeight0 = 2 * p.mass / combinedMass * p.matter.restitution;
+      var collisionWeight1 = 2 * this.mass / combinedMass * this.matter.restitution;
 
       // Adds the computed collision results to the velocities of this / p
       this.vx += collisionWeight0 * collisionVector.x;
@@ -631,6 +709,8 @@ var ParticleManager = function () {
     key: 'debugDrawRegions',
     value: function debugDrawRegions(displayParticleCount) {
       var totalLayers = this.mapper.layers.length;
+      var body = document.getElementsByTagName("BODY")[0];
+
       for (var i = 0; i < totalLayers; i++) {
         var layer = this.mapper.layers[i];
         var totalRegions = layer.regions.length;
@@ -643,7 +723,9 @@ var ParticleManager = function () {
             region.draw(this.ctx);
 
             if (displayParticleCount) {
+              var docFragment = document.createDocumentFragment();
               var obj = void 0;
+
               if (!(obj = document.getElementById(region.id))) {
                 obj = document.createElement("p");
                 obj.innerHTML = region.totalParticles;
@@ -654,7 +736,8 @@ var ParticleManager = function () {
                 obj.style.fontSize = "0.5em";
                 obj.style.color = "#FFFFFF";
 
-                document.getElementsByTagName("BODY")[0].appendChild(obj);
+                docFragment.appendChild(obj);
+                body.appendChild(docFragment);
               }
 
               obj.innerHTML = region.totalParticles;
@@ -755,23 +838,28 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = {
   neutral: {
     density: 1,
-    color: "rgba(0,0,0,0.6)"
+    color: "white", //"rgba(0,0,0,0.6)",
+    restitution: 1
   },
   iron: {
     density: 1.7874,
-    color: "#434b4d"
+    color: "#434b9d",
+    restitution: 0.85
   },
   sand: {
     density: 1.1553,
-    color: "#c2b280"
+    color: "#c2b280",
+    restitution: 0.31
   },
   water: {
     density: 0.9997,
-    color: "#40a4df"
+    color: "#40a4df",
+    restitution: 0.13
   },
   air: {
     density: 0.1257,
-    color: "#73d8ed"
+    color: "#73d8ed",
+    restitution: 0.3
   }
 };
 
@@ -953,7 +1041,7 @@ var Particle = function () {
         this.friction = settings.friction || 1;
         this.springs = [];
         this.gravitations = [];
-
+        this.positionUpdated = false;
         this.color = settings.color || 'rgba(0,0,0,0.6)';
         this.boxBounce = settings.boxBounce || false;
     }
@@ -966,6 +1054,9 @@ var Particle = function () {
     _createClass(Particle, [{
         key: 'update',
         value: function update() {
+            var x = this.x;
+            var y = this.y;
+
             this.handleSprings();
             this.handleGravitations();
             this.vy += this.gravity;
@@ -977,6 +1068,10 @@ var Particle = function () {
             if (this.boxBounce) {
                 this.checkBorders(this.boxBounce.w, this.boxBounce.h);
             }
+
+            if (x !== this.x && y !== this.y) {
+                this.positionUpdated = true;
+            } else {}
         }
 
         /*
