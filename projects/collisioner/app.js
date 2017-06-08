@@ -16,7 +16,7 @@ window.onload = () => {
 
 
   // World settings
-  const G = 0.4;
+  const G = 9.8;
   let world = {
     G: G
   };
@@ -26,8 +26,10 @@ window.onload = () => {
 
 
   // Create particle fixtures
-  let particlesFixtures = new Array(1200);
-  let matterTypes = Object.keys(Matter);
+  let particlesFixtures = new Array(500);
+  let matterTypes = Object.keys(Matter)
+  let neutralTypeIndex = matterTypes.indexOf('neutral');
+  matterTypes.splice(neutralTypeIndex, 1);
   let totalMatterTypes = matterTypes.length;
 
   for (let i=0; i<particlesFixtures.length; i++) {
@@ -49,20 +51,22 @@ window.onload = () => {
   }
 
   // particlesFixtures[0] = {
-  //   x: center.x-100,
+  //   x: center.x-40,
   //   y: center.y,
-  //   radius: 16,
-  //   // direction: Math.PI*2,
-  //   // speed: 10,
-  //   // color: "rgba(0, 255, 0, 0.5)",
+  //   mass: 148,
+  //   matter: "iron",
+  //   direction: Math.PI*2,
+  //   //speed: 0.9,
   //   boxBounce: { w: width, h: height }
   // };
   //
   // particlesFixtures[1] = {
   //   x: center.x+100,
   //   y: center.y,
-  //   // radius: 16,
-  //   // direction: Math.PI,
+  //   mass: 3,
+  //   matter: "air",
+  //   direction: Math.PI,
+  //   //speed: 1.3,
   //   boxBounce: { w: width, h: height }
   // };
 
@@ -73,7 +77,7 @@ window.onload = () => {
   // Create interaction maps
   // TODO: Check what happens with duplicated layers.
   let collisionRegionSize = 200;
-  let gravityRegionSize = width/4;
+  let gravityRegionSize = width;
   pmanager.addInteractionMap('collision', collisionRegionSize, 'collision');
   pmanager.addInteractionMap('gravity', gravityRegionSize, 'gravity');
 
