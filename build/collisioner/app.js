@@ -53,7 +53,7 @@ window.onload = function () {
     var p = {
       x: _Utils2.default.randomRange(50, width - 50),
       y: _Utils2.default.randomRange(50, height - 50),
-      mass: _Utils2.default.randomRange(1, 3),
+      mass: _Utils2.default.randomRange(1, 5),
       direction: _Utils2.default.randomRange(-1, 1),
       //speed: Utils.randomRange(0.5, 1),
       matter: matterType,
@@ -838,7 +838,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = {
   neutral: {
     density: 1,
-    color: "white", //"rgba(0,0,0,0.6)",
+    color: "rgba(255,255,255,0.6)",
     restitution: 1
   },
   iron: {
@@ -848,17 +848,17 @@ exports.default = {
   },
   sand: {
     density: 1.1553,
-    color: "#c2b280",
+    color: "rgba(194, 178, 128, 0.8)",
     restitution: 0.31
   },
   water: {
     density: 0.9997,
-    color: "#40a4df",
+    color: "rgba(64, 164, 223, 0.6)",
     restitution: 0.13
   },
   air: {
     density: 0.1257,
-    color: "#73d8ed",
+    color: "rgba(115, 216, 237, 0.3)",
     restitution: 0.3
   }
 };
