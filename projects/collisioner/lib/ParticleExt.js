@@ -23,6 +23,31 @@ export default class ParticleExt extends Particle {
       ctx.closePath();
     }
 
+    debugDrawNextPosition(ctx) {
+      let x = this.x;
+      let y = this.y;
+      let vx = this.vx;
+      let vy = this.vy;
+
+      vy += this.gravity;
+      vx *= this.friction;
+      vy *= this.friction;
+
+      x += vx;
+      y += vy;
+
+      ctx.beginPath();
+      ctx.arc(x, y, this.radius, 0, Math.PI * 2, false);
+      ctx.strokeStyle = this.color;
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(0,0,0,0.5)";
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.closePath();
+    }
+
     /*
      *  Adds to the velocity vector dividing by the mass
      */
