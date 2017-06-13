@@ -1,7 +1,7 @@
 export default {
   neutral: {
     density: 1,
-    color: "rgba(255,255,255,0.6)",
+    color: "rgba(200,200,200,0.6)",
     restitution: 1
   },
   iron: {
