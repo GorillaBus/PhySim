@@ -39,7 +39,7 @@ window.onload = function () {
   var player = new _AnimationPlayer2.default({ fps: 60 });
 
   // Create particle fixtures
-  var particlesFixtures = new Array(500);
+  var particlesFixtures = new Array(50);
   var matterTypes = Object.keys(_matter2.default);
   var neutralTypeIndex = matterTypes.indexOf('neutral');
   matterTypes.splice(neutralTypeIndex, 1);
@@ -53,10 +53,10 @@ window.onload = function () {
     var p = {
       x: _Utils2.default.randomRange(50, width - 50),
       y: _Utils2.default.randomRange(50, height - 50),
-      mass: _Utils2.default.randomRange(1, 5),
+      mass: _Utils2.default.randomRange(10, 15),
       direction: _Utils2.default.randomRange(-1, 1),
-      //speed: Utils.randomRange(0.5, 1),
-      matter: matterType,
+      speed: _Utils2.default.randomRange(2, 5),
+      matter: "neutral",
       boxBounce: { w: width, h: height }
     };
 
@@ -99,7 +99,8 @@ window.onload = function () {
 
   // Demo player setup
   player.setUpdateFn(update);
-  player.play();
+  //player.play();
+
 
   // Frame drawing function
   function update() {
@@ -515,6 +516,32 @@ var ParticleExt = function (_Particle) {
       ctx.fill();
       ctx.closePath();
     }
+  }, {
+    key: 'debugDrawNextPosition',
+    value: function debugDrawNextPosition(ctx) {
+      var x = this.x;
+      var y = this.y;
+      var vx = this.vx;
+      var vy = this.vy;
+
+      vy += this.gravity;
+      vx *= this.friction;
+      vy *= this.friction;
+
+      x += vx;
+      y += vy;
+
+      ctx.beginPath();
+      ctx.arc(x, y, this.radius, 0, Math.PI * 2, false);
+      ctx.strokeStyle = this.color;
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(0,0,0,0.5)";
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.closePath();
+    }
 
     /*
      *  Adds to the velocity vector dividing by the mass
@@ -838,7 +865,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = {
   neutral: {
     density: 1,
-    color: "rgba(255,255,255,0.6)",
+    color: "rgba(200,200,200,0.6)",
     restitution: 1
   },
   iron: {
