@@ -1,13 +1,12 @@
 /*
 
-  Exercise 6.4
+    Exercise 6.2
 
-  Write a code for Raynolds Wandering behaviour
+    Implement a seeking target
 */
 import AnimationPlayer from '../../../src/lib/AnimationPlayer';
 import Vector from '../../../src/lib/Vector';
 import Vehicle from './lib/Vehicle';
-import FlowField from './lib/FlowField';
 
 window.onload = () => {
   const canvas = document.getElementById("canvas");
@@ -19,11 +18,9 @@ window.onload = () => {
   canvas.height = height;
   canvas.width = width;
 
-  let car = new Vehicle(center.x, center.y, 5, Math.PI*2, 10, 0.8);
+  let car = new Vehicle(center.x / 2, center.y, 5, Math.PI*1.5, 10, 0.8);
   let target = new Vector({ x: center.x, y: center.y });
-  let flow = new FlowField(width, height, 14);
-
-
+  let movingTarget = new Vehicle(center.x * 0.8, center.y * 0.8, 3, Math.PI/1.5, 7, 1);
 
 
   // Demo player
@@ -34,25 +31,24 @@ window.onload = () => {
   player.play();
 
 
-  function updateFn(delta, elapsed) {
-
+  function updateFn() {
     ctx.clearRect(0, 0, width, height);
 
     car.update();
+    movingTarget.update();
 
-    // car.wander(null, null, delta);
-    // car.stayWithinWalls();
-
-    flow.draw(ctx);
+    movingTarget.seek(target);
+    car.persuit(movingTarget);
 
     car.draw(ctx);
+    movingTarget.draw(ctx);
 
     // Draw Target
-    // ctx.beginPath();
-    // ctx.fillStyle = "rgba(0,0,0,0.5)";
-    // ctx.arc(target.getX(), target.getY(), 2, 0, Math.PI*2, true);
-    // ctx.fill();
-    // ctx.closePath();
+    ctx.beginPath();
+    ctx.fillStyle = "rgba(255,0,0,0.5)";
+    ctx.arc(target.getX(), target.getY(), 5, 0, Math.PI*2, true);
+    ctx.fill();
+    ctx.closePath();
   }
 
   document.onclick = (e) => {
