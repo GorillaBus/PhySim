@@ -105,4 +105,10 @@ export default class Vector {
       this.divideBy(length);
     }
   }
+
+  limit(n) {
+    if (this.getLength() > n) {
+      this.setLength(n);
+    }
+  }
 };
