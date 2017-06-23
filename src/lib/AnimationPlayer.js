@@ -10,13 +10,11 @@ export default class AnimationPlayer {
     this.playing = false;
 
     // FPS control
-    if (FEATURE_TOGGLE.FPS_CONTROL) {
-      this.fps = settings.fps || 90;
-      this.now;
-      this.lastTime = Date.now();
-      this.interval = 1000/this.fps;
-      this.delta;
-    }
+    this.fps = settings.fps || 90;
+    this.now;
+    this.lastTime = Date.now();
+    this.interval = 1000/this.fps;
+    this.delta;
 
     this.registerEvents();
   }
@@ -67,18 +65,15 @@ export default class AnimationPlayer {
     this.updateFn = (
       () => {
         this.requestId = this.window.requestAnimationFrame(this.updateFn);
+        this.now = Date.now();
+        this.delta = this.now - this.lastTime;
 
-        // FPS control
-        if (FEATURE_TOGGLE.FPS_CONTROL) {
-          this.now = Date.now();
-          this.delta = this.now - this.lastTime;
-
-          if (this.delta > this.interval) {
-            this.lastTime = this.now - (this.delta % this.interval);
-            updateFn();
-          }
-          return;
+        if (this.delta > this.interval) {
+          this.lastTime = this.now - (this.delta % this.interval);
+          updateFn(this.delta, this.lastTime);
         }
+        return;
+
 
         updateFn();
 
