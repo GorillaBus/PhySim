@@ -1,14 +1,14 @@
 import Vector from '../../../../src/lib/Vector';
 
 export default class Attractor {
-  constructor(x, y, m) {
+  constructor(x, y, m, g) {
     this.location = new Vector({
       x: x,
       y: y
     });
 
     this.mass = m;
-    this.G = 0.4;
+    this.G = g || 0.4;
   }
 
   /*
@@ -23,6 +23,7 @@ export default class Attractor {
     let force = (mass / (distance * distance))
     direction.normalize();
     direction.multiplyBy(force);
+    mover.applyForce(direction);
     return direction;
   }
 
