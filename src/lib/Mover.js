@@ -2,13 +2,14 @@ import Vector from './Vector';
 
 export default class Mover {
 
-  constructor(x, y, mass, angle, maxLength, length) {
+  constructor(x, y, mass, angle, maxLength, length, radius) {
     length = length || 0;
     this.angle = angle || 0
     this.mass = mass || 1;
     this.maxLength = maxLength || 0;
+    this.radius = radius || 10;
     this.acceleration = new Vector({ x: 0, y: 0 });
-    this.velocity = new Vector({ x: 0, y: 0, length: length });
+    this.velocity = new Vector({ x: 0, y: 0, length: length, angle: angle });
     this.location = new Vector({ x: x, y: y });
   }
 
