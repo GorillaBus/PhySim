@@ -113,6 +113,10 @@ class Utils {
     return min + Math.random() * (max - min);
   }
 
+  constrain(e,t,r) {
+    return e>r?r:e<t?t:e;
+  }
+
   circleCollision(c0, c1) {
     return this.distance(c0, c1) <= c0.radius + c1.radius;
   }
