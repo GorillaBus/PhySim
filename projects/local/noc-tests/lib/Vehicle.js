@@ -4,12 +4,12 @@ import Utils from '../../../../src/lib/Utils';
 
 export default class Vehicle extends Mover {
 
-  constructor(x, y, mass, angle, size, speed) {
+  constructor(x, y, mass, angle, size, speed, force) {
     super(x, y, mass, angle, 0, speed);
 
     this.radius = size || 3;
-    this.maxSpeed = 4;
-    this.maxSteeringForce = 2;
+    this.maxSpeed = speed || 4;
+    this.maxSteeringForce = force || 2;
     this.elapsedTime = 0;
     this.wanderRandomPoint = null;
   }
@@ -47,6 +47,21 @@ export default class Vehicle extends Mover {
       steer.limit(this.maxSteeringForce);
       this.applyForce(steer);
     }
+  }
+
+  follow(field, z) {
+    if (!field.isReady) {
+      console.warn("Vehicle :: follow: FollowField is not ready");
+      return;
+    }
+    z = z || false;
+    let desired = field.lookup(this.location, z);
+    desired.multiplyBy(this.maxSpeed);
+
+    let steer = desired.substract(this.velocity);
+    steer.limit(this.maxSteeringForce);
+
+    this.applyForce(steer);
   }
 
   wander(wanderDist, wanderRadius, delta, ctx) {
@@ -140,12 +155,19 @@ export default class Vehicle extends Mover {
     ctx.save();
     ctx.translate(this.location.getX(), this.location.getY());
     ctx.rotate(theta);
-    ctx.fillStyle = "#000000";
+    ctx.fillStyle = "rgba(0,0,0,0.8)";
     ctx.beginPath();
     ctx.lineTo(0, -this.radius*2);
     ctx.lineTo(-this.radius, this.radius*2);
     ctx.lineTo(this.radius, this.radius*2);
     ctx.fill();
+    ctx.closePath();
+
+    ctx.beginPath();
+    ctx.strokeStyle = "red";
+    ctx.moveTo(0,0);
+    ctx.lineTo(0, -this.radius*2);
+    ctx.stroke();
     ctx.closePath();
 
     ctx.restore();
