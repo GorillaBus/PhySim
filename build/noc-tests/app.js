@@ -49,7 +49,7 @@ window.onload = function () {
   var totalCars = 10;
 
   for (var i = 0; i < totalCars; i++) {
-    cars[i] = new _Vehicle2.default(_Utils2.default.randomRange(0, width), _Utils2.default.randomRange(0, height), _Utils2.default.randomRange(2, 5), Math.PI * 2, _Utils2.default.randomRange(4, 9), _Utils2.default.randomRange(0.8, 7), _Utils2.default.randomRange(0.05, 2));
+    cars[i] = new _Vehicle2.default(_Utils2.default.randomRange(0, width), _Utils2.default.randomRange(0, height), _Utils2.default.randomRange(2, 5), Math.PI * 2, _Utils2.default.randomRange(3, 5), _Utils2.default.randomRange(0.8, 7), _Utils2.default.randomRange(0.05, 2));
   }
 
   // Demo player
