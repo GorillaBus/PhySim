@@ -1,9 +1,10 @@
 import Vector from './Vector';
+import LineUtils from './LineUtils.js';
 
 export default class Mover {
 
   constructor(x, y, mass, angle, maxLength, length, radius) {
-    length = length || 0;
+    this.length = length || 0;
     this.angle = angle || 0
     this.mass = mass || 1;
     this.maxLength = maxLength || 0;
@@ -20,15 +21,17 @@ export default class Mover {
   }
 
   update() {
-    if (this.maxLength != 0 && this.velocity.getLength() > this.maxLength) {
-      this.velocity.setLength(this.maxLength);
-    } else {
-      this.velocity.addTo(this.acceleration);
-    }
+    this.velocity.addTo(this.acceleration);
 
     this.location.addTo(this.velocity);
     // Reset acceleration vector
     this.acceleration.multiplyBy(0);
+  }
+
+  findIntercept(m) {
+    let line1 = LineUtils.vectorLineProps(this);
+    let line2 = LineUtils.vectorLineProps(m);
+    return LineUtils.intersect(line1.slope, line1.intercept, line2.slope, line2.intercept);
   }
 
   isInside(liquid) {
@@ -46,19 +49,19 @@ export default class Mover {
   }
 
   checkEdges(width, height) {
-    if (this.location.getX() >= width) {
-      this.location.setX(width);
+    if (this.location.getX() >= width - this.radius) {
+      this.location.setX(width - this.radius*2);
       this.velocity.setX(this.velocity.getX() *  -1);
-    } else if (this.location.getX() <= 0) {
-      this.location.setX(0);
+    } else if (this.location.getX() <= this.radius) {
+      this.location.setX(this.radius);
       this.velocity.setX(this.velocity.getX() *  -1);
     }
 
-    if (this.location.getY() >= height) {
-      this.location.setY(height);
+    if (this.location.getY() >= height - this.radius) {
+      this.location.setY(height - this.radius*2);
       this.velocity.setY(this.velocity.getY() * -1);
-    } else if (this.location.getY() <= 0) {
-      this.location.setY(0);
+    } else if (this.location.getY() <= this.radius) {
+      this.location.setY(this.radius);
       this.velocity.setY(this.velocity.getY() * -1);
     }
   }

@@ -26,7 +26,7 @@ window.onload = () => {
 
 
   // Create particle fixtures
-  let particlesFixtures = new Array(500);
+  let particlesFixtures = new Array(900);
   let matterTypes = Object.keys(Matter)
   let neutralTypeIndex = matterTypes.indexOf('neutral');
   matterTypes.splice(neutralTypeIndex, 1);
@@ -40,9 +40,9 @@ window.onload = () => {
     let p = {
         x: Utils.randomRange(50, width-50),
         y: Utils.randomRange(50, height-50),
-        mass: Utils.randomRange(1, 3),
+        mass: Utils.randomRange(3, 5),
         direction: Utils.randomRange(-1, 1),
-        //speed: Utils.randomRange(0.5, 1),
+        //speed: Utils.randomRange(2, 5),
         matter: matterType,
         boxBounce: { w: width, h: height }
     };

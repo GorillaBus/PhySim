@@ -70,7 +70,7 @@ export default class AnimationPlayer {
 
         if (this.delta > this.interval) {
           this.lastTime = this.now - (this.delta % this.interval);
-          updateFn(this.delta, this.lastTime);
+          updateFn(this.delta, this.lastTime, this.now);
         }
         return;
 

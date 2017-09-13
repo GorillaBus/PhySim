@@ -39,7 +39,7 @@ window.onload = function () {
   var player = new _AnimationPlayer2.default({ fps: 60 });
 
   // Create particle fixtures
-  var particlesFixtures = new Array(50);
+  var particlesFixtures = new Array(900);
   var matterTypes = Object.keys(_matter2.default);
   var neutralTypeIndex = matterTypes.indexOf('neutral');
   matterTypes.splice(neutralTypeIndex, 1);
@@ -53,10 +53,10 @@ window.onload = function () {
     var p = {
       x: _Utils2.default.randomRange(50, width - 50),
       y: _Utils2.default.randomRange(50, height - 50),
-      mass: _Utils2.default.randomRange(10, 15),
+      mass: _Utils2.default.randomRange(3, 5),
       direction: _Utils2.default.randomRange(-1, 1),
-      speed: _Utils2.default.randomRange(2, 5),
-      matter: "neutral",
+      //speed: Utils.randomRange(2, 5),
+      matter: matterType,
       boxBounce: { w: width, h: height }
     };
 
@@ -938,13 +938,11 @@ var AnimationPlayer = function () {
     this.playing = false;
 
     // FPS control
-    if (_featureToggle2.default.FPS_CONTROL) {
-      this.fps = settings.fps || 90;
-      this.now;
-      this.lastTime = Date.now();
-      this.interval = 1000 / this.fps;
-      this.delta;
-    }
+    this.fps = settings.fps || 90;
+    this.now;
+    this.lastTime = Date.now();
+    this.interval = 1000 / this.fps;
+    this.delta;
 
     this.registerEvents();
   }
@@ -1004,18 +1002,14 @@ var AnimationPlayer = function () {
 
       this.updateFn = function () {
         _this2.requestId = _this2.window.requestAnimationFrame(_this2.updateFn);
+        _this2.now = Date.now();
+        _this2.delta = _this2.now - _this2.lastTime;
 
-        // FPS control
-        if (_featureToggle2.default.FPS_CONTROL) {
-          _this2.now = Date.now();
-          _this2.delta = _this2.now - _this2.lastTime;
-
-          if (_this2.delta > _this2.interval) {
-            _this2.lastTime = _this2.now - _this2.delta % _this2.interval;
-            updateFn();
-          }
-          return;
+        if (_this2.delta > _this2.interval) {
+          _this2.lastTime = _this2.now - _this2.delta % _this2.interval;
+          updateFn(_this2.delta, _this2.lastTime);
         }
+        return;
 
         updateFn();
       };
@@ -1491,6 +1485,11 @@ var Utils = function () {
       return min + Math.random() * (max - min);
     }
   }, {
+    key: "constrain",
+    value: function constrain(e, t, r) {
+      return e > r ? r : e < t ? t : e;
+    }
+  }, {
     key: "circleCollision",
     value: function circleCollision(c0, c1) {
       return this.distance(c0, c1) <= c0.radius + c1.radius;
@@ -1535,6 +1534,5 @@ var instance = new Utils();
 exports.default = instance;
 
 },{"../../src/feature-toggle":9}]},{},[1])
-
 
 //# sourceMappingURL=app.js.map

@@ -43,7 +43,7 @@ export default class Vector {
   }
 
   getAngle() {
-    return Math.atan2(this._y, this._x);
+    return Math.atan2(this.getY(), this.getX());
   }
 
   setLength(length) {
@@ -92,6 +92,47 @@ export default class Vector {
     this._y /= value;
   }
 
+  dot(v) {
+    return this._x*v._x + this._y*v._y;
+  }
+
+  cross(v) {
+    return (this._x*v._y) - (this._y*v._x);
+  }
+
+  angleBetween(v) {
+    //return Math.acos( (v1.x * v2.x + v1.y * v2.y) / ( Math.sqrt(v1.x*v1.x + v1.y*v1.y) * Math.sqrt(v2.x*v2.x + v2.y*v2.y) ) )
+    let v1 = this.copy();
+    let v2 = v.copy();
+    v1.normalize();
+    v2.normalize();
+    let dot = v1.dot(v2);
+    let theta = Math.acos(dot);
+
+    if (isNaN(theta)) {
+      console.warn("Theta is 'NaN' on Vector.angleBetween()")
+    }
+
+    return theta;
+  }
+
+  angleDirection(v) {
+    let crossProduct = this.cross(v);
+    if (crossProduct > 0.0) {
+      return 1;
+    } else if (crossProduct < 0.0) {
+      return -1;
+    } else {
+      return 0;
+    }
+  }
+
+  angleDifference(v) {
+    let theta = this.angleBetween(v);
+    let dir = this.angleDirection(v);
+    return theta * dir;
+  }
+
   copy() {
     return new Vector({
       x: this.getX(),
@@ -104,6 +145,11 @@ export default class Vector {
     if (length != 0) {
       this.divideBy(length);
     }
+  }
+
+  dist(p) {
+    let d = p.substract(this);
+    return d.getLength();
   }
 
   limit(n) {

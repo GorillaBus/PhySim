@@ -267,7 +267,7 @@ exports.default = FEATURE_TOGGLE;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -281,72 +281,100 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var AnimationPlayer = function () {
-    function AnimationPlayer(settings) {
-        _classCallCheck(this, AnimationPlayer);
+  function AnimationPlayer(settings) {
+    _classCallCheck(this, AnimationPlayer);
 
-        settings = settings || {};
+    settings = settings || {};
 
-        this.window = settings.windowElement || window;
-        this.requestId = null;
-        this.playing = false;
+    this.window = settings.windowElement || window;
+    this.requestId = null;
+    this.playing = false;
 
-        // FPS control
-        if (_featureToggle2.default.FPS_CONTROL) {
-            this.fps = settings.fps || 90;
-            this.now;
-            this.lastTime = Date.now();
-            this.interval = 1000 / this.fps;
-            this.delta;
-        }
-    }
+    // FPS control
+    this.fps = settings.fps || 90;
+    this.now;
+    this.lastTime = Date.now();
+    this.interval = 1000 / this.fps;
+    this.delta;
 
-    _createClass(AnimationPlayer, [{
-        key: "play",
-        value: function play() {
-            this.playing = true;
-            this.updateFn();
-        }
-    }, {
-        key: "stop",
-        value: function stop() {
-            if (!this.playing) {
-                return false;
+    this.registerEvents();
+  }
+
+  _createClass(AnimationPlayer, [{
+    key: "registerEvents",
+    value: function registerEvents() {
+      var _this = this;
+
+      // Animation control: KeyDown
+      document.body.addEventListener("keydown", function (e) {
+        //console.log("Key pressed: ", e.keyCode);
+        switch (e.keyCode) {
+          case 27:
+            // Esc
+            if (_this.playing) {
+              _this.stop();
+              console.log("> Scene stopped");
+            } else {
+              _this.play();
+              console.log("> Playing scene");
             }
-            this.window.cancelAnimationFrame(this.requestId);
-            this.playing = false;
-            this.requestId = null;
+            break;
+
+          case 13:
+            _this.stop();
+            _this.play();
+            _this.stop();
+            console.log("> Step forward");
+            break;
+
+          default:
+            break;
         }
-    }, {
-        key: "setUpdateFn",
-        value: function setUpdateFn(updateFn) {
-            var _this = this;
+      });
+    }
+  }, {
+    key: "play",
+    value: function play() {
+      this.playing = true;
+      this.updateFn();
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      if (!this.playing) {
+        return false;
+      }
+      this.window.cancelAnimationFrame(this.requestId);
+      this.playing = false;
+      this.requestId = null;
+    }
+  }, {
+    key: "setUpdateFn",
+    value: function setUpdateFn(updateFn) {
+      var _this2 = this;
 
-            this.updateFn = function () {
-                _this.requestId = _this.window.requestAnimationFrame(_this.updateFn);
+      this.updateFn = function () {
+        _this2.requestId = _this2.window.requestAnimationFrame(_this2.updateFn);
+        _this2.now = Date.now();
+        _this2.delta = _this2.now - _this2.lastTime;
 
-                // FPS control
-                if (_featureToggle2.default.FPS_CONTROL) {
-                    _this.now = Date.now();
-                    _this.delta = _this.now - _this.lastTime;
-
-                    if (_this.delta > _this.interval) {
-                        _this.lastTime = _this.now - _this.delta % _this.interval;
-                        updateFn();
-                    }
-                    return;
-                }
-
-                updateFn();
-            };
+        if (_this2.delta > _this2.interval) {
+          _this2.lastTime = _this2.now - _this2.delta % _this2.interval;
+          updateFn(_this2.delta, _this2.lastTime);
         }
-    }, {
-        key: "updateFn",
-        value: function updateFn() {
-            console.warn("Player update function has not been set.");
-        }
-    }]);
+        return;
 
-    return AnimationPlayer;
+        updateFn();
+      };
+    }
+  }, {
+    key: "updateFn",
+    value: function updateFn() {
+      console.warn("Player update function has not been set.");
+    }
+  }]);
+
+  return AnimationPlayer;
 }();
 
 exports.default = AnimationPlayer;
@@ -499,6 +527,11 @@ var Utils = function () {
       return min + Math.random() * (max - min);
     }
   }, {
+    key: "constrain",
+    value: function constrain(e, t, r) {
+      return e > r ? r : e < t ? t : e;
+    }
+  }, {
     key: "circleCollision",
     value: function circleCollision(c0, c1) {
       return this.distance(c0, c1) <= c0.radius + c1.radius;
@@ -518,6 +551,21 @@ var Utils = function () {
     value: function rectanglePointCollision(px, py, rect) {
       return this.inRange(px, rect.x, rect.x + rect.width) && this.inRange(py, rect.y, rect.y + rect.height);
     }
+  }, {
+    key: "uniqueID",
+    value: function uniqueID() {
+      function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+      }
+      return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    }
+  }, {
+    key: "randomColor",
+    value: function randomColor() {
+      return "#000000".replace(/0/g, function () {
+        return (~~(Math.random() * 16)).toString(16);
+      });
+    }
   }]);
 
   return Utils;
@@ -528,6 +576,5 @@ var instance = new Utils();
 exports.default = instance;
 
 },{"../../src/feature-toggle":4}]},{},[1])
-
 
 //# sourceMappingURL=app.js.map

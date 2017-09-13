@@ -19,6 +19,27 @@ class Utils {
     return value;
   }
 
+  getNormalPoint(p, a, b) {
+    let ap = p.substract(a);
+    let ab = b.substract(a);
+    ab.normalize();
+    ab.multiplyBy(ap.dot(ab));
+    return a.add(ab);
+  }
+
+  getAngleBetween(v1, v2) {
+    console.log("Utills::getAngleBetween is deprecated, use Vector::angleBetween instead")
+    v1.normalize();
+    v2.normalize();
+    let dot = v1.dot(v2);
+    let theta = Math.acos(dot);
+
+    if (isNaN(theta)) {
+      console.warn("Theta is 'NaN' on Utils.getAngleBetween()")
+    }
+    return theta;
+  }
+
   /*
    *  Get 'n' points from a circular shaped 'Particle' object
    */
@@ -147,6 +168,14 @@ class Utils {
 
   randomColor() {
     return "#000000".replace(/0/g,function(){return (~~(Math.random()*16)).toString(16);});
+  }
+
+  rad2deg(r) {
+    return r * 180 / Math.PI;
+  }
+
+  deg2rad(d) {
+    return d * Math.PI / 180;
   }
 }
 

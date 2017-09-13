@@ -2,7 +2,6 @@ import FEATURE_TOGGLE from '../../../src/feature-toggle';
 import Particle from '../../../src/lib/Particle';
 import Matter from '../matter.js';
 
-
 export default class ParticleExt extends Particle {
 
     constructor(settings) {
@@ -10,7 +9,7 @@ export default class ParticleExt extends Particle {
 
       this.matter = Matter[settings.matter] || Matter.neutral;
       this.color = this.matter.color;
-      this.radius = this.mass / this.matter.density;
+      this.radius = this.mass / this.matter.density *0.5;
       this.mapperData = [];
       this.points = settings.points || [];
     }
@@ -128,7 +127,8 @@ export default class ParticleExt extends Particle {
          *
          *    Cero:     COLLISION; a perfect collision in direction, acceleration and time
          *
-         *    Positive: COLLISION; exact direction; and the resulting force from the collision
+         *    Positive: POSSIBLE COLLISION; both objects are heading each other but collision may
+         *              not occur
          *
          *
          */

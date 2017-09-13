@@ -114,7 +114,7 @@ exports.default = FEATURE_TOGGLE;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -128,72 +128,100 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var AnimationPlayer = function () {
-    function AnimationPlayer(settings) {
-        _classCallCheck(this, AnimationPlayer);
+  function AnimationPlayer(settings) {
+    _classCallCheck(this, AnimationPlayer);
 
-        settings = settings || {};
+    settings = settings || {};
 
-        this.window = settings.windowElement || window;
-        this.requestId = null;
-        this.playing = false;
+    this.window = settings.windowElement || window;
+    this.requestId = null;
+    this.playing = false;
 
-        // FPS control
-        if (_featureToggle2.default.FPS_CONTROL) {
-            this.fps = settings.fps || 90;
-            this.now;
-            this.lastTime = Date.now();
-            this.interval = 1000 / this.fps;
-            this.delta;
-        }
-    }
+    // FPS control
+    this.fps = settings.fps || 90;
+    this.now;
+    this.lastTime = Date.now();
+    this.interval = 1000 / this.fps;
+    this.delta;
 
-    _createClass(AnimationPlayer, [{
-        key: "play",
-        value: function play() {
-            this.playing = true;
-            this.updateFn();
-        }
-    }, {
-        key: "stop",
-        value: function stop() {
-            if (!this.playing) {
-                return false;
+    this.registerEvents();
+  }
+
+  _createClass(AnimationPlayer, [{
+    key: "registerEvents",
+    value: function registerEvents() {
+      var _this = this;
+
+      // Animation control: KeyDown
+      document.body.addEventListener("keydown", function (e) {
+        //console.log("Key pressed: ", e.keyCode);
+        switch (e.keyCode) {
+          case 27:
+            // Esc
+            if (_this.playing) {
+              _this.stop();
+              console.log("> Scene stopped");
+            } else {
+              _this.play();
+              console.log("> Playing scene");
             }
-            this.window.cancelAnimationFrame(this.requestId);
-            this.playing = false;
-            this.requestId = null;
+            break;
+
+          case 13:
+            _this.stop();
+            _this.play();
+            _this.stop();
+            console.log("> Step forward");
+            break;
+
+          default:
+            break;
         }
-    }, {
-        key: "setUpdateFn",
-        value: function setUpdateFn(updateFn) {
-            var _this = this;
+      });
+    }
+  }, {
+    key: "play",
+    value: function play() {
+      this.playing = true;
+      this.updateFn();
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      if (!this.playing) {
+        return false;
+      }
+      this.window.cancelAnimationFrame(this.requestId);
+      this.playing = false;
+      this.requestId = null;
+    }
+  }, {
+    key: "setUpdateFn",
+    value: function setUpdateFn(updateFn) {
+      var _this2 = this;
 
-            this.updateFn = function () {
-                _this.requestId = _this.window.requestAnimationFrame(_this.updateFn);
+      this.updateFn = function () {
+        _this2.requestId = _this2.window.requestAnimationFrame(_this2.updateFn);
+        _this2.now = Date.now();
+        _this2.delta = _this2.now - _this2.lastTime;
 
-                // FPS control
-                if (_featureToggle2.default.FPS_CONTROL) {
-                    _this.now = Date.now();
-                    _this.delta = _this.now - _this.lastTime;
-
-                    if (_this.delta > _this.interval) {
-                        _this.lastTime = _this.now - _this.delta % _this.interval;
-                        updateFn();
-                    }
-                    return;
-                }
-
-                updateFn();
-            };
+        if (_this2.delta > _this2.interval) {
+          _this2.lastTime = _this2.now - _this2.delta % _this2.interval;
+          updateFn(_this2.delta, _this2.lastTime);
         }
-    }, {
-        key: "updateFn",
-        value: function updateFn() {
-            console.warn("Player update function has not been set.");
-        }
-    }]);
+        return;
 
-    return AnimationPlayer;
+        updateFn();
+      };
+    }
+  }, {
+    key: "updateFn",
+    value: function updateFn() {
+      console.warn("Player update function has not been set.");
+    }
+  }]);
+
+  return AnimationPlayer;
 }();
 
 exports.default = AnimationPlayer;
@@ -267,7 +295,7 @@ var Drawer = function () {
 exports.default = Drawer;
 
 },{}],5:[function(require,module,exports){
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
     value: true
@@ -275,7 +303,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _featureToggle = require("../../src/feature-toggle");
+var _featureToggle = require('../../src/feature-toggle');
 
 var _featureToggle2 = _interopRequireDefault(_featureToggle);
 
@@ -302,8 +330,8 @@ var Particle = function () {
         this.friction = settings.friction || 1;
         this.springs = [];
         this.gravitations = [];
-
-        this.color = settings.color || "#000000";
+        this.positionUpdated = false;
+        this.color = settings.color || 'rgba(0,0,0,0.6)';
         this.boxBounce = settings.boxBounce || false;
     }
 
@@ -313,8 +341,11 @@ var Particle = function () {
 
 
     _createClass(Particle, [{
-        key: "update",
+        key: 'update',
         value: function update() {
+            var x = this.x;
+            var y = this.y;
+
             this.handleSprings();
             this.handleGravitations();
             this.vy += this.gravity;
@@ -326,6 +357,10 @@ var Particle = function () {
             if (this.boxBounce) {
                 this.checkBorders(this.boxBounce.w, this.boxBounce.h);
             }
+
+            if (x !== this.x && y !== this.y) {
+                this.positionUpdated = true;
+            } else {}
         }
 
         /*
@@ -333,7 +368,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "getSpeed",
+        key: 'getSpeed',
         value: function getSpeed() {
             return Math.sqrt(this.vx * this.vx + this.vy * this.vy);
         }
@@ -343,7 +378,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "setSpeed",
+        key: 'setSpeed',
         value: function setSpeed(speed) {
             var heading = this.getHeading();
             this.vx = Math.cos(heading) * speed;
@@ -355,7 +390,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "getHeading",
+        key: 'getHeading',
         value: function getHeading() {
             return Math.atan2(this.vy, this.vx);
         }
@@ -365,7 +400,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "setHeading",
+        key: 'setHeading',
         value: function setHeading(heading) {
             var speed = this.getSpeed();
             this.vx = Math.cos(heading) * speed;
@@ -377,7 +412,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "accelerate",
+        key: 'accelerate',
         value: function accelerate(x, y) {
             this.vx += x;
             this.vy += y;
@@ -388,7 +423,7 @@ var Particle = function () {
         */
 
     }, {
-        key: "checkBorders",
+        key: 'checkBorders',
         value: function checkBorders(width, height) {
             if (this.x + this.radius >= width) {
                 this.x = width - this.radius;
@@ -412,7 +447,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "angleTo",
+        key: 'angleTo',
         value: function angleTo(p2) {
             return Math.atan2(p2.y - this.y, p2.x - this.x);
         }
@@ -422,7 +457,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "distanceTo",
+        key: 'distanceTo',
         value: function distanceTo(p) {
             var dx = p.x - this.x;
             var dy = p.y - this.y;
@@ -434,7 +469,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "gravitateTo",
+        key: 'gravitateTo',
         value: function gravitateTo(p, gravityFactor) {
             gravityFactor = gravityFactor || 0.04;
 
@@ -468,7 +503,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "addGravitation",
+        key: 'addGravitation',
         value: function addGravitation(p) {
             this.removeGravitation(p);
             this.gravitations.push(p);
@@ -479,7 +514,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "removeGravitation",
+        key: 'removeGravitation',
         value: function removeGravitation(p) {
             var length = this.gravitations.length;
             for (var i = 0; i < length; i++) {
@@ -495,7 +530,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "handleGravitations",
+        key: 'handleGravitations',
         value: function handleGravitations() {
             var length = this.gravitations.length;
             for (var i = 0; i < length; i++) {
@@ -508,7 +543,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "springTo",
+        key: 'springTo',
         value: function springTo(point, k, length) {
             var dx = point.x - this.x;
             var dy = point.y - this.y;
@@ -524,7 +559,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "addSpring",
+        key: 'addSpring',
         value: function addSpring(point, k, length) {
             this.removeSpring(point);
             this.springs.push({
@@ -539,7 +574,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "removeSpring",
+        key: 'removeSpring',
         value: function removeSpring(point) {
             var length = this.springs.length;
             for (var i = 0; i < length; i++) {
@@ -555,7 +590,7 @@ var Particle = function () {
          */
 
     }, {
-        key: "handleSprings",
+        key: 'handleSprings',
         value: function handleSprings() {
             var length = this.springs.length;
             for (var i = 0; i < length; i++) {
@@ -712,6 +747,13 @@ var Vector = function () {
         this.divideBy(length);
       }
     }
+  }, {
+    key: 'limit',
+    value: function limit(n) {
+      if (this.getLength() > n) {
+        this.setLength(n);
+      }
+    }
   }]);
 
   return Vector;
@@ -721,6 +763,5 @@ exports.default = Vector;
 ;
 
 },{"../../src/feature-toggle":2}]},{},[1])
-
 
 //# sourceMappingURL=app.js.map

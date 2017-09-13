@@ -4,6 +4,13 @@ HTML, BODY {
   margin:0;
 }
 
+CANVAS#canvas {
+  position:absolute;
+  top:0;
+  left:0;
+  z-index: 0;
+}
+
 #monitorWrapper {
   font-family: "Lucida Console", Monaco, monospace;
   width: 100%;
@@ -12,7 +19,8 @@ HTML, BODY {
   background: rgba(0,0,0,0.2);
   position:absolute;
   top:0;
-  left:0;}
+  left:0;
+}
 
 .monitor {
   display:inline-block;
