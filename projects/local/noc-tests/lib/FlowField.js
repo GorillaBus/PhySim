@@ -4,7 +4,7 @@ import Perlin from '../../../../src/lib/Perlin';
 
 export default class FlowField {
 
-  constructor(w, h, z, resolution, source) {
+  constructor(w, h, z, resolution, source, cbInit) {
     this.ctx;
     this.width = w;
     this.height = h;
@@ -12,10 +12,11 @@ export default class FlowField {
     this.resolution = resolution || 10;
     this.rows = Math.round(w / this.resolution);
     this.cols = Math.round(h / this.resolution);
-    this.depth = z || 1;
+    this.depth = z >= 1 ? z:1;
     this.zIndex = 0;
     this.mustRedraw = false;
     this.isReady = false;
+    this.cbInit = cbInit || null;
     this.initField(source);
   }
 
@@ -37,9 +38,15 @@ export default class FlowField {
 
   initField(source) {
     let type = typeof source;
+
     switch (type) {
       case 'string':
-        this.gridFromImage(source);
+
+        if (source === 'special') {
+          this.gridFromSpecial();
+        } else {
+          this.gridFromImage(source);
+        }
         break;
 
       case 'object':
@@ -60,6 +67,10 @@ export default class FlowField {
     this.field = vectors;
     this.mustRedraw = true;
     this.isReady = true;
+
+    if (typeof this.cbInit === 'function') {
+      this.cbInit();
+    }
   }
 
   gridFromImage(imageSrc) {
@@ -74,6 +85,39 @@ export default class FlowField {
     this.createGrid(vectors);
   }
 
+  gridFromSpecial() {
+    let vectors = this.getSpecialVectors();
+    this.createGrid(vectors);
+  }
+
+  getSpecialVectors() {
+    let vectors = [];
+    for (let z=0; z<this.depth; z++) {
+      vectors[z] = [];
+      for (let i = 0; i<this.cols; i++) {
+        vectors[z][i] = new Array(this.rows);
+        for (let j = 0; j<this.rows; j++) {
+
+          let angle;
+          let prob = Math.random();
+          if (prob < 0.85) {
+            angle = Utils.randomRange(0.2, 0.6);
+          } else {
+            angle = Utils.randomRange(-0.9, 0.1);
+          }
+
+          let vector = new Vector({
+            x: Math.cos(angle),
+            y: Math.sin(angle)
+          });
+          vectors[z][i][j] = vector;
+        }
+      }
+    }
+
+    return vectors;
+  }
+
   getVectorsFromPerlinNoise(seed, res) {
     res = res || {};
     res = {
@@ -81,6 +125,7 @@ export default class FlowField {
       y: res.y || 0.02,
       z: res.z || 0.02
     };
+    seed = seed || Math.random();
 
     let noise = new Perlin();
     noise.seed(seed);
@@ -194,27 +239,41 @@ export default class FlowField {
   }
 
   drawCell(x, y, a) {
-    this.ctx.beginPath();
-    this.ctx.lineWidth = 1;
-    this.ctx.strokeStyle = "rgba(0,0,0,0.5)";
-    this.ctx.rect(x, y, this.resolution , this.resolution);
-    this.ctx.stroke();
-    this.ctx.closePath();
+    let arrowSize = this.resolution / 1.5;
+    let halfRes = this.resolution / 2;
+    let xOffset = (this.resolution - arrowSize) / 2;
+    let arrowColor = "#a3a3a3";
+    let arrowHeadSize = arrowSize * 10 / 100;
+
+    // this.ctx.lineWidth = 1;
+    //
+    // this.ctx.setLineDash([5, 15]);
+    // this.ctx.beginPath();
+    // this.ctx.rect(x, y, this.resolution , this.resolution);
+    // this.ctx.stroke();
+    // this.ctx.closePath();
 
     this.ctx.save();
-    this.ctx.translate(x, y);
+    this.ctx.translate(x + halfRes, y + halfRes);
     this.ctx.rotate(a);
 
+    this.ctx.setLineDash([]);
+    this.ctx.strokeStyle = arrowColor;
+    this.ctx.fillStyle = arrowColor;
+
     this.ctx.beginPath();
-    this.ctx.lineWidth = 3;
-    this.ctx.strokeStyle = "rgba(255,0,0,0.4)";
-    this.ctx.moveTo(1, 1);
-    this.ctx.lineTo(this.resolution, 1);
-
-    this.ctx.arc(this.resolution, 1, 2, 0, Math.PI*2, true);
-
+    this.ctx.moveTo(-(arrowSize/2), 0);
+    this.ctx.lineTo((arrowSize/2)-arrowHeadSize, 0);
     this.ctx.closePath();
     this.ctx.stroke();
+
+    this.ctx.beginPath();
+    this.ctx.moveTo((arrowSize/2)-arrowHeadSize, -arrowHeadSize);
+    this.ctx.lineTo((arrowSize/2)-arrowHeadSize, arrowHeadSize);
+    this.ctx.lineTo(arrowSize/2, 0);
+    this.ctx.closePath();
+    this.ctx.fill();
+
     this.ctx.restore();
   }
 
@@ -248,7 +307,7 @@ export default class FlowField {
     canvas.height = height;
     canvas.width = width;
     canvas.setAttribute("id", "flowField");
-    canvas.style = "position: absolute; background:transparent; top:0; left:0;";
+    canvas.style = "position: absolute; background:transparent; top:0; left:0; z-index:-1";
     document.getElementsByTagName("BODY")[0].appendChild(canvas);
     return canvas.getContext("2d");
   }

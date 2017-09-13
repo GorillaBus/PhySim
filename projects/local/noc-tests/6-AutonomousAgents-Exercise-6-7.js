@@ -1,8 +1,8 @@
 /*
 
-  Exercise 6.8
+  Exercise 6.7
 
-  Create flowfield grid from image brightness
+  Create flowfield that changes over time
 */
 import AnimationPlayer from '../../../src/lib/AnimationPlayer';
 import Vector from '../../../src/lib/Vector';
